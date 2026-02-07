@@ -1,7 +1,17 @@
-.feature-box h3 {
-    font-size: 1.4rem;
-    margin-bottom: 1rem;
+.section-header {
+    margin-bottom: 4rem;
+}
+
+.section-header h2 {
+    font-size: 2.5rem;
     color: var(--primary-color);
+    margin-bottom: 1rem;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
 }
 
 .feature-box {
@@ -9,13 +19,50 @@
     padding: 2.5rem;
     border-radius: 12px;
     border: 1px solid #eee;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+.feature-box:hover {
+    transform: translateY(-10px);
+    box-shadow: var(0 15px 40px rgba(0, 51, 102, 0.15));
+    border-color: var(#003366);
+}
+
+.icon-wrapper {
+    width: 60px;
+    height: 60px;
+    background: rgba(0, 51, 102, 0.1);
+    border-radius: 50%;
+    display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.5rem;
     color: var(--primary-color);
     margin-bottom: 1.5rem;
-    height: 100%;
+    transition: var(--transition);
 }
+
+.feature-box:hover .icon-wrapper {
+    background: var(--primary-color);
+    color: var(#ffffff);
+}
+
+.feature-box h3 {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+}
+
+.feature-box p {
+    color: #666;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+}
+
 .link-arrow {
     font-weight: bold;
     color: var(--primary-color);
@@ -26,17 +73,4 @@
     white-space: nowrap;
     display: inline-block;
 }
-.info-content h2 {
-    font-size: 2.2rem;
-    margin-bottom: 1.5rem;
-    color: var(--primary-color);
-}
-.timeline-inner {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 1rem;
-    width: 100%;
-    position: relative;
-}
+
