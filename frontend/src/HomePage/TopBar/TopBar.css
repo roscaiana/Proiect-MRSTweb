@@ -1,0 +1,16 @@
+﻿.top-bar {
+    background-color: #003366;
+    color: rgba(255, 255, 255, 0.8);
+    padding: 8px 0;
+    font-size: 0.9rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.official-notice {
+    margin-left: 9px;
+}
+
+.official-notice i {
+    margin-right: 8px;
+    color: var(--accent-color);
+}

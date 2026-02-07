@@ -1,0 +1,101 @@
+﻿.main-header {
+    background: var(--white);
+    padding: 1rem 0;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.sidebar-trigger {
+    background: transparent;
+    border: none;
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 5px;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-trigger:hover {
+    color: var(--accent-color);
+    transform: scale(1.1);
+}
+
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.logo-emblem {
+    width: 50px;
+    height: 50px;
+}
+
+.logo-text h1 {
+    color: var(--primary-color);
+    font-size: 1.8rem;
+    line-height: 1;
+    font-weight: bold;
+    letter-spacing: -0.5px;
+}
+
+.logo-text .tagline {
+    font-size: 0.85rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.main-nav ul {
+    display: flex;
+    gap: 2rem;
+}
+
+.main-nav a {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    position: relative;
+    padding: 5px 0;
+}
+
+.main-nav a::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: var(--accent-color);
+    transition: var(--transition);
+}
+
+.main-nav a:hover::after,
+.main-nav a.active::after {
+    width: 100%;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+@media (max-width: 992px) {
+    .header-actions {
+        display: none;
+    }
+    .main-nav {
+        display: none;
+    }
+}
