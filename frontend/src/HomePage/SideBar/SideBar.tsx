@@ -1,4 +1,4 @@
-﻿import "./Sidebar.css";
+﻿import "./SideBar.css";
 
 type Props = {
     open: boolean;
@@ -6,14 +6,14 @@ type Props = {
 };
 
 export default function Sidebar({ open, onClose }: Props) {
-    const block = (e: React.MouseEvent) => e.preventDefault();
+    const stopLink = (e: React.MouseEvent<HTMLAnchorElement>) => e.preventDefault();
 
     return (
         <>
-            <nav className={`sidebar ${open ? "active" : ""}`}>
+            <nav className={`sidebar ${open ? "active" : ""}`} id="main-sidebar">
                 <div className="sidebar-header">
                     <div className="logo-area white-text">
-                        <div className="logo-emblem sidebar-logo">
+                        <div className="logo-emblem" style={{ width: 40, height: 40 }}>
                             <svg viewBox="0 0 100 100" className="svg-logo">
                                 <defs>
                                     <linearGradient id="goldGradientSidebarFix" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -31,7 +31,7 @@ export default function Sidebar({ open, onClose }: Props) {
                         <h2>e-Electoral</h2>
                     </div>
 
-                    <button className="close-sidebar" type="button" onClick={onClose}>
+                    <button className="close-sidebar" onClick={onClose} aria-label="Close sidebar">
                         <i className="fas fa-times"></i>
                     </button>
                 </div>
@@ -40,18 +40,18 @@ export default function Sidebar({ open, onClose }: Props) {
                     <div className="sidebar-section">
                         <h4>Navigație</h4>
                         <ul>
-                            <li><a href="#" onClick={block}><i className="fas fa-home"></i> Acasă</a></li>
-                            <li><a href="#" onClick={block}><i className="fas fa-clipboard-check"></i> Teste</a></li>
-                            <li><a href="#" onClick={block}><i className="fas fa-user-plus"></i> Înscriere</a></li>
-                            <li><a href="#" onClick={block}><i className="fas fa-book-open"></i> Resurse</a></li>
+                            <li><a href="#" onClick={stopLink}><i className="fas fa-home"></i> Acasă</a></li>
+                            <li><a href="#" onClick={stopLink}><i className="fas fa-clipboard-check"></i> Teste</a></li>
+                            <li><a href="#" onClick={stopLink}><i className="fas fa-user-plus"></i> Înscriere</a></li>
+                            <li><a href="#" onClick={stopLink}><i className="fas fa-book-open"></i> Resurse</a></li>
                         </ul>
                     </div>
 
                     <div className="sidebar-section">
                         <h4>Contul Meu</h4>
                         <ul>
-                            <li><a href="#" onClick={block}><i className="fas fa-headset"></i> Suport</a></li>
-                            <li><a href="#" onClick={block}><i className="fas fa-sign-out-alt"></i> Deconectare</a></li>
+                            <li><a href="#" onClick={stopLink}><i className="fas fa-headset"></i> Suport</a></li>
+                            <li><a href="#" onClick={stopLink}><i className="fas fa-sign-out-alt"></i> Deconectare</a></li>
                         </ul>
                     </div>
                 </div>
@@ -61,7 +61,7 @@ export default function Sidebar({ open, onClose }: Props) {
                 </div>
             </nav>
 
-            <div className={`sidebar-overlay ${open ? "active" : ""}`} onClick={onClose} />
+            <div className={`sidebar-overlay ${open ? "active" : ""}`} onClick={onClose}></div>
         </>
     );
 }
