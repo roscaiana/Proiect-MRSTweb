@@ -1,0 +1,42 @@
+.feature-box h3 {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+}
+
+.feature-box {
+    background: var(#ffffff);
+    padding: 2.5rem;
+    border-radius: 12px;
+    border: 1px solid #eee;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+    height: 100%;
+}
+.link-arrow {
+    font-weight: bold;
+    color: var(--primary-color);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: auto;
+    white-space: nowrap;
+    display: inline-block;
+}
+.info-content h2 {
+    font-size: 2.2rem;
+    margin-bottom: 1.5rem;
+    color: var(--primary-color);
+}
+.timeline-inner {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    width: 100%;
+    position: relative;
+}
