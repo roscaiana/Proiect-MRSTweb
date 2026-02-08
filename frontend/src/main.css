@@ -18,14 +18,18 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: var(--font-main);
 }
 
 body {
+    font-family: var(--font-main);
     background-color: var(--light-bg);
-    color: var(#333);
+    color: var(--text-color);
     line-height: 1.6;
     overflow-x: hidden;
+}
+
+#root {
+    width: 100%;
 }
 
 a {
