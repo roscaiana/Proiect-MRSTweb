@@ -62,14 +62,26 @@ const Support: React.FC = () => {
             answer: 'Dacă întâmpinați erori tehnice, vă rugăm să contactați echipa de suport prin formularul de contact sau să utilizați chat-ul de asistență disponibil în colțul din dreapta jos al ecranului.'
         }
     ];
+
+    const filteredFaqs = useMemo(() => {
+        return faqs.filter(faq => {
+            // @ts-ignore
+            // @ts-ignore
+            // @ts-ignore
+            const matchesSearch = faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                faq.answer.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesCategory = activeCategory === 'all' || faq.category === activeCategory;
+            return matchesSearch && matchesCategory;
+        });
+    }, [searchQuery, activeCategory]);
     
     return (
         <div className="bg-white min-h-screen">
             <div className="max-w-7xl mx-auto px-4 py-20 text-center">
                 <h1 className="text-4xl font-bold text-slate-900">Pagina de Suport</h1>
-                <p className="mt-4 text-slate-500">Datele FAQ au fost încărcate ({faqs.length} întrebări).</p>
+                <p className="mt-4 text-slate-500">Logica de filtrare este activă ({filteredFaqs.length} rezultate găsite).</p>
                 <div className="mt-8 p-4 bg-blue-50 text-blue-700 rounded-lg inline-block font-mono text-sm">
-                    Pasul 4 finalizat
+                    Pasul 5 finalizat
                 </div>
             </div>
         </div>
