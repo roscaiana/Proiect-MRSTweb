@@ -73,11 +73,31 @@ const Support: React.FC = () => {
     }, [searchQuery, activeCategory]);
     
     return (
-        <div className="bg-slate-50 min-h-screen pb-20">
-            <div className="bg-blue-600 text-white text-center py-2 text-xs font-mono">
-                Pasul 6
+        <div className="bg-white min-h-screen">
+            {/* Hero Section */}
+            <div className="bg-[#003366] py-20 px-4 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-1/3 h-full bg-white/5 skew-x-12 translate-x-1/2"></div>
+                <div className="max-w-4xl mx-auto text-center relative z-10">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full text-white text-sm font-medium mb-6 backdrop-blur-sm border border-white/10">
+                        <LifeBuoy className="w-4 h-4" />
+                        Centrul de Ajutor e-Electoral
+                    </div>
+                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-8 tracking-tight">
+                        Cum vă putem ajuta astăzi?
+                    </h1>
+                    <div className="relative max-w-2xl mx-auto group">
+                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#003366] transition-colors" />
+                        <input
+                            type="text"
+                            placeholder="Căutați întrebări, cursuri sau ghiduri..."
+                            className="w-full pl-14 pr-6 py-5 bg-white rounded-2xl shadow-xl focus:outline-none focus:ring-4 focus:ring-white/10 text-slate-800 text-lg transition-all border-none"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </div>
+                </div>
             </div>
-            {/* Container Principal cu 2 Coloane */}
+            
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
                 <div className="flex flex-col lg:flex-row gap-12">
 
