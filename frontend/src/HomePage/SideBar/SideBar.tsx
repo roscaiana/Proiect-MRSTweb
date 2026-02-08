@@ -23,7 +23,7 @@ export default function Sidebar({ open, onClose }: Props) {
                                 </defs>
                                 <path d="M50 5 L90 25 V75 L50 95 L10 75 V25 L50 5 Z" fill="#003366" stroke="white" strokeWidth="2" />
                                 <path d="M50 20 L80 35 V65 L50 80 L20 65 V35 L50 20 Z" fill="none" stroke="url(#goldGradientSidebarFix)" strokeWidth="3" />
-                                <text x="50" y="60" textAnchor="middle" fill="white" fontSize="34" fontFamily="Georgia, serif" fontWeight="bold">
+                                <text x="50" y="62" textAnchor="middle" fill="white" fontSize="34" fontFamily="Inter, sans-serif" fontWeight="bold">
                                     E
                                 </text>
                             </svg>
