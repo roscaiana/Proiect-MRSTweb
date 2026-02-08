@@ -1,5 +1,5 @@
 ﻿.main-header {
-    background: var(--white);
+    background: var(#ffffff);
     padding: 1rem 0;
     box-shadow: 0 2px 20px rgba(0, 0, 0, 0.05);
     position: sticky;
@@ -16,18 +16,18 @@
 .sidebar-trigger {
     background: transparent;
     border: none;
-    color: var(--primary-color);
+    color: var(#003366);
     font-size: 1.5rem;
     cursor: pointer;
     padding: 5px;
-    transition: var(--transition);
+    transition: var(all 0.3s ease);
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .sidebar-trigger:hover {
-    color: var(--accent-color);
+    color: var(#f1c40f);
     transform: scale(1.1);
 }
 
@@ -43,7 +43,7 @@
 }
 
 .logo-text h1 {
-    color: var(--primary-color);
+    color: var(#003366);
     font-size: 1.8rem;
     line-height: 1;
     font-weight: bold;
@@ -65,7 +65,7 @@
 .main-nav a {
     font-size: 1.1rem;
     font-weight: 600;
-    color: var(--primary-color);
+    color: var(#003366);
     position: relative;
     padding: 5px 0;
 }
@@ -77,8 +77,8 @@
     left: 0;
     width: 0;
     height: 2px;
-    background: var(--accent-color);
-    transition: var(--transition);
+    background: var(#f1c40f);
+    transition: var(all 0.3s ease);
 }
 
 .main-nav a:hover::after,

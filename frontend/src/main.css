@@ -1,0 +1,118 @@
+﻿@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    --primary-color: #003366;
+    --secondary-color: #003366;
+    --accent-color: #f1c40f;
+    --text-color: #333;
+    --light-bg: #f8f9fa;
+    --white: #ffffff;
+    --font-main: 'Inter';
+    --font-ui: 'Inter';
+    --transition: all 0.3s ease;
+    --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.08);
+    --shadow-hover: 0 15px 40px rgba(0, 51, 102, 0.15);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: var(--font-main);
+}
+
+body {
+    background-color: var(--light-bg);
+    color: var(#333);
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: var(--transition);
+}
+
+ul {
+    list-style: none;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.flex-between {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.mt-4 {
+    margin-top: 2rem;
+}
+
+.btn {
+    padding: 0.6rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-family: var(--font-main);
+    transition: var(--transition);
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 1px solid #ddd;
+    color: var(--primary-color);
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: var(--white);
+    box-shadow: 0 4px 15px rgba(35, 57, 93, 0.3);
+}
+
+.btn-primary:hover {
+    background: #003366;
+    transform: translateY(-2px);
+}
+
+.btn-lg {
+    padding: 1rem 2.5rem;
+    font-size: 1.1rem;
+}
+
+.btn-warning {
+    background: var(--accent-color);
+    color: #000;
+}
+
+.btn-warning:hover {
+    background: #e2b607;
+}
+
+.separator {
+    width: 80px;
+    height: 4px;
+    background: var(--accent-color);
+    margin: 0 auto;
+}
+
+.separator-small {
+    width: 60px;
+    height: 4px;
+    background: var(--accent-color);
+    margin: 0 0 2rem 0;
+    border-radius: 2px;
+}

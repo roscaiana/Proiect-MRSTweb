@@ -1,17 +1,15 @@
 ﻿import "./Header.css";
 
-type Props = {
-    onOpenSidebar: () => void;
-};
+type Props = { onOpenSidebar: () => void };
 
 export default function Header({ onOpenSidebar }: Props) {
-    const block = (e: React.MouseEvent) => e.preventDefault();
+    const stopLink = (e: React.MouseEvent<HTMLAnchorElement>) => e.preventDefault();
 
     return (
         <header className="main-header">
             <div className="container flex-between">
                 <div className="header-left">
-                    <button className="sidebar-trigger" type="button" onClick={onOpenSidebar}>
+                    <button className="sidebar-trigger" onClick={onOpenSidebar} aria-label="Open sidebar">
                         <i className="fas fa-bars"></i>
                     </button>
 
@@ -24,7 +22,6 @@ export default function Header({ onOpenSidebar }: Props) {
                                         <stop offset="100%" style={{ stopColor: "#b7950b", stopOpacity: 1 }} />
                                     </linearGradient>
                                 </defs>
-
                                 <path d="M50 5 L90 25 V75 L50 95 L10 75 V25 L50 5 Z" fill="#003366" stroke="white" strokeWidth="2" />
                                 <path d="M50 20 L80 35 V65 L50 80 L20 65 V35 L50 20 Z" fill="none" stroke="url(#goldGradient)" strokeWidth="3" />
                                 <text x="50" y="60" textAnchor="middle" fill="white" fontSize="34" fontFamily="Georgia, serif" fontWeight="bold">
@@ -42,12 +39,12 @@ export default function Header({ onOpenSidebar }: Props) {
 
                 <nav className="main-nav">
                     <ul>
-                        <li><a href="#" className="active" onClick={block}>Acasă</a></li>
-                        <li><a href="#" onClick={block}>Teste</a></li>
-                        <li><a href="#" onClick={block}>Înscriere</a></li>
-                        <li><a href="#" onClick={block}>Despre</a></li>
-                        <li><a href="#" onClick={block}>Suport</a></li>
-                        <li><a href="#" onClick={block}>Contacte</a></li>
+                        <li><a href="#" className="active" onClick={stopLink}>Acasă</a></li>
+                        <li><a href="#" onClick={stopLink}>Teste</a></li>
+                        <li><a href="#" onClick={stopLink}>Înscriere</a></li>
+                        <li><a href="#" onClick={stopLink}>Despre</a></li>
+                        <li><a href="#" onClick={stopLink}>Suport</a></li>
+                        <li><a href="#" onClick={stopLink}>Contacte</a></li>
                     </ul>
                 </nav>
 
@@ -62,4 +59,5 @@ export default function Header({ onOpenSidebar }: Props) {
             </div>
         </header>
     );
+
 }
