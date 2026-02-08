@@ -65,9 +65,6 @@ const Support: React.FC = () => {
 
     const filteredFaqs = useMemo(() => {
         return faqs.filter(faq => {
-            // @ts-ignore
-            // @ts-ignore
-            // @ts-ignore
             const matchesSearch = faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 faq.answer.toLowerCase().includes(searchQuery.toLowerCase());
             const matchesCategory = activeCategory === 'all' || faq.category === activeCategory;
@@ -76,12 +73,29 @@ const Support: React.FC = () => {
     }, [searchQuery, activeCategory]);
     
     return (
-        <div className="bg-white min-h-screen">
-            <div className="max-w-7xl mx-auto px-4 py-20 text-center">
-                <h1 className="text-4xl font-bold text-slate-900">Pagina de Suport</h1>
-                <p className="mt-4 text-slate-500">Logica de filtrare este activă ({filteredFaqs.length} rezultate găsite).</p>
-                <div className="mt-8 p-4 bg-blue-50 text-blue-700 rounded-lg inline-block font-mono text-sm">
-                    Pasul 5 finalizat
+        <div className="bg-slate-50 min-h-screen pb-20">
+            <div className="bg-blue-600 text-white text-center py-2 text-xs font-mono">
+                Pasul 6
+            </div>
+            {/* Container Principal cu 2 Coloane */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+                <div className="flex flex-col lg:flex-row gap-12">
+
+                    <aside className="lg:w-1/4">
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                            <h2 className="font-bold text-slate-800 mb-4">Categorii</h2>
+                            <p className="text-sm text-slate-400 italic">Meniul va fi adăugat.</p>
+                        </div>
+                    </aside>
+                    
+                    <main className="lg:w-3/4">
+                        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 min-h-[400px]">
+                            <h2 className="text-2xl font-bold text-slate-800 mb-6">Întrebări frecvente</h2>
+                            <p className="text-slate-500">
+                                Aici vor apărea cele **{filteredFaqs.length}** rezultate găsite.
+                            </p>
+                        </div>
+                    </main>
                 </div>
             </div>
         </div>
