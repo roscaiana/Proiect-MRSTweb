@@ -1,8 +1,8 @@
 ﻿.hero-complex {
-    background: linear-gradient(135deg, var(--primary-color) 0%, #1a2639 100%);
+    background: linear-gradient(135deg, #003366 0%, #1a2639 100%);
     min-height: 600px;
     position: relative;
-    color: var(--white);
+    color: #ffffff;
     display: flex;
     align-items: center;
     overflow: hidden;
@@ -32,8 +32,8 @@
 
 .badge-new {
     background: rgba(241, 196, 15, 0.2);
-    color: var(--accent-color);
-    border: 1px solid var(--accent-color);
+    color: #FFC107;
+    border: 1px solid #FFC107;
     display: inline-block;
     padding: 5px 15px;
     border-radius: 20px;
@@ -43,7 +43,7 @@
 }
 
 .hero-title-main {
-    font-family: var(--font-main), serif;
+    font-family: 'Inter', sans-serif;
     font-size: 3.8rem;
     font-weight: 800;
     line-height: 1.1;
@@ -57,6 +57,7 @@
     opacity: 0.9;
     margin-bottom: 2.5rem;
     max-width: 600px;
+    line-height: 1.6;
 }
 
 .hero-buttons {
@@ -75,8 +76,11 @@
 .mini-stat strong {
     display: block;
     font-size: 1.8rem;
-    color: var(--white); /* FIX */
-}.mini-stat span {
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.mini-stat span {
     font-size: 0.9rem;
     opacity: 0.7;
     text-transform: uppercase;
@@ -103,7 +107,7 @@
     background: rgba(25, 40, 65, 0.6);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.15);
-    border-top: 1px solid rgba(255, 255, 255, 0.3);
+    border-top: 3px solid #FFC107; /* Linia galbenă de sus */
     border-radius: 24px;
     padding: 3rem;
     width: 440px;
@@ -140,20 +144,21 @@
 
 .glass-body h3 {
     font-size: 1.8rem;
-    color: var(--white);
-    margin-bottom: 0.5rem;
-    font-weight: bold;
+    color: #ffffff;
+    margin-bottom: 0.8rem;
+    font-weight: 700;
 }
 
 .glass-body p {
     font-size: 1rem;
     color: rgba(255, 255, 255, 0.8);
-    margin-bottom: 2.5rem;
+    margin-bottom: 2rem;
+    line-height: 1.5;
 }
 
 .approval-badge {
-    background: var(--accent-color);
-    color: #000;
+    background: #FFC107;
+    color: #000000;
     padding: 0.8rem 1.5rem;
     border-radius: 30px;
     display: inline-flex;
@@ -161,7 +166,8 @@
     gap: 10px;
     font-weight: bold;
     font-size: 1rem;
-    box-shadow: 0 5px 15px rgba(241, 196, 15, 0.3);}
+    box-shadow: 0 5px 15px rgba(241, 196, 15, 0.3);
+}
 
 @keyframes shine {
     0% { top: -150%; left: -150%; }
