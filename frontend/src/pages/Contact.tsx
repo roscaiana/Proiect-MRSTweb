@@ -63,6 +63,25 @@ const Contact: React.FC = () => {
                     </p>
                 </div>
             </div>
+            
+            <div className="max-w-7xl mx-auto px-4 -mt-10 pb-20">
+                <div className="grid lg:grid-cols-3 gap-8 items-start">
+                    {/* Sidebar - Contact info + Map */}
+                    <div className="space-y-4">
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                            <p className="text-slate-500">Informații contact în curând...</p>
+                        </div>
+                    </div>
+
+                    {/* Form Section */}
+                    <div className="lg:col-span-2">
+                        <div className="bg-white p-8 md:p-12 rounded-3xl shadow-lg border border-slate-100 h-full">
+                            <p className="text-slate-500">Formular contact în curând...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
         </div>
     );
 };
