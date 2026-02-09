@@ -1,4 +1,5 @@
 import React, { useState, FormEvent } from 'react';
+import { Mail, Phone, MapPin } from 'lucide-react';
 import { ContactFormData } from '@/types';
 
 const Contact: React.FC = () => {
@@ -69,7 +70,39 @@ const Contact: React.FC = () => {
                     {/* Sidebar - Contact info + Map */}
                     <div className="space-y-4">
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                            <p className="text-slate-500">Informații contact în curând...</p>
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-blue-50 text-[#003366] rounded-xl">
+                                    <Mail className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-slate-900">Email</h3>
+                                    <p className="text-slate-500 text-sm">contact@e-electoral.md</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-blue-50 text-[#003366] rounded-xl">
+                                    <Phone className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-slate-900">Telefon</h3>
+                                    <p className="text-slate-500 text-sm">+373 22 232 506</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-blue-50 text-[#003366] rounded-xl">
+                                    <MapPin className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold text-slate-900">Adresă</h3>
+                                    <p className="text-slate-500 text-sm">str. Vasile Alecsandri, 119</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
