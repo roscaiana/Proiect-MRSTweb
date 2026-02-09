@@ -1,13 +1,13 @@
 // @ts-ignore
 import React, { useState, useMemo } from 'react';
-import {Search, ChevronDown, ChevronUp, LifeBuoy, FileText, HelpCircle, Calculator} from 'lucide-react';
+import { Search, ChevronDown, ChevronUp, LifeBuoy, FileText, HelpCircle, Calculator } from 'lucide-react';
 import { FaqItem, FaqCategory } from '../types';
 
 const Support: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [activeCategory, setActiveCategory] = useState('all');
-    const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
-    
+    const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+
     const categories: FaqCategory[] = [
         { id: 'all', title: 'Toate întrebările', icon: HelpCircle },
         { id: 'general', title: 'Informații Generale', icon: FileText },
@@ -100,8 +100,7 @@ const Support: React.FC = () => {
 
             <div className="max-w-7xl mx-auto px-4 py-12">
                 <div className="grid lg:grid-cols-4 gap-8 items-start">
-                    {/* Sidebar Categories */}
-                    <div className="lg:col-span-1 space-y-4">
+                    <div className="lg:col-span-1 flex flex-col gap-6">
                         <div className="bg-white p-6 rounded-3xl shadow-xl border border-slate-100 flex flex-col gap-2">
                             <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest px-2 mb-2">Categorii</h2>
                             {categories.map((cat) => {
@@ -122,7 +121,6 @@ const Support: React.FC = () => {
                                 );
                             })}
                         </div>
-                    </div>
 
                     {/* Suport Direct*/}
                     <div className="bg-gradient-to-br from-[#f1c40f]/10 to-[#f1c40f]/5 p-8 rounded-3xl border border-[#f1c40f]/20 shadow-sm">
@@ -131,16 +129,51 @@ const Support: React.FC = () => {
                         <a href="/contact" className="inline-flex items-center gap-2 bg-[#003366] text-white px-6 py-3 rounded-xl text-sm font-bold hover:shadow-xl transition-all active:scale-95">
                             Contactați-ne
                         </a>
-                    </div>
-           
-                    <main className="lg:w-3/4">
-                        <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 min-h-[400px]">
-                            <h2 className="text-2xl font-bold text-slate-800 mb-6">Întrebări frecvente</h2>
-                            <p className="text-slate-500">
-                                Aici vor apărea cele **{filteredFaqs.length}** rezultate găsite.
-                            </p>
                         </div>
-                    </main>
+                    </div>
+
+                    {/* FAQ Content */}
+                    <div className="lg:col-span-3 space-y-4">
+                        {filteredFaqs.length > 0 ? (
+                            filteredFaqs.map((faq: FaqItem, idx: number) => (
+                                <div
+                                    key={idx}
+                                    className={`bg-white rounded-3xl border transition-all duration-300 ${openFaqIndex === idx
+                                        ? 'border-[#003366]/20 shadow-xl ring-1 ring-[#003366]/5'
+                                        : 'border-slate-100 shadow-sm hover:border-slate-200'
+                                    }`}
+                                >
+                                    <button
+                                        onClick={() => setOpenFaqIndex(openFaqIndex === idx ? null : idx)}
+                                        className="w-full flex items-center justify-between p-7 text-left group"
+                                    >
+                                        <span className={`text-lg font-bold transition-colors ${openFaqIndex === idx ? 'text-[#003366]' : 'text-slate-800 group-hover:text-[#003366]'
+                                        }`}>
+                                            {faq.question}
+                                        </span>
+                                        <div className={`p-2 rounded-full transition-all ${openFaqIndex === idx ? 'bg-[#003366] text-white rotate-180' : 'bg-slate-50 text-slate-400'
+                                        }`}>
+                                            <ChevronDown className="w-5 h-5" />
+                                        </div>
+                                    </button>
+                                    {openFaqIndex === idx && (
+                                        <div className="px-7 pb-7">
+                                            <div className="h-px bg-slate-100 mb-6"></div>
+                                            <p className="text-slate-600 leading-relaxed text-lg">
+                                                {faq.answer}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            ))
+                        ) : (
+                            <div className="bg-white rounded-3xl border border-slate-100 p-20 text-center">
+                                <Search className="w-16 h-16 text-slate-100 mx-auto mb-6" />
+                                <h3 className="text-xl font-bold text-slate-800 mb-2">Niciun rezultat găsit</h3>
+                                <p className="text-slate-500">Încercați alți termeni de căutare sau alegeți o altă categorie.</p>
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
