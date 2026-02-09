@@ -99,7 +99,7 @@ const Support: React.FC = () => {
             </div>
 
             <div className="max-w-7xl mx-auto px-4 py-12">
-                <div className="grid lg:grid-cols-4 gap-8">
+                <div className="grid lg:grid-cols-4 gap-8 items-start">
                     {/* Sidebar Categories */}
                     <div className="lg:col-span-1 space-y-4">
                         <div className="bg-white p-6 rounded-3xl shadow-xl border border-slate-100 flex flex-col gap-2">
@@ -122,6 +122,15 @@ const Support: React.FC = () => {
                                 );
                             })}
                         </div>
+                    </div>
+
+                    {/* Suport Direct*/}
+                    <div className="bg-gradient-to-br from-[#f1c40f]/10 to-[#f1c40f]/5 p-8 rounded-3xl border border-[#f1c40f]/20 shadow-sm">
+                        <h3 className="font-bold text-[#b7950b] mb-2 uppercase text-[10px] tracking-widest">Suport Direct</h3>
+                        <p className="text-slate-600 text-sm mb-6 leading-relaxed">Nu ați găsit răspunsul? Echipa noastră este gata să vă ajute.</p>
+                        <a href="/contact" className="inline-flex items-center gap-2 bg-[#003366] text-white px-6 py-3 rounded-xl text-sm font-bold hover:shadow-xl transition-all active:scale-95">
+                            Contactați-ne
+                        </a>
                     </div>
            
                     <main className="lg:w-3/4">
