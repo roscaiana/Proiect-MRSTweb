@@ -1,6 +1,37 @@
-import React from 'react';
+import React, { useState, FormEvent } from 'react';
+import { ContactFormData } from '@/types';
 
 const Contact: React.FC = () => {
+    const [formData, setFormData] = useState<ContactFormData>({
+        name: '',
+        email: '',
+        subject: '',
+        message: '',
+    });
+    
+    const [errors, setErrors] = useState<Partial<ContactFormData>>({});
+    const [isSubmitted, setIsSubmitted] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    
+    const validate = (): boolean => {
+        const newErrors: Partial<ContactFormData> = {};
+        if (!formData.name.trim()) newErrors.name = 'Numele este obligatoriu';
+        if (!formData.email.trim()) {
+            newErrors.email = 'Email-ul este obligatoriu';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+            newErrors.email = 'Adresa de email este invalidă';
+        }
+        if (!formData.subject.trim()) newErrors.subject = 'Subiectul este obligatoriu';
+        if (!formData.message.trim()) {
+            newErrors.message = 'Mesajul este obligatoriu';
+        } else if (formData.message.length < 10) {
+            newErrors.message = 'Mesajul trebuie să de minim 10 caractere';
+        }
+        
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+    
     return (
         <div className="bg-slate-50 min-h-screen">
             {/* Header Section */}
