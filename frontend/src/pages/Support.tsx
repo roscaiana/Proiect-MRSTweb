@@ -1,7 +1,7 @@
 // @ts-ignore
 import React, { useState, useMemo } from 'react';
-import { Search, ChevronDown, ChevronUp, LifeBuoy, FileText, HelpCircle, Calculator } from 'lucide-react';
-import { FaqItem, FaqCategory } from '../types';
+import { Search, ChevronDown, LifeBuoy, FileText, HelpCircle, Calculator } from 'lucide-react';
+import { FaqItem, FaqCategory } from '@/types';
 
 const Support: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -92,7 +92,10 @@ const Support: React.FC = () => {
                             placeholder="Căutați întrebări, cursuri sau ghiduri..."
                             className="w-full pl-14 pr-6 py-5 bg-white rounded-2xl shadow-xl focus:outline-none focus:ring-4 focus:ring-white/10 text-slate-800 text-lg transition-all border-none"
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                setOpenFaqIndex(null);
+                            }}
                         />
                     </div>
                 </div>
@@ -109,7 +112,10 @@ const Support: React.FC = () => {
                                 return (
                                     <button
                                         key={cat.id}
-                                        onClick={() => setActiveCategory(cat.id)}
+                                        onClick={() => {
+                                            setActiveCategory(cat.id);
+                                            setOpenFaqIndex(null);
+                                        }}
                                         className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${isActive
                                             ? 'bg-[#003366] text-white shadow-lg shadow-blue-900/20'
                                             : 'text-slate-600 hover:bg-slate-50 hover:text-[#003366]'
@@ -123,7 +129,7 @@ const Support: React.FC = () => {
                         </div>
 
                     {/* Suport Direct*/}
-                    <div className="bg-gradient-to-br from-[#f1c40f]/10 to-[#f1c40f]/5 p-8 rounded-3xl border border-[#f1c40f]/20 shadow-sm">
+                    <div className="bg-linear-to-br from-[#f1c40f]/10 to-[#f1c40f]/5 p-8 rounded-3xl border border-[#f1c40f]/20 shadow-sm">
                         <h3 className="font-bold text-[#b7950b] mb-2 uppercase text-[10px] tracking-widest">Suport Direct</h3>
                         <p className="text-slate-600 text-sm mb-6 leading-relaxed">Nu ați găsit răspunsul? Echipa noastră este gata să vă ajute.</p>
                         <a href="/contact" className="inline-flex items-center gap-2 bg-[#003366] text-white px-6 py-3 rounded-xl text-sm font-bold hover:shadow-xl transition-all active:scale-95">
