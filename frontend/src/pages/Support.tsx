@@ -1,6 +1,6 @@
 // @ts-ignore
 import React, { useState, useMemo } from 'react';
-import { Search, ChevronDown, ChevronUp, LifeBuoy, FileText, HelpCircle } from 'lucide-react';
+import {Search, ChevronDown, ChevronUp, LifeBuoy, FileText, HelpCircle, Calculator} from 'lucide-react';
 import { FaqItem, FaqCategory } from '../types';
 
 const Support: React.FC = () => {
@@ -11,7 +11,7 @@ const Support: React.FC = () => {
     const categories: FaqCategory[] = [
         { id: 'all', title: 'Toate întrebările', icon: HelpCircle },
         { id: 'general', title: 'Informații Generale', icon: FileText },
-        { id: 'exam', title: 'Examen și Certificare', icon: FileText },
+        { id: 'exam', title: 'Examen și Certificare', icon: Calculator },
         { id: 'technical', title: 'Suport Tehnic', icon: LifeBuoy },
     ];
     
@@ -97,17 +97,33 @@ const Support: React.FC = () => {
                     </div>
                 </div>
             </div>
-            
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
-                <div className="flex flex-col lg:flex-row gap-12">
 
-                    <aside className="lg:w-1/4">
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                            <h2 className="font-bold text-slate-800 mb-4">Categorii</h2>
-                            <p className="text-sm text-slate-400 italic">Meniul va fi adăugat.</p>
+            <div className="max-w-7xl mx-auto px-4 py-12">
+                <div className="grid lg:grid-cols-4 gap-8">
+                    {/* Sidebar Categories */}
+                    <div className="lg:col-span-1 space-y-4">
+                        <div className="bg-white p-6 rounded-3xl shadow-xl border border-slate-100 flex flex-col gap-2">
+                            <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest px-2 mb-2">Categorii</h2>
+                            {categories.map((cat) => {
+                                const Icon = cat.icon;
+                                const isActive = activeCategory === cat.id;
+                                return (
+                                    <button
+                                        key={cat.id}
+                                        onClick={() => setActiveCategory(cat.id)}
+                                        className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${isActive
+                                            ? 'bg-[#003366] text-white shadow-lg shadow-blue-900/20'
+                                            : 'text-slate-600 hover:bg-slate-50 hover:text-[#003366]'
+                                        }`}
+                                    >
+                                        <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                                        {cat.title}
+                                    </button>
+                                );
+                            })}
                         </div>
-                    </aside>
-                    
+                    </div>
+           
                     <main className="lg:w-3/4">
                         <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 min-h-[400px]">
                             <h2 className="text-2xl font-bold text-slate-800 mb-6">Întrebări frecvente</h2>
