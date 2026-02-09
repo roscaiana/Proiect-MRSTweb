@@ -31,6 +31,26 @@ const Contact: React.FC = () => {
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
+
+    const handleSubmit = (e: FormEvent) => {
+        e.preventDefault();
+        if (validate()) {
+            setIsSubmitting(true);
+            setTimeout(() => {
+                setIsSubmitting(false);
+                setIsSubmitted(true);
+                setFormData({ name: '', email: '', subject: '', message: '' });
+            }, 1500);
+        }
+    };
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+        if (errors[name as keyof ContactFormData]) {
+            setErrors(prev => ({ ...prev, [name]: undefined }));
+        }
+    };
     
     return (
         <div className="bg-slate-50 min-h-screen">
