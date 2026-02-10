@@ -2,7 +2,7 @@
 
 import TopBar from "../HomePage/TopBar/TopBar";
 import Header from "../HomePage/Header/Header";
-import Sidebar from "../HomePage/Sidebar/Sidebar";
+import Sidebar from "../HomePage/SideBar/SideBar";
 import Hero from "../HomePage/Hero/Hero";
 import About from "../HomePage/About/About";
 import Features from "../HomePage/Features/Features";

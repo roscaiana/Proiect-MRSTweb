@@ -1,4 +1,5 @@
-﻿import "./Header.css";
+import { Link } from "react-router-dom";
+import "./Header.css";
 
 type Props = { onOpenSidebar: () => void };
 
@@ -39,12 +40,12 @@ export default function Header({ onOpenSidebar }: Props) {
 
                 <nav className="main-nav">
                     <ul>
-                        <li><a href="#" className="active" onClick={stopLink}>Acasă</a></li>
+                        <li><Link to="/" className="active">Acasă</Link></li>
                         <li><a href="#" onClick={stopLink}>Teste</a></li>
                         <li><a href="#" onClick={stopLink}>Înscriere</a></li>
                         <li><a href="#" onClick={stopLink}>Despre</a></li>
-                        <li><a href="#" onClick={stopLink}>Suport</a></li>
-                        <li><a href="#" onClick={stopLink}>Contacte</a></li>
+                        <li><Link to="/support">Suport</Link></li>
+                        <li><Link to="/contact">Contacte</Link></li>
                     </ul>
                 </nav>
 
