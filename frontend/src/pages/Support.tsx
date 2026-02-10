@@ -1,7 +1,9 @@
 // @ts-ignore
+// Updated: Uses Support.css
 import React, { useState, useMemo } from 'react';
-import { Search, ChevronDown, LifeBuoy, FileText, HelpCircle, Calculator } from 'lucide-react';
-import { FaqItem, FaqCategory } from '@/types';
+import { Search, ChevronDown, ChevronUp, LifeBuoy, FileText, HelpCircle, Calculator } from 'lucide-react';
+import { FaqItem, FaqCategory } from '../types';
+import './Support.css';
 
 const Support: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -14,7 +16,7 @@ const Support: React.FC = () => {
         { id: 'exam', title: 'Examen și Certificare', icon: Calculator },
         { id: 'technical', title: 'Suport Tehnic', icon: LifeBuoy },
     ];
-    
+
     const faqs: (FaqItem & { category: string })[] = [
         {
             category: 'general',
@@ -71,112 +73,119 @@ const Support: React.FC = () => {
             return matchesSearch && matchesCategory;
         });
     }, [searchQuery, activeCategory]);
-    
+
     return (
-        <div className="bg-white min-h-screen">
+        <div className="support-container">
             {/* Hero Section */}
-            <div className="bg-[#003366] py-20 px-4 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-1/3 h-full bg-white/5 skew-x-12 translate-x-1/2"></div>
-                <div className="max-w-4xl mx-auto text-center relative z-10">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full text-white text-sm font-medium mb-6 backdrop-blur-sm border border-white/10">
-                        <LifeBuoy className="w-4 h-4" />
-                        Centrul de Ajutor e-Electoral
+            <div className="support-hero">
+                <div className="hero-overlay-1"></div>
+                <div className="hero-overlay-2"></div>
+
+                <div className="hero-content">
+                    <div className="hero-badge">
+                        <LifeBuoy className="w-4 h-4 text-blue-200" />
+                        <span className="uppercase">Centrul de Ajutor e-Electoral</span>
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-bold text-white mb-8 tracking-tight">
-                        Cum vă putem ajuta astăzi?
+
+                    <h1 className="hero-title">
+                        Cum vă putem <span className="hero-title-highlight">ajuta astăzi?</span>
                     </h1>
-                    <div className="relative max-w-2xl mx-auto group">
-                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#003366] transition-colors" />
+
+                    <div className="hero-search-wrapper">
+                        <Search className="search-icon" />
                         <input
                             type="text"
                             placeholder="Căutați întrebări, cursuri sau ghiduri..."
-                            className="w-full pl-14 pr-6 py-5 bg-white rounded-2xl shadow-xl focus:outline-none focus:ring-4 focus:ring-white/10 text-slate-800 text-lg transition-all border-none"
+                            className="search-input"
                             value={searchQuery}
-                            onChange={(e) => {
-                                setSearchQuery(e.target.value);
-                                setOpenFaqIndex(null);
-                            }}
+                            onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 py-12">
-                <div className="grid lg:grid-cols-4 gap-8 items-start">
-                    <div className="lg:col-span-1 flex flex-col gap-6">
-                        <div className="bg-white p-6 rounded-3xl shadow-xl border border-slate-100 flex flex-col gap-2">
-                            <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest px-2 mb-2">Categorii</h2>
-                            {categories.map((cat) => {
-                                const Icon = cat.icon;
-                                const isActive = activeCategory === cat.id;
-                                return (
-                                    <button
-                                        key={cat.id}
-                                        onClick={() => {
-                                            setActiveCategory(cat.id);
-                                            setOpenFaqIndex(null);
-                                        }}
-                                        className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all ${isActive
-                                            ? 'bg-[#003366] text-white shadow-lg shadow-blue-900/20'
-                                            : 'text-slate-600 hover:bg-slate-50 hover:text-[#003366]'
-                                        }`}
-                                    >
-                                        <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                                        {cat.title}
-                                    </button>
-                                );
-                            })}
+            <div className="main-content">
+                <div className="support-grid">
+                    {/* Sidebar Section */}
+                    <div className="support-sidebar">
+                        {/* Categories Box */}
+                        <div className="categories-box">
+                            <h2 className="categories-title">CATEGORII</h2>
+                            <div className="category-list">
+                                {categories.map((cat) => {
+                                    const Icon = cat.icon;
+                                    const isActive = activeCategory === cat.id;
+                                    return (
+                                        <button
+                                            key={cat.id}
+                                            onClick={() => setActiveCategory(cat.id)}
+                                            className={`category-btn ${isActive ? 'active' : ''}`}
+                                        >
+                                            <Icon className="category-icon" />
+                                            {cat.title}
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
 
-                    {/* Suport Direct*/}
-                    <div className="bg-linear-to-br from-[#f1c40f]/10 to-[#f1c40f]/5 p-8 rounded-3xl border border-[#f1c40f]/20 shadow-sm">
-                        <h3 className="font-bold text-[#b7950b] mb-2 uppercase text-[10px] tracking-widest">Suport Direct</h3>
-                        <p className="text-slate-600 text-sm mb-6 leading-relaxed">Nu ați găsit răspunsul? Echipa noastră este gata să vă ajute.</p>
-                        <a href="/contact" className="inline-flex items-center gap-2 bg-[#003366] text-white px-6 py-3 rounded-xl text-sm font-bold hover:shadow-xl transition-all active:scale-95">
-                            Contactați-ne
-                        </a>
+                        {/* Direct Support Card */}
+                        <div className="direct-support-card">
+                            <div className="support-blob"></div>
+                            <div className="support-card-content">
+                                <h3 className="support-card-title">
+                                    <span className="support-card-dot"></span>
+                                    SUPORT DIRECT
+                                </h3>
+                                <p className="support-card-text">
+                                    Nu ați găsit răspunsul? Echipa noastră este gata să vă ajute.
+                                </p>
+                                <a href="/contact" className="contact-btn">
+                                    Contactați-ne
+                                </a>
+                            </div>
                         </div>
                     </div>
 
-                    {/* FAQ Content */}
-                    <div className="lg:col-span-3 space-y-4">
+                    {/* FAQ Content Section */}
+                    <div className="faq-section">
                         {filteredFaqs.length > 0 ? (
                             filteredFaqs.map((faq: FaqItem, idx: number) => (
                                 <div
                                     key={idx}
-                                    className={`bg-white rounded-3xl border transition-all duration-300 ${openFaqIndex === idx
-                                        ? 'border-[#003366]/20 shadow-xl ring-1 ring-[#003366]/5'
-                                        : 'border-slate-100 shadow-sm hover:border-slate-200'
-                                    }`}
+                                    className={`faq-item ${openFaqIndex === idx ? 'active' : ''}`}
                                 >
                                     <button
                                         onClick={() => setOpenFaqIndex(openFaqIndex === idx ? null : idx)}
-                                        className="w-full flex items-center justify-between p-7 text-left group"
+                                        className="faq-question-btn"
                                     >
-                                        <span className={`text-lg font-bold transition-colors ${openFaqIndex === idx ? 'text-[#003366]' : 'text-slate-800 group-hover:text-[#003366]'
-                                        }`}>
-                                            {faq.question}
-                                        </span>
-                                        <div className={`p-2 rounded-full transition-all ${openFaqIndex === idx ? 'bg-[#003366] text-white rotate-180' : 'bg-slate-50 text-slate-400'
-                                        }`}>
+                                        <span className="faq-question-text">{faq.question}</span>
+                                        <div className="faq-icon-wrapper">
                                             <ChevronDown className="w-5 h-5" />
                                         </div>
                                     </button>
-                                    {openFaqIndex === idx && (
-                                        <div className="px-7 pb-7">
-                                            <div className="h-px bg-slate-100 mb-6"></div>
-                                            <p className="text-slate-600 leading-relaxed text-lg">
-                                                {faq.answer}
-                                            </p>
+                                    <div className="faq-answer-wrapper">
+                                        <div className="faq-answer-inner">
+                                            <div className="faq-answer-content">
+                                                <div className="faq-divider"></div>
+                                                <p className="faq-answer-text">
+                                                    {faq.answer}
+                                                </p>
+                                            </div>
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
                             ))
                         ) : (
-                            <div className="bg-white rounded-3xl border border-slate-100 p-20 text-center">
-                                <Search className="w-16 h-16 text-slate-100 mx-auto mb-6" />
-                                <h3 className="text-xl font-bold text-slate-800 mb-2">Niciun rezultat găsit</h3>
-                                <p className="text-slate-500">Încercați alți termeni de căutare sau alegeți o altă categorie.</p>
+                            <div className="no-results">
+                                <div className="no-results-icon">
+                                    <Search className="w-12 h-12 text-slate-300" />
+                                </div>
+                                <h3 className="no-results-title">Niciun rezultat găsit</h3>
+                                <p className="no-results-text">Nu am găsit întrebări care să corespundă termenilor căutați. Încercați o altă formulare.</p>
+                                <button onClick={() => { setSearchQuery(''); setActiveCategory('all'); }} className="reset-btn">
+                                    Resetează filtrele
+                                </button>
                             </div>
                         )}
                     </div>
