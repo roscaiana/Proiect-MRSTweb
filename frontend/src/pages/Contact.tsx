@@ -1,5 +1,5 @@
 import React, { useState, FormEvent } from 'react';
-import { Mail, Phone, MapPin, Send, MessageSquare, User, AtSign } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, MessageSquare, User, AtSign, CheckCircle2 } from 'lucide-react';
 import { ContactFormData } from '@/types';
 
 const Contact: React.FC = () => {
@@ -123,6 +123,23 @@ const Contact: React.FC = () => {
                     {/* Form Section */}
                     <div className="lg:col-span-2">
                         <div className="bg-white p-8 md:p-12 rounded-3xl shadow-lg border border-slate-100 h-full">
+                        {isSubmitted ? (
+                                <div className="h-full flex flex-col items-center justify-center py-12 text-center">
+                                    <div className="w-20 h-20 bg-green-50 text-green-600 rounded-full flex items-center justify-center mb-6">
+                                        <CheckCircle2 className="w-10 h-10" />
+                                    </div>
+                                    <h2 className="text-3xl font-bold text-slate-900 mb-4">Mesaj Trimis!</h2>
+                                    <p className="text-slate-600 text-lg mb-8">
+                                        Vă mulțumim pentru interes. Vă vom contacta în cel mai scurt timp posibil.
+                                    </p>
+                                    <button
+                                        onClick={() => setIsSubmitted(false)}
+                                        className="text-[#003366] font-bold hover:underline"
+                                    >
+                                        Trimite un alt mesaj
+                                    </button>
+                                </div>
+                            ) : (
                             <>
                                 <h2 className="text-2xl font-bold text-slate-900 mb-8 flex items-center gap-3">
                                     <MessageSquare className="w-6 h-6 text-[#f1c40f]" />
@@ -206,7 +223,8 @@ const Contact: React.FC = () => {
                                         )}
                                     </button>
                                 </form>
-                            </>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
