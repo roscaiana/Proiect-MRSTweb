@@ -1,0 +1,55 @@
+﻿.section-stats-dark {
+    background: #003366;     
+    padding: 3.5rem 0;
+    color: #ffffff;
+}
+
+.stats-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0;
+}
+
+.stat-block {
+    flex: 1;
+    text-align: center;
+    position: relative;
+    padding: 0 1.2rem;
+}
+
+.stat-block .number {
+    font-size: 3.2rem;
+    font-weight: 650;
+    color: #f1c40f;        
+    margin-bottom: 0.8rem;
+}
+
+.stat-block .label {
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: rgba(255,255,255,0.75);  
+    letter-spacing: 0.2px;
+}
+
+
+.stat-block:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 18%;
+    height: 64%;
+    width: 1px;
+    background: rgba(255,255,255,0.12);
+}
+
+@media (max-width: 900px) {
+    .stats-row {
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .stat-block:not(:last-child)::after {
+        display: none;
+    }
+}

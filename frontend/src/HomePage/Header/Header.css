@@ -1,0 +1,109 @@
+﻿.main-header {
+    background: #ffffff;
+    padding: 1rem 0;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.05);
+    position: sticky;
+    top: 0;
+    z-index: 2000;
+    opacity: 1;
+    backdrop-filter: none;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.sidebar-trigger {
+    background: transparent;
+    border: none;
+    color: #003366;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 5px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-trigger:hover {
+    color: #FFC107;
+    transform: scale(1.1);
+}
+
+.logo-area {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.logo-emblem {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+}
+
+.logo-text h1 {
+    color: #003366;
+    font-size: 1.8rem;
+    line-height: 1;
+    font-weight: bold;
+    letter-spacing: -0.5px;
+}
+
+.logo-text .tagline {
+    font-size: 0.85rem;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.main-nav ul {
+    display: flex;
+    gap: 2rem;
+}
+
+.main-nav a {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #003366;
+    position: relative;
+    padding: 10px 0;
+    transition: color 0.3s ease;
+}
+
+.main-nav a::after {
+    content: "";
+    position: absolute;
+    bottom: -6px;
+    left: 0;
+    width: 0;
+    height: 3px;
+    background: #FFC107;
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.main-nav a:hover::after {
+    width: 100%;
+}
+
+.main-nav a.active::after {
+    width: 100%;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+@media (max-width: 992px) {
+    .header-actions {
+        display: none;
+    }
+    .main-nav {
+        display: none;
+    }
+}
