@@ -104,6 +104,20 @@ const Contact: React.FC = () => {
                                 </div>
                             </div>
                         </div>
+
+                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 h-80 overflow-hidden relative">
+                        <iframe
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2720.4705030221375!2d28.84131!3d47.01777!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x40c97c369fc63bd5%3A0xf670868f0a0c4974!2sStrada%20Vasile%20Alecsandri%20119%2C%20Chi%C8%99in%C4%83u%2C%20Moldova!5e0!3m2!1sen!2smd!4v1710500000000!5m2!1sen!2smd"
+                            width="100%"
+                            height="100%"
+                            style={{ border: 0 }}
+                            allowFullScreen
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                            title="Locație e-Electoral"
+                            className="grayscale hover:grayscale-0 transition-all duration-700"
+                        ></iframe>
+                        </div>
                     </div>
 
                     {/* Form Section */}
