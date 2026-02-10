@@ -1,6 +1,8 @@
-﻿import "./Hero.css";
+﻿import { useNavigate } from 'react-router-dom';
+import "./Hero.css";
 
 export default function Hero() {
+    const navigate = useNavigate();
     return (
         <section className="hero-complex">
             <div className="hero-bg-pattern"></div>
@@ -21,7 +23,7 @@ export default function Hero() {
                     </p>
 
                     <div className="hero-buttons">
-                        <button className="btn btn-lg btn-warning" type="button">
+                        <button className="btn btn-lg btn-warning" type="button" onClick={() => navigate('/tests')}>
                             Începe Simularea <i className="fas fa-arrow-right"></i>
                         </button>
                     </div>

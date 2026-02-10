@@ -1,8 +1,10 @@
-﻿import "./Header.css";
+﻿import { useNavigate } from 'react-router-dom';
+import "./Header.css";
 
 type Props = { onOpenSidebar: () => void };
 
 export default function Header({ onOpenSidebar }: Props) {
+    const navigate = useNavigate();
     const stopLink = (e: React.MouseEvent<HTMLAnchorElement>) => e.preventDefault();
 
     return (
@@ -52,7 +54,7 @@ export default function Header({ onOpenSidebar }: Props) {
                     <button className="btn btn-outline" type="button">
                         <i className="fas fa-search"></i>
                     </button>
-                    <button className="btn btn-primary" type="button">
+                    <button className="btn btn-primary" type="button" onClick={() => navigate('/login')}>
                         <i className="fas fa-user-lock"></i> Autentificare
                     </button>
                 </div>
