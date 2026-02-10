@@ -1,8 +1,7 @@
 ﻿@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap");
-
+@import "tailwindcss";
 @import "./main.css";
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+
+@theme {
+  --font-sans: "Inter", system-ui, sans-serif;
 }

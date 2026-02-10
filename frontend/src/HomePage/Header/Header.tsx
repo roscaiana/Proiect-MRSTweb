@@ -1,10 +1,9 @@
-﻿import { useNavigate } from 'react-router-dom';
+import { Link } from "react-router-dom";
 import "./Header.css";
 
 type Props = { onOpenSidebar: () => void };
 
 export default function Header({ onOpenSidebar }: Props) {
-    const navigate = useNavigate();
     const stopLink = (e: React.MouseEvent<HTMLAnchorElement>) => e.preventDefault();
 
     return (
@@ -41,12 +40,12 @@ export default function Header({ onOpenSidebar }: Props) {
 
                 <nav className="main-nav">
                     <ul>
-                        <li><a href="#" className="active" onClick={stopLink}>Acasă</a></li>
+                        <li><Link to="/" className="active">Acasă</Link></li>
                         <li><a href="#" onClick={stopLink}>Teste</a></li>
                         <li><a href="#" onClick={stopLink}>Înscriere</a></li>
                         <li><a href="#" onClick={stopLink}>Despre</a></li>
-                        <li><a href="#" onClick={stopLink}>Suport</a></li>
-                        <li><a href="#" onClick={stopLink}>Contacte</a></li>
+                        <li><Link to="/support">Suport</Link></li>
+                        <li><Link to="/contact">Contacte</Link></li>
                     </ul>
                 </nav>
 
@@ -54,7 +53,7 @@ export default function Header({ onOpenSidebar }: Props) {
                     <button className="btn btn-outline" type="button">
                         <i className="fas fa-search"></i>
                     </button>
-                    <button className="btn btn-primary" type="button" onClick={() => navigate('/login')}>
+                    <button className="btn btn-primary" type="button">
                         <i className="fas fa-user-lock"></i> Autentificare
                     </button>
                 </div>
