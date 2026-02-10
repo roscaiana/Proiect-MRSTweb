@@ -1,4 +1,3 @@
-// Updated: Uses Contact.css
 import React, { useState, FormEvent } from 'react';
 import { Mail, Phone, MapPin, Send, MessageSquare, User, AtSign, CheckCircle2 } from 'lucide-react';
 import { ContactFormData } from '../types';

@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import HomePage from "./pages/HomePage";
-import Support from "./pages/Support";
-import Contact from "./pages/Contact";
+import HomePage from "./Pages/HomePage";
+import Support from "./Pages/Support";
+import Contact from "./Pages/Contact";
 
 export default function App() {
   return (

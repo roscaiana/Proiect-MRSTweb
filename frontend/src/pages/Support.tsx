@@ -1,7 +1,5 @@
-// @ts-ignore
-// Updated: Uses Support.css
 import React, { useState, useMemo } from 'react';
-import { Search, ChevronDown, ChevronUp, LifeBuoy, FileText, HelpCircle, Calculator } from 'lucide-react';
+import { Search, ChevronDown, LifeBuoy, FileText, HelpCircle, Calculator } from 'lucide-react';
 import { FaqItem, FaqCategory } from '../types';
 import TopBar from "../HomePage/TopBar/TopBar";
 import Header from "../HomePage/Header/Header";
