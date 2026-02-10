@@ -1,5 +1,5 @@
 import React, { useState, FormEvent } from 'react';
-import { Mail, Phone, MapPin, MessageSquare, User, AtSign } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, MessageSquare, User, AtSign } from 'lucide-react';
 import { ContactFormData } from '@/types';
 
 const Contact: React.FC = () => {
@@ -162,13 +162,55 @@ const Contact: React.FC = () => {
                                             {errors.email && <p className="text-red-500 text-xs mt-1 ml-1">{errors.email}</p>}
                                         </div>
                                     </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-slate-700 ml-1">Subiect</label>
+                                        <input
+                                            type="text"
+                                            name="subject"
+                                            value={formData.subject}
+                                            onChange={handleChange}
+                                            className={`w-full px-4 py-3 bg-slate-50 border ${errors.subject ? 'border-red-300 ring-4 ring-red-50' : 'border-slate-200'} rounded-xl focus:outline-none focus:border-[#003366] focus:ring-4 focus:ring-[#003366]/5 transition-all outline-none`}
+                                            placeholder="Cum vă putem ajuta?"
+                                        />
+                                        {errors.subject && <p className="text-red-500 text-xs mt-1 ml-1">{errors.subject}</p>}
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-slate-700 ml-1">Mesaj</label>
+                                        <textarea
+                                            name="message"
+                                            value={formData.message}
+                                            onChange={handleChange}
+                                            rows={7}
+                                            className={`w-full px-4 py-3 bg-slate-50 border ${errors.message ? 'border-red-300 ring-4 ring-red-50' : 'border-slate-200'} rounded-xl focus:outline-none focus:border-[#003366] focus:ring-4 focus:ring-[#003366]/5 transition-all outline-none resize-none`}
+                                            placeholder="Scrieți mesajul aici..."
+                                        />
+                                        {errors.message && <p className="text-red-500 text-xs mt-1 ml-1">{errors.message}</p>}
+                                    </div>
+
+                                    <button
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        className="w-full md:w-auto px-10 py-4 bg-[#003366] text-white rounded-xl font-bold flex items-center justify-center gap-3 hover:bg-[#002244] transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg disabled:opacity-70"
+                                    >
+                                        {isSubmitting ? (
+                                            <>
+                                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                Se trimite...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Send className="w-5 h-5" />
+                                                Trimite Mesajul
+                                            </>
+                                        )}
+                                    </button>
                                 </form>
                             </>
                         </div>
                     </div>
                 </div>
             </div>
-            
         </div>
     );
 };
