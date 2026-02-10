@@ -1,5 +1,5 @@
 import React, { useState, FormEvent } from 'react';
-import { Mail, Phone, MapPin } from 'lucide-react';
+import { Mail, Phone, MapPin, MessageSquare, User, AtSign } from 'lucide-react';
 import { ContactFormData } from '@/types';
 
 const Contact: React.FC = () => {
@@ -123,7 +123,47 @@ const Contact: React.FC = () => {
                     {/* Form Section */}
                     <div className="lg:col-span-2">
                         <div className="bg-white p-8 md:p-12 rounded-3xl shadow-lg border border-slate-100 h-full">
-                            <p className="text-slate-500">Formular contact în curând...</p>
+                            <>
+                                <h2 className="text-2xl font-bold text-slate-900 mb-8 flex items-center gap-3">
+                                    <MessageSquare className="w-6 h-6 text-[#f1c40f]" />
+                                    Trimite-ne un mesaj
+                                </h2>
+                                <form onSubmit={handleSubmit} className="space-y-6">
+                                    <div className="grid md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-semibold text-slate-700 ml-1">Nume Complet</label>
+                                            <div className="relative">
+                                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                                <input
+                                                    type="text"
+                                                    name="name"
+                                                    value={formData.name}
+                                                    onChange={handleChange}
+                                                    className={`w-full pl-12 pr-4 py-3 bg-slate-50 border ${errors.name ? 'border-red-300 ring-4 ring-red-50' : 'border-slate-200'} rounded-xl focus:outline-none focus:border-[#003366] focus:ring-4 focus:ring-[#003366]/5 transition-all outline-none`}
+                                                    placeholder="Ex: Ion Popescu"
+                                                />
+                                            </div>
+                                            {errors.name && <p className="text-red-500 text-xs mt-1 ml-1">{errors.name}</p>}
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-semibold text-slate-700 ml-1">Email</label>
+                                            <div className="relative">
+                                                <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                                <input
+                                                    type="email"
+                                                    name="email"
+                                                    value={formData.email}
+                                                    onChange={handleChange}
+                                                    className={`w-full pl-12 pr-4 py-3 bg-slate-50 border ${errors.email ? 'border-red-300 ring-4 ring-red-50' : 'border-slate-200'} rounded-xl focus:outline-none focus:border-[#003366] focus:ring-4 focus:ring-[#003366]/5 transition-all outline-none`}
+                                                    placeholder="ex@exemplu.md"
+                                                />
+                                            </div>
+                                            {errors.email && <p className="text-red-500 text-xs mt-1 ml-1">{errors.email}</p>}
+                                        </div>
+                                    </div>
+                                </form>
+                            </>
                         </div>
                     </div>
                 </div>
