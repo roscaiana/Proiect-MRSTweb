@@ -1,4 +1,5 @@
-﻿import "./SideBar.css";
+import { Link } from 'react-router-dom';
+import "./SideBar.css";
 
 type Props = {
     open: boolean;
@@ -6,8 +7,6 @@ type Props = {
 };
 
 export default function Sidebar({ open, onClose }: Props) {
-    const stopLink = (e: React.MouseEvent<HTMLAnchorElement>) => e.preventDefault();
-
     return (
         <>
             <nav className={`sidebar ${open ? "active" : ""}`} id="main-sidebar">
@@ -40,18 +39,18 @@ export default function Sidebar({ open, onClose }: Props) {
                     <div className="sidebar-section">
                         <h4>Navigație</h4>
                         <ul>
-                            <li><a href="#" onClick={stopLink}><i className="fas fa-home"></i> Acasă</a></li>
-                            <li><a href="#" onClick={stopLink}><i className="fas fa-clipboard-check"></i> Teste</a></li>
-                            <li><a href="#" onClick={stopLink}><i className="fas fa-user-plus"></i> Înscriere</a></li>
-                            <li><a href="#" onClick={stopLink}><i className="fas fa-book-open"></i> Resurse</a></li>
+                            <li><Link to="/" onClick={onClose}><i className="fas fa-home"></i> Acasă</Link></li>
+                            <li><Link to="/tests" onClick={onClose}><i className="fas fa-clipboard-check"></i> Teste</Link></li>
+                            <li><Link to="/register" onClick={onClose}><i className="fas fa-user-plus"></i> Înscriere</Link></li>
+                            <li><Link to="/appointment" onClick={onClose}><i className="fas fa-book-open"></i> Resurse</Link></li>
                         </ul>
                     </div>
 
                     <div className="sidebar-section">
                         <h4>Contul Meu</h4>
                         <ul>
-                            <li><a href="#" onClick={stopLink}><i className="fas fa-headset"></i> Suport</a></li>
-                            <li><a href="#" onClick={stopLink}><i className="fas fa-sign-out-alt"></i> Deconectare</a></li>
+                            <li><Link to="/dashboard" onClick={onClose}><i className="fas fa-headset"></i> Suport</Link></li>
+                            <li><Link to="/login" onClick={onClose}><i className="fas fa-sign-out-alt"></i> Deconectare</Link></li>
                         </ul>
                     </div>
                 </div>
