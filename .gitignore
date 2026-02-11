@@ -22,3 +22,15 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Fișiere de mediu
+.env
+.env.local
+.env.*.local
+
+# Fișiere sistem
+Thumbs.db
+.DS_Store
+
+# Cache de la Vite
+.vite
