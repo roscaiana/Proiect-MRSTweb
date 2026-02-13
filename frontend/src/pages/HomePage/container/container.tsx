@@ -1,5 +1,5 @@
-﻿import "./About.css";
-import aboutVisual from "./about-visual.png";
+﻿import "./container.css";
+import aboutVisual from "../../../assets/about-visual.png";
 
 export default function About() {
     return (
@@ -8,7 +8,6 @@ export default function About() {
                 <div className="about-content">
                     <h2>Despre Noi</h2>
                     <div className="separator-small"></div>
-
                     <p>
                         Platforma e-Electoral este soluția oficială dedicată profesionalizării procesului electoral.
                         Oferim funcționarilor electorali și părților interesate acces gratuit la resurse de instruire,
