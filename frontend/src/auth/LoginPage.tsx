@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { RegisterData, AuthError } from '../types/user';
-import { validateRegistration, mockRegister } from '../utils/authUtils';
+import { AuthCredentials, AuthError } from '../types/user';
+import { validateLogin, mockLogin } from '../utils/authUtils';
+import { useAuth } from '../context/AuthContext';
 
-const RegisterPage: React.FC = () => {
+const LoginPage: React.FC = () => {
     const navigate = useNavigate();
+    const { login } = useAuth();
+    const [isAdmin, setIsAdmin] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [formData, setFormData] = useState<RegisterData>({
-        fullName: '',
+    const [credentials, setCredentials] = useState<AuthCredentials>({
         email: '',
-        password: '',
-        confirmPassword: ''
+        password: ''
     });
     const [errors, setErrors] = useState<AuthError[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -22,7 +22,7 @@ const RegisterPage: React.FC = () => {
         setGeneralError('');
 
         // Validate form
-        const validationErrors = validateRegistration(formData);
+        const validationErrors = validateLogin(credentials);
         if (validationErrors.length > 0) {
             setErrors(validationErrors);
             return;
@@ -32,13 +32,21 @@ const RegisterPage: React.FC = () => {
         setErrors([]);
 
         try {
-            // Mock register
-            await mockRegister(formData);
+            // Mock login
+            const user = await mockLogin(credentials, isAdmin);
 
-            // Redirect to login with success message
-            navigate('/login?registered=true');
+            // Use AuthContext to store auth state
+            const mockToken = `token-${Date.now()}`;
+            login(user, mockToken);
+
+            // Redirect based on role
+            if (user.role === 'admin') {
+                navigate('/admin');
+            } else {
+                navigate('/dashboard');
+            }
         } catch (error: any) {
-            setGeneralError(error.message || 'Eroare la înregistrare');
+            setGeneralError(error.message || 'Eroare la autentificare');
         } finally {
             setIsLoading(false);
         }
@@ -46,11 +54,6 @@ const RegisterPage: React.FC = () => {
 
     const getFieldError = (field: string): string | undefined => {
         return errors.find(e => e.field === field)?.message;
-    };
-
-    const updateField = (field: keyof RegisterData, value: string) => {
-        setFormData({ ...formData, [field]: value });
-        setErrors(errors.filter(err => err.field !== field));
     };
 
     return (
@@ -69,11 +72,38 @@ const RegisterPage: React.FC = () => {
                     </Link>
                 </div>
 
-                {/* Register Card */}
+                {/* Login Card */}
                 <div className="auth-card">
                     <div className="auth-card-header">
-                        <h2>Înregistrare</h2>
-                        <p>Creați un cont nou pentru a accesa platforma</p>
+                        <h2>Autentificare</h2>
+                        <p>Conectați-vă la contul dumneavoastră</p>
+                    </div>
+
+                    {/* User Type Toggle */}
+                    <div className="user-type-toggle">
+                        <button
+                            type="button"
+                            className={`toggle-btn ${!isAdmin ? 'active' : ''}`}
+                            onClick={() => setIsAdmin(false)}
+                        >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                            </svg>
+                            Candidat
+                        </button>
+                        <button
+                            type="button"
+                            className={`toggle-btn ${isAdmin ? 'active' : ''}`}
+                            onClick={() => setIsAdmin(true)}
+                        >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                                <path d="M2 17l10 5 10-5" />
+                                <path d="M2 12l10 5 10-5" />
+                            </svg>
+                            Administrator
+                        </button>
                     </div>
 
                     {/* General Error */}
@@ -88,25 +118,8 @@ const RegisterPage: React.FC = () => {
                         </div>
                     )}
 
-                    {/* Register Form */}
+                    {/* Login Form */}
                     <form className="auth-form" onSubmit={handleSubmit}>
-                        <div className="form-group">
-                            <label htmlFor="fullName">
-                                Nume Complet <span className="required">*</span>
-                            </label>
-                            <input
-                                type="text"
-                                id="fullName"
-                                className={`text-input ${getFieldError('fullName') ? 'error' : ''}`}
-                                placeholder="Ex: Ion Popescu"
-                                value={formData.fullName}
-                                onChange={(e) => updateField('fullName', e.target.value)}
-                            />
-                            {getFieldError('fullName') && (
-                                <span className="error-message">{getFieldError('fullName')}</span>
-                            )}
-                        </div>
-
                         <div className="form-group">
                             <label htmlFor="email">
                                 Email <span className="required">*</span>
@@ -116,16 +129,14 @@ const RegisterPage: React.FC = () => {
                                 id="email"
                                 className={`text-input ${getFieldError('email') ? 'error' : ''}`}
                                 placeholder="utilizator@exemplu.com"
-                                value={formData.email}
-                                onChange={(e) => updateField('email', e.target.value)}
+                                value={credentials.email}
+                                onChange={(e) => {
+                                    setCredentials({ ...credentials, email: e.target.value });
+                                    setErrors(errors.filter(err => err.field !== 'email'));
+                                }}
                             />
                             {getFieldError('email') && (
                                 <span className="error-message">{getFieldError('email')}</span>
-                            )}
-                            {!getFieldError('email') && formData.email && (
-                                <span className="input-hint">
-                                    Asigurați-vă că formatul este corect (ex: nume@domeniu.com)
-                                </span>
                             )}
                         </div>
 
@@ -138,9 +149,12 @@ const RegisterPage: React.FC = () => {
                                     type={showPassword ? "text" : "password"}
                                     id="password"
                                     className={`text-input ${getFieldError('password') ? 'error' : ''}`}
-                                    placeholder="Minimum 6 caractere"
-                                    value={formData.password}
-                                    onChange={(e) => updateField('password', e.target.value)}
+                                    placeholder="••••••••"
+                                    value={credentials.password}
+                                    onChange={(e) => {
+                                        setCredentials({ ...credentials, password: e.target.value });
+                                        setErrors(errors.filter(err => err.field !== 'password'));
+                                    }}
                                 />
                                 <button
                                     type="button"
@@ -166,58 +180,19 @@ const RegisterPage: React.FC = () => {
                             )}
                         </div>
 
-                        <div className="form-group">
-                            <label htmlFor="confirmPassword">
-                                Confirmă Parola <span className="required">*</span>
-                            </label>
-                            <div className="password-input-wrapper">
-                                <input
-                                    type={showConfirmPassword ? "text" : "password"}
-                                    id="confirmPassword"
-                                    className={`text-input ${getFieldError('confirmPassword') ? 'error' : ''}`}
-                                    placeholder="Reintroduceți parola"
-                                    value={formData.confirmPassword}
-                                    onChange={(e) => updateField('confirmPassword', e.target.value)}
-                                />
-                                <button
-                                    type="button"
-                                    className="password-toggle"
-                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                    aria-label={showConfirmPassword ? "Ascunde parola" : "Arată parola"}
-                                >
-                                    {showConfirmPassword ? (
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-                                            <line x1="1" y1="1" x2="23" y2="23" />
-                                        </svg>
-                                    ) : (
-                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                                            <circle cx="12" cy="12" r="3" />
-                                        </svg>
-                                    )}
-                                </button>
-                            </div>
-                            {getFieldError('confirmPassword') && (
-                                <span className="error-message">{getFieldError('confirmPassword')}</span>
-                            )}
-                        </div>
-
                         <div className="form-actions">
                             <button type="submit" className="btn-submit" disabled={isLoading}>
                                 {isLoading ? (
                                     <>
                                         <span className="spinner"></span>
-                                        Se înregistrează...
+                                        Se autentifică...
                                     </>
                                 ) : (
                                     <>
-                                        Înregistrare
+                                        Autentificare
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                                            <circle cx="8.5" cy="7" r="4" />
-                                            <line x1="20" y1="8" x2="20" y2="14" />
-                                            <line x1="23" y1="11" x2="17" y2="11" />
+                                            <line x1="5" y1="12" x2="19" y2="12" />
+                                            <polyline points="12 5 19 12 12 19" />
                                         </svg>
                                     </>
                                 )}
@@ -225,15 +200,27 @@ const RegisterPage: React.FC = () => {
                         </div>
                     </form>
 
-                    {/* Login Link */}
+                    {/* Register Link */}
                     <div className="auth-footer">
                         <p>
-                            Aveți deja un cont?{' '}
-                            <Link to="/login" className="auth-link">
-                                Autentificați-vă
+                            Nu aveți un cont?{' '}
+                            <Link to="/register" className="auth-link">
+                                Înregistrați-vă
                             </Link>
                         </p>
                     </div>
+
+                    {/* Admin Hint */}
+                    {isAdmin && (
+                        <div className="auth-hint">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="16" x2="12" y2="12" />
+                                <line x1="12" y1="8" x2="12.01" y2="8" />
+                            </svg>
+                            <span>Credențiale admin: admin@electoral.md / admin123</span>
+                        </div>
+                    )}
                 </div>
 
                 {/* Back to Home */}
@@ -251,4 +238,4 @@ const RegisterPage: React.FC = () => {
     );
 };
 
-export default RegisterPage;
+export default LoginPage;

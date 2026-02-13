@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import { QuizSession, QuizResult } from '../types/quiz';
 import { quizCategories, getQuestionsByCategory, getCategoryById } from '../data/quizData';
 
