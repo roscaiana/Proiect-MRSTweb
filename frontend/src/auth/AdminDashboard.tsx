@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -129,31 +129,31 @@ const AdminDashboard: React.FC = () => {
                         {users.length > 0 ? (
                             <table className="data-table">
                                 <thead>
-                                    <tr>
-                                        <th>Nume</th>
-                                        <th>Email</th>
-                                        <th>Rol</th>
-                                        <th>Data Înregistrării</th>
-                                    </tr>
+                                <tr>
+                                    <th>Nume</th>
+                                    <th>Email</th>
+                                    <th>Rol</th>
+                                    <th>Data Înregistrării</th>
+                                </tr>
                                 </thead>
                                 <tbody>
-                                    {users.map((u: any, index: number) => (
-                                        <tr key={index}>
-                                            <td>
-                                                <div className="user-cell">
-                                                    <div className="user-avatar-small">
-                                                        {u.fullName.charAt(0).toUpperCase()}
-                                                    </div>
-                                                    {u.fullName}
+                                {users.map((u: any, index: number) => (
+                                    <tr key={index}>
+                                        <td>
+                                            <div className="user-cell">
+                                                <div className="user-avatar-small">
+                                                    {u.fullName.charAt(0).toUpperCase()}
                                                 </div>
-                                            </td>
-                                            <td>{u.email}</td>
-                                            <td>
-                                                <span className="role-badge">{u.role === 'admin' ? 'Administrator' : 'Candidat'}</span>
-                                            </td>
-                                            <td>{formatDate(u.createdAt)}</td>
-                                        </tr>
-                                    ))}
+                                                {u.fullName}
+                                            </div>
+                                        </td>
+                                        <td>{u.email}</td>
+                                        <td>
+                                            <span className="role-badge">{u.role === 'admin' ? 'Administrator' : 'Candidat'}</span>
+                                        </td>
+                                        <td>{formatDate(u.createdAt)}</td>
+                                    </tr>
+                                ))}
                                 </tbody>
                             </table>
                         ) : (
