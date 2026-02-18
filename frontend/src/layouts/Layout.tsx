@@ -1,5 +1,5 @@
-﻿import { useState } from "react";
-import { Outlet } from "react-router-dom";
+﻿import { useEffect, useState } from "react";
+import { Outlet, useLocation } from "react-router-dom";
 
 import TopBar from "../components/TopBar/TopBar";
 import Header from "../components/Header/Header";
@@ -8,6 +8,11 @@ import Footer from "../components/Footer/Footer";
 
 export default function Layout() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const location = useLocation();
+
+    useEffect(() => {
+        setSidebarOpen(false);
+    }, [location.pathname]);
 
     return (
         <>
