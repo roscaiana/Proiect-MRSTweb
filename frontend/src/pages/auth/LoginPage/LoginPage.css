@@ -279,6 +279,43 @@ body {
     box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 }
 
+.password-input-wrapper {
+    position: relative;
+}
+
+.password-input-wrapper .text-input {
+    padding-right: 52px;
+}
+
+.password-toggle {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    border: 1px solid var(--gray-300);
+    background: var(--white);
+    color: var(--gray-600);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.password-toggle:hover {
+    border-color: var(--accent-gold);
+    color: var(--primary-navy);
+    background: rgba(255, 204, 0, 0.1);
+}
+
+.password-toggle:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(255, 204, 0, 0.2);
+}
+
 .error-message {
     font-size: 13px;
     color: var(--error-red);
