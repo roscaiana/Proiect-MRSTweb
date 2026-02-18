@@ -1,12 +1,71 @@
 ﻿import React, { useState, useMemo } from 'react';
-import { QuizSession, QuizResult } from '../types/quiz';
-import { quizCategories, getQuestionsByCategory, getCategoryById } from '../data/quizData';
+import { QuizSession, QuizResult } from '../../types/quiz';
+import { quizCategories, getQuestionsByCategory, getCategoryById } from '../../data/quizData';
+import './TestsPage.css';
+
+const normalizeText = (value: string): string => {
+    if (!value) return '';
+    return value
+        .replace(/È™|È˜/g, 's')
+        .replace(/È›|Èš/g, 't')
+        .replace(/Äƒ|Ä‚/g, 'a')
+        .replace(/Ã¢|Ã‚/g, 'a')
+        .replace(/Ã®|ÃŽ/g, 'i')
+        .replace(/Â/g, '')
+        .replace(/\uFFFD/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+};
+
+const renderCategoryIcon = (categoryId: string) => {
+    if (categoryId === 'legislative-basics') {
+        return (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+            </svg>
+        );
+    }
+    if (categoryId === 'procedures') {
+        return (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="7" y="3" width="10" height="4" rx="1" />
+                <path d="M9 3.5h6" />
+                <path d="M6 6h12a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" />
+                <path d="M9 11h6M9 15h6" />
+            </svg>
+        );
+    }
+    if (categoryId === 'ethics') {
+        return (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 3v18" />
+                <path d="M5 7h14" />
+                <path d="M7 7l-3 5a3 3 0 0 0 6 0L7 7z" />
+                <path d="M17 7l-3 5a3 3 0 0 0 6 0l-3-5z" />
+                <path d="M8 21h8" />
+            </svg>
+        );
+    }
+    return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="5" width="18" height="12" rx="2" />
+            <path d="M8 21h8" />
+            <path d="M10 17v4M14 17v4" />
+        </svg>
+    );
+};
+
+const difficultyLabel = (difficulty: string): string => {
+    if (difficulty === 'beginner') return 'Începător';
+    if (difficulty === 'intermediate') return 'Intermediar';
+    return 'Avansat';
+};
 
 const TestsPage: React.FC = () => {
     const [quizSession, setQuizSession] = useState<QuizSession | null>(null);
     const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
 
-    // Start a quiz for a selected category
     const startQuiz = (categoryId: string) => {
         const questions = getQuestionsByCategory(categoryId);
         if (questions.length === 0) return;
@@ -22,44 +81,27 @@ const TestsPage: React.FC = () => {
         setQuizSession(session);
     };
 
-    // Handle answer selection
     const selectAnswer = (answerIndex: number) => {
         if (!quizSession) return;
-
         const newAnswers = [...quizSession.answers];
         newAnswers[quizSession.currentQuestionIndex] = answerIndex;
-
-        setQuizSession({
-            ...quizSession,
-            answers: newAnswers
-        });
+        setQuizSession({ ...quizSession, answers: newAnswers });
     };
 
-    // Navigate to next question
     const nextQuestion = () => {
         if (!quizSession) return;
-
         if (quizSession.currentQuestionIndex < quizSession.questions.length - 1) {
-            setQuizSession({
-                ...quizSession,
-                currentQuestionIndex: quizSession.currentQuestionIndex + 1
-            });
+            setQuizSession({ ...quizSession, currentQuestionIndex: quizSession.currentQuestionIndex + 1 });
         }
     };
 
-    // Navigate to previous question
     const previousQuestion = () => {
         if (!quizSession) return;
-
         if (quizSession.currentQuestionIndex > 0) {
-            setQuizSession({
-                ...quizSession,
-                currentQuestionIndex: quizSession.currentQuestionIndex - 1
-            });
+            setQuizSession({ ...quizSession, currentQuestionIndex: quizSession.currentQuestionIndex - 1 });
         }
     };
 
-    // Submit quiz and calculate results
     const submitQuiz = () => {
         if (!quizSession) return;
 
@@ -83,7 +125,7 @@ const TestsPage: React.FC = () => {
         const category = getCategoryById(quizSession.categoryId);
         const result: QuizResult = {
             categoryId: quizSession.categoryId,
-            categoryTitle: category?.title || '',
+            categoryTitle: normalizeText(category?.title || ''),
             totalQuestions: quizSession.questions.length,
             correctAnswers,
             score: Math.round((correctAnswers / quizSession.questions.length) * 100),
@@ -95,13 +137,11 @@ const TestsPage: React.FC = () => {
         setQuizSession(null);
     };
 
-    // Reset and go back to category selection
     const resetQuiz = () => {
         setQuizSession(null);
         setQuizResult(null);
     };
 
-    // Current question and progress
     const currentQuestion = useMemo(() => {
         if (!quizSession) return null;
         return quizSession.questions[quizSession.currentQuestionIndex];
@@ -122,7 +162,6 @@ const TestsPage: React.FC = () => {
         return quizSession.answers[quizSession.currentQuestionIndex] !== null;
     }, [quizSession]);
 
-    // Render results page
     if (quizResult) {
         const passThreshold = 70;
         const passed = quizResult.score >= passThreshold;
@@ -145,11 +184,11 @@ const TestsPage: React.FC = () => {
                                 </svg>
                             )}
                         </div>
-                        <h2>{passed ? 'Felicitări!' : 'Continuați să exersați!'}</h2>
+                        <h2>{passed ? 'Felicitări!' : 'Continuă să exersezi!'}</h2>
                         <p className="result-message">
                             {passed
-                                ? 'Ați trecut testul cu succes! Cunoștințele dumneavoastră sunt la un nivel bun.'
-                                : 'Nu v-ați descurajat! Continuați să studiați și veți reuși.'}
+                                ? 'Ai trecut testul cu succes! Cunoștințele tale sunt la un nivel bun.'
+                                : 'Nu te descuraja! Continuă să studiezi și vei reuși.'}
                         </p>
 
                         <div className="result-stats">
@@ -172,25 +211,16 @@ const TestsPage: React.FC = () => {
                             <div className="answer-list">
                                 {quizResult.answers.map((answer, index) => (
                                     <div key={index} className={`answer-item ${answer.isCorrect ? 'correct' : 'incorrect'}`}>
-                                        <div className="answer-number">
-                                            {answer.isCorrect ? '✓' : '✗'} Întrebarea {index + 1}
-                                        </div>
-                                        <div className="answer-status">
-                                            {answer.isCorrect ? 'Corect' : 'Incorect'}
-                                        </div>
+                                        <div className="answer-number">{answer.isCorrect ? 'OK' : 'X'} Întrebarea {index + 1}</div>
+                                        <div className="answer-status">{answer.isCorrect ? 'Corect' : 'Incorect'}</div>
                                     </div>
                                 ))}
                             </div>
                         </div>
 
                         <div className="result-actions">
-                            <button className="btn-primary" onClick={resetQuiz}>
-                                Înapoi la Categorii
-                            </button>
-                            <button className="btn-secondary" onClick={() => {
-                                setQuizResult(null);
-                                startQuiz(quizResult.categoryId);
-                            }}>
+                            <button className="btn-primary" onClick={resetQuiz}>Înapoi la Categorii</button>
+                            <button className="btn-secondary" onClick={() => { setQuizResult(null); startQuiz(quizResult.categoryId); }}>
                                 Reîncearcă Testul
                             </button>
                         </div>
@@ -200,7 +230,6 @@ const TestsPage: React.FC = () => {
         );
     }
 
-    // Render quiz interface
     if (quizSession && currentQuestion) {
         return (
             <div className="tests-page">
@@ -211,23 +240,19 @@ const TestsPage: React.FC = () => {
                                 <line x1="19" y1="12" x2="5" y2="12" />
                                 <polyline points="12 19 5 12 12 5" />
                             </svg>
-                            Înapoi
+                            Inapoi
                         </button>
-                        <h2>{getCategoryById(quizSession.categoryId)?.title}</h2>
+                        <h2>{normalizeText(getCategoryById(quizSession.categoryId)?.title || '')}</h2>
                     </div>
 
                     <div className="quiz-progress">
-                        <div className="progress-bar">
-                            <div className="progress-fill" style={{ width: `${progress}%` }}></div>
-                        </div>
-                        <div className="progress-text">
-                            Întrebarea {quizSession.currentQuestionIndex + 1} din {quizSession.questions.length}
-                        </div>
+                        <div className="progress-bar"><div className="progress-fill" style={{ width: `${progress}%` }}></div></div>
+                        <div className="progress-text">Întrebarea {quizSession.currentQuestionIndex + 1} din {quizSession.questions.length}</div>
                     </div>
 
                     <div className="quiz-question-card">
                         <div className="question-number">Întrebarea {quizSession.currentQuestionIndex + 1}</div>
-                        <h3 className="question-text">{currentQuestion.text}</h3>
+                        <h3 className="question-text">{normalizeText(currentQuestion.text)}</h3>
 
                         <div className="question-options">
                             {currentQuestion.options.map((option, index) => (
@@ -237,21 +262,15 @@ const TestsPage: React.FC = () => {
                                     onClick={() => selectAnswer(index)}
                                 >
                                     <div className="option-radio">
-                                        {quizSession.answers[quizSession.currentQuestionIndex] === index && (
-                                            <div className="option-radio-inner"></div>
-                                        )}
+                                        {quizSession.answers[quizSession.currentQuestionIndex] === index && <div className="option-radio-inner"></div>}
                                     </div>
-                                    <span className="option-text">{option}</span>
+                                    <span className="option-text">{normalizeText(option)}</span>
                                 </button>
                             ))}
                         </div>
 
                         <div className="quiz-navigation">
-                            <button
-                                className="btn-secondary"
-                                onClick={previousQuestion}
-                                disabled={quizSession.currentQuestionIndex === 0}
-                            >
+                            <button className="btn-secondary" onClick={previousQuestion} disabled={quizSession.currentQuestionIndex === 0}>
                                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <line x1="19" y1="12" x2="5" y2="12" />
                                     <polyline points="12 19 5 12 12 5" />
@@ -260,22 +279,14 @@ const TestsPage: React.FC = () => {
                             </button>
 
                             {isLastQuestion ? (
-                                <button
-                                    className="btn-submit"
-                                    onClick={submitQuiz}
-                                    disabled={!canProceed}
-                                >
+                                <button className="btn-submit" onClick={submitQuiz} disabled={!canProceed}>
                                     Finalizează Testul
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <polyline points="20 6 9 17 4 12" />
                                     </svg>
                                 </button>
                             ) : (
-                                <button
-                                    className="btn-primary"
-                                    onClick={nextQuestion}
-                                    disabled={!canProceed}
-                                >
+                                <button className="btn-primary" onClick={nextQuestion} disabled={!canProceed}>
                                     Următoarea
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <line x1="5" y1="12" x2="19" y2="12" />
@@ -290,73 +301,71 @@ const TestsPage: React.FC = () => {
         );
     }
 
-    // Render category selection
     return (
         <div className="tests-page">
             <div className="container">
                 <div className="page-header">
                     <h1>Teste de Pregătire</h1>
-                    <p className="page-subtitle">
-                        Exersați-vă cunoștințele pentru examenul de certificare electoral. Alegeți o categorie pentru a începe.
-                    </p>
+                    <p className="page-subtitle">Exersează-ți cunoștințele pentru examenul de certificare electorală. Alege o categorie pentru a începe.</p>
                 </div>
 
                 <div className="quiz-categories">
-                    {quizCategories.map((category) => (
-                        <div key={category.id} className="quiz-category-card">
-                            <div className="category-icon">{category.icon}</div>
-                            <h3>{category.title}</h3>
-                            <p className="category-description">{category.description}</p>
+                    {quizCategories.map((category) => {
+                        const categoryTitle = normalizeText(category.title);
+                        const categoryDescription = normalizeText(category.description);
+                        return (
+                            <div key={category.id} className="quiz-category-card">
+                                <div className="category-icon" aria-hidden="true">{renderCategoryIcon(category.id)}</div>
+                                <h3>{categoryTitle}</h3>
+                                <p className="category-description">{categoryDescription}</p>
 
-                            <div className="category-meta">
-                                <div className="meta-item">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <circle cx="12" cy="12" r="10" />
-                                        <polyline points="12 6 12 12 16 14" />
+                                <div className="category-meta">
+                                    <div className="meta-item">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <circle cx="12" cy="12" r="10" />
+                                            <polyline points="12 6 12 12 16 14" />
+                                        </svg>
+                                        <span>{category.estimatedTime} min</span>
+                                    </div>
+                                    <div className="meta-item">
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                            <polyline points="14 2 14 8 20 8" />
+                                        </svg>
+                                        <span>{category.questionCount} întrebări</span>
+                                    </div>
+                                    <div className="meta-item">
+                                        <span className={`difficulty-badge ${category.difficulty}`}>{difficultyLabel(category.difficulty)}</span>
+                                    </div>
+                                </div>
+
+                                <button className="btn-start-quiz" onClick={() => startQuiz(category.id)}>
+                                    Începe Testul
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <line x1="5" y1="12" x2="19" y2="12" />
+                                        <polyline points="12 5 19 12 12 19" />
                                     </svg>
-                                    <span>{category.estimatedTime} min</span>
-                                </div>
-                                <div className="meta-item">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                                        <polyline points="14 2 14 8 20 8" />
-                                    </svg>
-                                    <span>{category.questionCount} întrebări</span>
-                                </div>
-                                <div className="meta-item">
-                                    <span className={`difficulty-badge ${category.difficulty}`}>
-                                        {category.difficulty === 'beginner' ? 'Începător' :
-                                            category.difficulty === 'intermediate' ? 'Intermediar' : 'Avansat'}
-                                    </span>
-                                </div>
+                                </button>
                             </div>
-
-                            <button className="btn-start-quiz" onClick={() => startQuiz(category.id)}>
-                                Începe Testul
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <line x1="5" y1="12" x2="19" y2="12" />
-                                    <polyline points="12 5 19 12 12 19" />
-                                </svg>
-                            </button>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
 
-                <div className="info-box">
-                    <div className="info-icon">
+                <div className="tests-info-box">
+                    <div className="tests-info-icon">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <circle cx="12" cy="12" r="10" />
                             <line x1="12" y1="16" x2="12" y2="12" />
                             <line x1="12" y1="8" x2="12.01" y2="8" />
                         </svg>
                     </div>
-                    <div className="info-content">
+                    <div className="tests-info-content">
                         <h4>Informații despre Teste</h4>
                         <ul>
-                            <li>Fiecare test conține întrebări cu variante multiple de răspuns</li>
-                            <li>Puteți naviga înainte și înapoi între întrebări</li>
-                            <li>Scorul minim de promovare este 70%</li>
-                            <li>Puteți relua testul de câte ori doriți</li>
+                            <li>Fiecare test contine întrebări cu variante multiple de raspuns.</li>
+                            <li>Poți naviga înainte și înapoi între întrebări.</li>
+                            <li>Scorul minim de promovare este 70%.</li>
+                            <li>Poți relua testul de câte ori dorești.</li>
                         </ul>
                     </div>
                 </div>
@@ -366,3 +375,5 @@ const TestsPage: React.FC = () => {
 };
 
 export default TestsPage;
+
+
