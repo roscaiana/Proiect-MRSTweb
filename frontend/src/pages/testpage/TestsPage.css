@@ -1,24 +1,26 @@
-﻿.tests-page {
+.tests-page {
     min-height: calc(100vh - 180px);
     padding: 36px 0 56px;
 }
 
 .tests-page .page-header {
-    text-align: left;
-    margin-bottom: 24px;
+    text-align: center;
+    margin-bottom: 32px;
 }
 
 .tests-page .page-header h1 {
-    font-size: clamp(32px, 4vw, 44px);
-    line-height: 1.1;
-    color: #0f2c52;
-    margin-bottom: 8px;
+    font-size: clamp(28px, 3.2vw, 36px);
+    line-height: 1.2;
+    font-weight: 800;
+    color: var(--primary-color);
+    margin-bottom: 10px;
 }
 
 .tests-page .page-subtitle {
-    font-size: 18px;
-    color: #4f5f73;
-    max-width: 920px;
+    font-size: 17px;
+    color: #5b6777;
+    max-width: 760px;
+    margin: 0 auto;
 }
 
 .tests-page .quiz-categories {
@@ -477,4 +479,6 @@
         max-width: 100%;
     }
 }
+
+
 
