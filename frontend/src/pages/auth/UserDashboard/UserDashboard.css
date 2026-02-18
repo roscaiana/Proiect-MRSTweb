@@ -76,6 +76,15 @@ body {
     align-items: center;
 }
 
+.dashboard-container:not(.admin-dashboard) .dashboard-header {
+    display: block;
+    margin-bottom: 24px;
+}
+
+.dashboard-container:not(.admin-dashboard) .dashboard-header p {
+    margin-top: 6px;
+}
+
 .dashboard-header h1 {
     font-size: 32px;
     font-weight: 700;
@@ -467,6 +476,18 @@ body {
 .empty-state p {
     font-size: 16px;
     margin-bottom: 16px;
+}
+
+.history-card .empty-state .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 20px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-hover) 100%);
+    color: var(--primary-navy);
+    font-weight: 700;
+    box-shadow: 0 8px 18px rgba(255, 204, 0, 0.3);
 }
 
 /* Data Table */
