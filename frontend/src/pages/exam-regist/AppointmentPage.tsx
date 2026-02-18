@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
 import { AppointmentFormData, FormErrors, TIME_SLOTS } from '../../types/appointment';
 import {
     isAllowedDay,
@@ -72,7 +72,7 @@ const AppointmentPage: React.FC = () => {
         if (!formData.idOrPhone.trim()) {
             newErrors.idOrPhone = 'IDNP sau Telefonul este obligatoriu';
         } else if (formData.idOrPhone.trim().length < 6) {
-            newErrors.idOrPhone = 'Introduceți un IDNP sau număr de telefon valid';
+            newErrors.idOrPhone = 'Introduceți un număr de telefon valid';
         }
 
         if (!formData.selectedDate) {
@@ -155,10 +155,10 @@ const AppointmentPage: React.FC = () => {
                             </div>
                         </div>
                         <div className="success-actions">
-                            <button className="btn-primary" onClick={handleNewAppointment}>
+                            <button className="success-btn success-btn-primary" onClick={handleNewAppointment}>
                                 Programare Nouă
                             </button>
-                            <button className="btn-secondary" onClick={() => window.print()}>
+                            <button className="success-btn success-btn-secondary" onClick={() => window.print()}>
                                 Printează Confirmare
                             </button>
                         </div>
@@ -179,7 +179,7 @@ const AppointmentPage: React.FC = () => {
                 <div className="page-header">
                     <h1>Înscriere la Examen</h1>
                     <p className="page-subtitle">
-                        Programați-vă pentru examenul de certificare electoral. Alegeți data și intervalul orar care vi se potrivește.
+                        Programați-vă pentru examenul de certificare electorală. Alegeți data și intervalul orar care vi se potrivește.
                     </p>
                 </div>
 
@@ -302,13 +302,13 @@ const AppointmentPage: React.FC = () => {
 
                                 <div className="form-group">
                                     <label htmlFor="idOrPhone">
-                                        IDNP sau Număr de Telefon <span className="required">*</span>
+                                        Număr de Telefon <span className="required">*</span>
                                     </label>
                                     <input
                                         type="text"
                                         id="idOrPhone"
                                         className={`text-input ${errors.idOrPhone ? 'error' : ''}`}
-                                        placeholder="Ex: 2001234567890 sau +373 69 123 456"
+                                        placeholder="Ex: +373 69 123 456"
                                         value={formData.idOrPhone}
                                         onChange={(e) => {
                                             setFormData({ ...formData, idOrPhone: e.target.value });
@@ -333,7 +333,7 @@ const AppointmentPage: React.FC = () => {
                         <div className="info-content">
                             <h4>Informații Importante</h4>
                             <ul>
-                                <li>Examenul durează aproximativ 2 ore</li>
+                                <li>Examenul durează aproximativ 30 minute</li>
                                 <li>Vă rugăm să vă prezentați cu 15 minute înainte de ora programării</li>
                                 <li>Este necesar să aveți actul de identitate asupra dumneavoastră</li>
                                 <li>Veți primi un email de confirmare după înregistrare</li>
@@ -371,3 +371,6 @@ const AppointmentPage: React.FC = () => {
 };
 
 export default AppointmentPage;
+
+
+
