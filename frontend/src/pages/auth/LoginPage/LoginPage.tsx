@@ -1,8 +1,9 @@
 ﻿import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AuthCredentials, AuthError } from '../types/user';
-import { validateLogin, mockLogin } from '../utils/authUtils';
-import { useAuth } from '../context/AuthContext';
+import { AuthCredentials, AuthError } from '../../../types/user';
+import { validateLogin, mockLogin } from '../../../utils/authUtils';
+import { useAuth } from '../../../context/AuthContext';
+import './LoginPage.css';
 
 const LoginPage: React.FC = () => {
     const navigate = useNavigate();
