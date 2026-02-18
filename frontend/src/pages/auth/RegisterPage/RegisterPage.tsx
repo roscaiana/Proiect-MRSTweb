@@ -1,7 +1,8 @@
 ﻿import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { RegisterData, AuthError } from '../types/user';
-import { validateRegistration, mockRegister } from '../utils/authUtils';
+import { RegisterData, AuthError } from '../../../types/user';
+import { validateRegistration, mockRegister } from '../../../utils/authUtils';
+import './RegisterPage.css';
 
 const RegisterPage: React.FC = () => {
     const navigate = useNavigate();

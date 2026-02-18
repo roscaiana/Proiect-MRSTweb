@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../../hooks/useAuth';
+import './UserDashboard.css';
 
 const UserDashboard: React.FC = () => {
     const { user } = useAuth();
@@ -190,3 +191,4 @@ const UserDashboard: React.FC = () => {
 };
 
 export default UserDashboard;
+

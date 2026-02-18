@@ -1,10 +1,22 @@
-import { Link } from "react-router-dom";
+﻿import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
 import "./Header.css";
 
 type Props = { onOpenSidebar: () => void };
 
 export default function Header({ onOpenSidebar }: Props) {
     const stopLink = (e: React.MouseEvent<HTMLAnchorElement>) => e.preventDefault();
+    const navigate = useNavigate();
+    const { isAuthenticated, isAdmin, logout } = useAuth();
+
+    const accountPath = isAuthenticated ? (isAdmin ? "/admin" : "/dashboard") : "/login";
+    const accountLabel = isAuthenticated ? "Dashboard" : "Autentificare";
+    const accountIcon = isAuthenticated ? "fas fa-gauge-high" : "fas fa-user-lock";
+
+    const handleLogout = () => {
+        logout();
+        navigate("/");
+    };
 
     return (
         <header className="main-header">
@@ -26,8 +38,8 @@ export default function Header({ onOpenSidebar }: Props) {
                                 <path d="M50 5 L90 25 V75 L50 95 L10 75 V25 L50 5 Z" fill="#003366" stroke="white" strokeWidth="2" />
                                 <path d="M50 20 L80 35 V65 L50 80 L20 65 V35 L50 20 Z" fill="none" stroke="url(#goldGradient)" strokeWidth="3" />
                                 <text x="50" y="62" textAnchor="middle" fill="white" fontSize="34" fontFamily="Inter, sans-serif" fontWeight="bold">
-                                   E
-                                    </text>
+                                    E
+                                </text>
                             </svg>
                         </div>
 
@@ -40,9 +52,9 @@ export default function Header({ onOpenSidebar }: Props) {
 
                 <nav className="main-nav">
                     <ul>
-                        <li><Link to="/" className="active">Acasă</Link></li>
-                        <li><a href="#" onClick={stopLink}>Teste</a></li>
-                        <li><a href="#" onClick={stopLink}>Înscriere</a></li>
+                        <li><Link to="/" className="active">Acasa</Link></li>
+                        <li><Link to="/tests">Teste</Link></li>
+                        <li><Link to="/appointment">Inscriere</Link></li>
                         <li><a href="#" onClick={stopLink}>Despre</a></li>
                         <li><Link to="/support">Suport</Link></li>
                         <li><Link to="/contact">Contacte</Link></li>
@@ -53,12 +65,19 @@ export default function Header({ onOpenSidebar }: Props) {
                     <button className="btn btn-outline" type="button">
                         <i className="fas fa-search"></i>
                     </button>
-                    <button className="btn btn-primary" type="button">
-                        <i className="fas fa-user-lock"></i> Autentificare
+                    <Link to={accountPath} className="btn btn-primary">
+                        <i className={accountIcon}></i> {accountLabel}
+                    </Link>
+                    <button
+                        className={`btn btn-outline btn-logout ${!isAuthenticated ? "is-hidden" : ""}`}
+                        type="button"
+                        onClick={handleLogout}
+                        disabled={!isAuthenticated}
+                    >
+                        <i className="fas fa-right-from-bracket"></i> Deconectare
                     </button>
                 </div>
             </div>
         </header>
     );
-
 }

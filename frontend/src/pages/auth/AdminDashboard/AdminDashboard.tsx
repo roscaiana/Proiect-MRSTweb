@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../../../hooks/useAuth';
+import './AdminDashboard.css';
 
 const AdminDashboard: React.FC = () => {
     const { user } = useAuth();
@@ -168,7 +169,7 @@ const AdminDashboard: React.FC = () => {
                 <div className="dashboard-card activity-card">
                     <div className="card-header">
                         <h2>Activitate Recentă</h2>
-                        <Link to="/teste" className="card-action">
+                        <Link to="/tests" className="card-action">
                             Vezi toate →
                         </Link>
                     </div>
@@ -244,3 +245,4 @@ const AdminDashboard: React.FC = () => {
 };
 
 export default AdminDashboard;
+
