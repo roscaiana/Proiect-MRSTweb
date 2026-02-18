@@ -37,12 +37,12 @@ export default function Sidebar({ open, onClose }: Props) {
 
                 <div className="sidebar-content">
                     <div className="sidebar-section">
-                        <h4>Navigație</h4>
+                        <h4>Navigatie</h4>
                         <ul>
-                            <li><Link to="/" onClick={onClose}><i className="fas fa-home"></i> Acasă</Link></li>
+                            <li><Link to="/" onClick={onClose}><i className="fas fa-home"></i> Acasa</Link></li>
                             <li><Link to="/tests" onClick={onClose}><i className="fas fa-clipboard-check"></i> Teste</Link></li>
-                            <li><Link to="/register" onClick={onClose}><i className="fas fa-user-plus"></i> Înscriere</Link></li>
-                            <li><Link to="/appointment" onClick={onClose}><i className="fas fa-book-open"></i> Resurse</Link></li>
+                            <li><Link to="/appointment" onClick={onClose}><i className="fas fa-user-plus"></i> Inscriere</Link></li>
+                            <li><Link to="/support" onClick={onClose}><i className="fas fa-book-open"></i> Resurse</Link></li>
                         </ul>
                     </div>
 
@@ -50,7 +50,7 @@ export default function Sidebar({ open, onClose }: Props) {
                         <h4>Contul Meu</h4>
                         <ul>
                             <li><Link to="/dashboard" onClick={onClose}><i className="fas fa-headset"></i> Suport</Link></li>
-                            <li><Link to="/login" onClick={onClose}><i className="fas fa-sign-out-alt"></i> Deconectare</Link></li>
+                            <li><Link to="/register" onClick={onClose}><i className="fas fa-sign-out-alt"></i> Autentificare</Link></li>
                         </ul>
                     </div>
                 </div>
