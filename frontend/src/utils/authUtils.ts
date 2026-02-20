@@ -66,23 +66,19 @@ export const validateLogin = (data: AuthCredentials): AuthError[] => {
 };
 
 // Mock login function
-export const mockLogin = async (credentials: AuthCredentials, isAdmin: boolean): Promise<User> => {
+export const mockLogin = async (credentials: AuthCredentials): Promise<User> => {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Check admin credentials
-    if (isAdmin) {
-        if (credentials.email === ADMIN_EMAIL && credentials.password === ADMIN_PASSWORD) {
-            return {
-                id: 'admin-1',
-                email: ADMIN_EMAIL,
-                fullName: 'Administrator',
-                role: 'admin',
-                createdAt: new Date()
-            };
-        } else {
-            throw new Error('Credențiale de administrator invalide');
-        }
+    if (credentials.email === ADMIN_EMAIL && credentials.password === ADMIN_PASSWORD) {
+        return {
+            id: 'admin-1',
+            email: ADMIN_EMAIL,
+            fullName: 'Administrator',
+            role: 'admin',
+            createdAt: new Date()
+        };
     }
 
     // Check user credentials from localStorage
