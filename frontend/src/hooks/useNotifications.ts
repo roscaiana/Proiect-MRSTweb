@@ -1,13 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import type { User } from "../types/user";
-
-export type AppNotification = {
-    id: string;
-    title: string;
-    message: string;
-    createdAt: string;
-    read: boolean;
-};
+import {
+    AppNotification,
+    buildNotificationStorageKey,
+    readNotifications,
+    saveNotifications,
+} from "../utils/notificationUtils";
 
 type UseNotificationsParams = {
     isAuthenticated: boolean;
@@ -46,7 +44,7 @@ const getStorageKey = (user: User | null): string | null => {
         return null;
     }
 
-    return `notifications_${user.role}_${user.email}`;
+    return buildNotificationStorageKey(user.role, user.email);
 };
 
 export const formatNotificationDate = (value: string): string => {
@@ -63,41 +61,63 @@ export const useNotifications = ({ isAuthenticated, isAdmin, user }: UseNotifica
     const [notifications, setNotifications] = useState<AppNotification[]>([]);
     const notificationStorageKey = getStorageKey(user);
 
-    useEffect(() => {
+    const loadForCurrentUser = () => {
         if (!isAuthenticated || !user || !notificationStorageKey) {
             setNotifications([]);
             return;
         }
 
         const fallbackNotifications = getDefaultNotifications(isAdmin);
-        const storedNotifications = localStorage.getItem(notificationStorageKey);
+        const storedNotifications = readNotifications(notificationStorageKey);
 
-        if (!storedNotifications) {
+        if (storedNotifications.length === 0) {
             setNotifications(fallbackNotifications);
-            localStorage.setItem(notificationStorageKey, JSON.stringify(fallbackNotifications));
+            saveNotifications(notificationStorageKey, fallbackNotifications);
             return;
         }
 
-        try {
-            const parsed = JSON.parse(storedNotifications) as AppNotification[];
-            if (Array.isArray(parsed)) {
-                setNotifications(parsed);
-                return;
-            }
-        } catch {
-            // Reset invalid data below.
-        }
+        setNotifications(storedNotifications);
+    };
 
-        setNotifications(fallbackNotifications);
-        localStorage.setItem(notificationStorageKey, JSON.stringify(fallbackNotifications));
+    useEffect(() => {
+        loadForCurrentUser();
     }, [isAuthenticated, isAdmin, notificationStorageKey, user]);
+
+    useEffect(() => {
+        const handleStorage = (event: StorageEvent) => {
+            if (notificationStorageKey && event.key === notificationStorageKey) {
+                loadForCurrentUser();
+            }
+        };
+
+        const handleNotificationsUpdated = (event: Event) => {
+            const customEvent = event as CustomEvent<{ storageKey?: string }>;
+            if (notificationStorageKey && customEvent.detail?.storageKey === notificationStorageKey) {
+                loadForCurrentUser();
+            }
+        };
+
+        window.addEventListener("storage", handleStorage);
+        window.addEventListener(
+            "notifications-updated",
+            handleNotificationsUpdated as EventListener
+        );
+
+        return () => {
+            window.removeEventListener("storage", handleStorage);
+            window.removeEventListener(
+                "notifications-updated",
+                handleNotificationsUpdated as EventListener
+            );
+        };
+    }, [notificationStorageKey, isAuthenticated, isAdmin, user]);
 
     useEffect(() => {
         if (!isAuthenticated || !notificationStorageKey) {
             return;
         }
 
-        localStorage.setItem(notificationStorageKey, JSON.stringify(notifications));
+        saveNotifications(notificationStorageKey, notifications);
     }, [isAuthenticated, notificationStorageKey, notifications]);
 
     const unreadCount = useMemo(
