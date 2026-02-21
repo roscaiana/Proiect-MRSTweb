@@ -1,6 +1,8 @@
-﻿﻿import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo, useEffect } from 'react';
 import { QuizSession, QuizResult } from '../../types/quiz';
-import { quizCategories, getQuestionsByCategory, getCategoryById } from '../../data/quizData';
+import { getQuizCategories, getQuestionsByCategory, getCategoryById } from '../../data/quizData';
+import { useAuth } from '../../hooks/useAuth';
+import { readExamSettings, readQuizHistory, STORAGE_KEYS, writeQuizHistory } from '../../features/admin/storage';
 import './TestsPage.css';
 
 const normalizeText = (value: string): string => {
@@ -57,14 +59,46 @@ const renderCategoryIcon = (categoryId: string) => {
 };
 
 const difficultyLabel = (difficulty: string): string => {
-    if (difficulty === 'beginner') return 'Începător';
+    if (difficulty === 'beginner') return 'Începator';
     if (difficulty === 'intermediate') return 'Intermediar';
     return 'Avansat';
 };
 
 const TestsPage: React.FC = () => {
+    const { user } = useAuth();
     const [quizSession, setQuizSession] = useState<QuizSession | null>(null);
     const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
+    const [categories, setCategories] = useState(() => getQuizCategories());
+    const [passThreshold, setPassThreshold] = useState(() => readExamSettings().passingThreshold);
+
+    useEffect(() => {
+        const refreshPageData = () => {
+            setCategories(getQuizCategories());
+            setPassThreshold(readExamSettings().passingThreshold);
+        };
+
+        const handleStorage = (event: StorageEvent) => {
+            if (event.key === STORAGE_KEYS.tests || event.key === STORAGE_KEYS.settings) {
+                refreshPageData();
+            }
+        };
+
+        const handleAppStorageUpdated = (event: Event) => {
+            const customEvent = event as CustomEvent<{ key?: string }>;
+            const key = customEvent.detail?.key;
+            if (key === STORAGE_KEYS.tests || key === STORAGE_KEYS.settings) {
+                refreshPageData();
+            }
+        };
+
+        window.addEventListener('storage', handleStorage);
+        window.addEventListener('app-storage-updated', handleAppStorageUpdated as EventListener);
+
+        return () => {
+            window.removeEventListener('storage', handleStorage);
+            window.removeEventListener('app-storage-updated', handleAppStorageUpdated as EventListener);
+        };
+    }, []);
 
     const startQuiz = (categoryId: string) => {
         const questions = getQuestionsByCategory(categoryId);
@@ -133,6 +167,16 @@ const TestsPage: React.FC = () => {
             answers
         };
 
+        const historyEntry = {
+            ...result,
+            completedAt: endTime.toISOString(),
+            userEmail: user?.email,
+            userName: user?.fullName
+        };
+
+        const history = readQuizHistory();
+        writeQuizHistory([historyEntry, ...history]);
+
         setQuizResult(result);
         setQuizSession(null);
     };
@@ -163,7 +207,6 @@ const TestsPage: React.FC = () => {
     }, [quizSession]);
 
     if (quizResult) {
-        const passThreshold = 70;
         const passed = quizResult.score >= passThreshold;
 
         return (
@@ -184,11 +227,11 @@ const TestsPage: React.FC = () => {
                                 </svg>
                             )}
                         </div>
-                        <h2>{passed ? 'Felicitări!' : 'Continuă să exersezi!'}</h2>
+                        <h2>{passed ? 'Felicitari!' : 'Continua sa exersezi!'}</h2>
                         <p className="result-message">
                             {passed
-                                ? 'Ai trecut testul cu succes! Cunoștințele tale sunt la un nivel bun.'
-                                : 'Nu te descuraja! Continuă să studiezi și vei reuși.'}
+                                ? 'Ai trecut testul cu succes! Cuno?tin?ele tale sunt la un nivel bun.'
+                                : 'Nu te descuraja! Continua sa studiezi ?i vei reu?i.'}
                         </p>
 
                         <div className="result-stats">
@@ -198,7 +241,7 @@ const TestsPage: React.FC = () => {
                             </div>
                             <div className="stat-item">
                                 <div className="stat-value">{quizResult.correctAnswers}/{quizResult.totalQuestions}</div>
-                                <div className="stat-label">Răspunsuri Corecte</div>
+                                <div className="stat-label">Raspunsuri Corecte</div>
                             </div>
                             <div className="stat-item">
                                 <div className="stat-value">{Math.floor(quizResult.timeTaken / 60)}:{(quizResult.timeTaken % 60).toString().padStart(2, '0')}</div>
@@ -207,7 +250,7 @@ const TestsPage: React.FC = () => {
                         </div>
 
                         <div className="result-details">
-                            <h3>Detalii Răspunsuri</h3>
+                            <h3>Detalii Raspunsuri</h3>
                             <div className="answer-list">
                                 {quizResult.answers.map((answer, index) => (
                                     <div key={index} className={`answer-item ${answer.isCorrect ? 'correct' : 'incorrect'}`}>
@@ -221,7 +264,7 @@ const TestsPage: React.FC = () => {
                         <div className="result-actions">
                             <button className="btn-primary" onClick={resetQuiz}>Înapoi la Categorii</button>
                             <button className="btn-secondary" onClick={() => { setQuizResult(null); startQuiz(quizResult.categoryId); }}>
-                                Reîncearcă Testul
+                                Reîncearca Testul
                             </button>
                         </div>
                     </div>
@@ -280,14 +323,14 @@ const TestsPage: React.FC = () => {
 
                             {isLastQuestion ? (
                                 <button className="btn-submit" onClick={submitQuiz} disabled={!canProceed}>
-                                    Finalizează Testul
+                                    Finalizeaza Testul
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <polyline points="20 6 9 17 4 12" />
                                     </svg>
                                 </button>
                             ) : (
                                 <button className="btn-primary" onClick={nextQuestion} disabled={!canProceed}>
-                                    Următoarea
+                                    Urmatoarea
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                         <line x1="5" y1="12" x2="19" y2="12" />
                                         <polyline points="12 5 19 12 12 19" />
@@ -305,12 +348,12 @@ const TestsPage: React.FC = () => {
         <div className="tests-page">
             <div className="container">
                 <div className="page-header">
-                    <h1>Teste de Pregătire</h1>
-                    <p className="page-subtitle">Exersează-ți cunoștințele pentru examenul de certificare electorală. Alege o categorie pentru a începe.</p>
+                    <h1>Teste de Pregatire</h1>
+                    <p className="page-subtitle">Exerseaza-?i cuno?tin?ele pentru examenul de certificare electorala. Alege o categorie pentru a începe.</p>
                 </div>
 
                 <div className="quiz-categories">
-                    {quizCategories.map((category) => {
+                    {categories.map((category) => {
                         const categoryTitle = normalizeText(category.title);
                         const categoryDescription = normalizeText(category.description);
                         return (
@@ -332,7 +375,7 @@ const TestsPage: React.FC = () => {
                                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                                             <polyline points="14 2 14 8 20 8" />
                                         </svg>
-                                        <span>{category.questionCount} întrebări</span>
+                                        <span>{category.questionCount} întrebari</span>
                                     </div>
                                     <div className="meta-item">
                                         <span className={`difficulty-badge ${category.difficulty}`}>{difficultyLabel(category.difficulty)}</span>
@@ -360,12 +403,12 @@ const TestsPage: React.FC = () => {
                         </svg>
                     </div>
                     <div className="tests-info-content">
-                        <h4>Informații despre Teste</h4>
+                        <h4>Informa?ii despre Teste</h4>
                         <ul>
-                            <li>Fiecare test contine întrebări cu variante multiple de raspuns.</li>
-                            <li>Poți naviga înainte și înapoi între întrebări.</li>
-                            <li>Scorul minim de promovare este 70%.</li>
-                            <li>Poți relua testul de câte ori dorești.</li>
+                            <li>Fiecare test contine întrebari cu variante multiple de raspuns.</li>
+                            <li>Po?i naviga înainte ?i înapoi între întrebari.</li>
+                            <li>Scorul minim de promovare este {passThreshold}%.</li>
+                            <li>Po?i relua testul de câte ori dore?ti.</li>
                         </ul>
                     </div>
                 </div>
@@ -375,5 +418,9 @@ const TestsPage: React.FC = () => {
 };
 
 export default TestsPage;
+
+
+
+
 
 

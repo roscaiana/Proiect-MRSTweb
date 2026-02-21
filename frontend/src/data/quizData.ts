@@ -332,9 +332,94 @@ export const questionBanks: Record<string, Question[]> = {
 };
 
 export const getQuestionsByCategory = (categoryId: string): Question[] => {
+    const adminBank = getAdminQuestionBank();
+    if (adminBank[categoryId]) {
+        return adminBank[categoryId];
+    }
+
     return questionBanks[categoryId] || [];
 };
 
 export const getCategoryById = (categoryId: string): QuizCategory | undefined => {
-    return quizCategories.find(cat => cat.id === categoryId);
+    return getQuizCategories().find(cat => cat.id === categoryId);
+};
+
+type StoredAdminQuestion = {
+    id?: string;
+    text?: string;
+    options?: string[];
+    correctAnswer?: number;
+};
+
+type StoredAdminTest = {
+    id?: string;
+    title?: string;
+    description?: string;
+    durationMinutes?: number;
+    questions?: StoredAdminQuestion[];
+};
+
+const ADMIN_TESTS_STORAGE_KEY = "adminTests";
+
+const toDifficulty = (questionCount: number): QuizCategory["difficulty"] => {
+    if (questionCount <= 8) return "beginner";
+    if (questionCount <= 12) return "intermediate";
+    return "advanced";
+};
+
+const getAdminTests = (): StoredAdminTest[] => {
+    const raw = localStorage.getItem(ADMIN_TESTS_STORAGE_KEY);
+    if (!raw) return [];
+
+    try {
+        const parsed = JSON.parse(raw) as StoredAdminTest[];
+        return Array.isArray(parsed) ? parsed : [];
+    } catch {
+        return [];
+    }
+};
+
+const getAdminQuestionBank = (): Record<string, Question[]> => {
+    const tests = getAdminTests();
+    if (tests.length === 0) return {};
+
+    return tests.reduce<Record<string, Question[]>>((acc, test, testIndex) => {
+        const testId = test.id || `admin-test-${testIndex + 1}`;
+        const questions = Array.isArray(test.questions)
+            ? test.questions.map((question, questionIndex) => ({
+                  id: question.id || `${testId}-q-${questionIndex + 1}`,
+                  text: question.text || "",
+                  options: Array.isArray(question.options) ? question.options : [],
+                  correctAnswer:
+                      typeof question.correctAnswer === "number" ? question.correctAnswer : 0,
+              }))
+            : [];
+
+        acc[testId] = questions;
+        return acc;
+    }, {});
+};
+
+export const getQuizCategories = (): QuizCategory[] => {
+    const tests = getAdminTests();
+    if (tests.length === 0) return quizCategories;
+
+    return tests.map((test, index) => {
+        const id = test.id || `admin-test-${index + 1}`;
+        const questionCount = Array.isArray(test.questions) ? test.questions.length : 0;
+        const estimatedTime =
+            typeof test.durationMinutes === "number" && test.durationMinutes > 0
+                ? test.durationMinutes
+                : 15;
+
+        return {
+            id,
+            title: test.title || "Test",
+            description: test.description || "Test disponibil in platforma",
+            icon: "📝",
+            questionCount,
+            estimatedTime,
+            difficulty: toDifficulty(questionCount),
+        };
+    });
 };
