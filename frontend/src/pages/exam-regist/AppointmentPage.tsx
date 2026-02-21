@@ -8,11 +8,14 @@ import {
     getDayName,
     getMonthName
 } from '../../utils/dateUtils';
+import { useAuth } from '../../hooks/useAuth';
+import { readAppointments, writeAppointments } from '../../features/admin/storage';
 import './AppointmentPage.css';
 
 const AppointmentPage: React.FC = () => {
+    const { user } = useAuth();
     const [formData, setFormData] = useState<AppointmentFormData>({
-        fullName: '',
+        fullName: user?.fullName || '',
         idOrPhone: '',
         selectedDate: null,
         selectedSlot: null
@@ -99,6 +102,23 @@ const AppointmentPage: React.FC = () => {
         // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 1500));
 
+        if (formData.selectedDate && formData.selectedSlot) {
+            const newAppointment = {
+                id: `appointment-${Date.now()}`,
+                fullName: formData.fullName.trim(),
+                idOrPhone: formData.idOrPhone.trim(),
+                userEmail: user?.email,
+                date: formData.selectedDate.toISOString(),
+                slotStart: formData.selectedSlot.startTime,
+                slotEnd: formData.selectedSlot.endTime,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+
+            const existingAppointments = readAppointments();
+            writeAppointments([newAppointment, ...existingAppointments]);
+        }
+
         setIsSubmitting(false);
         setIsSubmitted(true);
 
@@ -108,7 +128,7 @@ const AppointmentPage: React.FC = () => {
 
     const handleNewAppointment = () => {
         setFormData({
-            fullName: '',
+            fullName: user?.fullName || '',
             idOrPhone: '',
             selectedDate: null,
             selectedSlot: null
