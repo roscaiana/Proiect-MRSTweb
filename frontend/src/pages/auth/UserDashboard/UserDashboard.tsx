@@ -1,20 +1,51 @@
-﻿import React from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
+import { readExamSettings, readQuizHistory, STORAGE_KEYS } from '../../../features/admin/storage';
 import './UserDashboard.css';
 
 const UserDashboard: React.FC = () => {
     const { user } = useAuth();
+    const [quizHistory, setQuizHistory] = useState(() => readQuizHistory());
+    const [passThreshold, setPassThreshold] = useState(() => readExamSettings().passingThreshold);
 
-    // Mock quiz history from localStorage
-    const getQuizHistory = () => {
-        const history = localStorage.getItem('quizHistory');
-        return history ? JSON.parse(history) : [];
-    };
+    useEffect(() => {
+        const refreshDashboardData = () => {
+            setQuizHistory(readQuizHistory());
+            setPassThreshold(readExamSettings().passingThreshold);
+        };
 
-    const quizHistory = getQuizHistory();
+        const handleStorage = (event: StorageEvent) => {
+            if (event.key === STORAGE_KEYS.quizHistory || event.key === STORAGE_KEYS.settings) {
+                refreshDashboardData();
+            }
+        };
 
-    // Format date
+        const handleAppStorageUpdated = (event: Event) => {
+            const customEvent = event as CustomEvent<{ key?: string }>;
+            const key = customEvent.detail?.key;
+            if (key === STORAGE_KEYS.quizHistory || key === STORAGE_KEYS.settings) {
+                refreshDashboardData();
+            }
+        };
+
+        window.addEventListener('storage', handleStorage);
+        window.addEventListener('app-storage-updated', handleAppStorageUpdated as EventListener);
+
+        return () => {
+            window.removeEventListener('storage', handleStorage);
+            window.removeEventListener('app-storage-updated', handleAppStorageUpdated as EventListener);
+        };
+    }, []);
+
+    const userQuizHistory = useMemo(() => {
+        if (!user?.email) {
+            return [];
+        }
+
+        return quizHistory.filter((entry) => entry.userEmail === user.email);
+    }, [quizHistory, user?.email]);
+
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
         return date.toLocaleDateString('ro-RO', {
@@ -34,7 +65,6 @@ const UserDashboard: React.FC = () => {
             </div>
 
             <div className="dashboard-grid">
-                {/* Profile Card */}
                 <div className="dashboard-card profile-card">
                     <div className="card-header">
                         <h2>Profilul Meu</h2>
@@ -60,7 +90,6 @@ const UserDashboard: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Stats Card */}
                 <div className="dashboard-card stats-card">
                     <div className="card-header">
                         <h2>Statistici</h2>
@@ -72,27 +101,26 @@ const UserDashboard: React.FC = () => {
                     </div>
                     <div className="stats-grid">
                         <div className="stat-item">
-                            <div className="stat-value">{quizHistory.length}</div>
+                            <div className="stat-value">{userQuizHistory.length}</div>
                             <div className="stat-label">Teste Completate</div>
                         </div>
                         <div className="stat-item">
                             <div className="stat-value">
-                                {quizHistory.length > 0
-                                    ? Math.round(quizHistory.reduce((acc: number, q: any) => acc + q.score, 0) / quizHistory.length)
+                                {userQuizHistory.length > 0
+                                    ? Math.round(userQuizHistory.reduce((acc: number, q: any) => acc + q.score, 0) / userQuizHistory.length)
                                     : 0}%
                             </div>
                             <div className="stat-label">Scor Mediu</div>
                         </div>
                         <div className="stat-item">
                             <div className="stat-value">
-                                {quizHistory.filter((q: any) => q.score >= 70).length}
+                                {userQuizHistory.filter((q: any) => q.score >= passThreshold).length}
                             </div>
                             <div className="stat-label">Teste Promovate</div>
                         </div>
                     </div>
                 </div>
 
-                {/* Quiz History */}
                 <div className="dashboard-card history-card">
                     <div className="card-header">
                         <h2>Istoricul Testelor</h2>
@@ -101,11 +129,11 @@ const UserDashboard: React.FC = () => {
                         </Link>
                     </div>
                     <div className="history-list">
-                        {quizHistory.length > 0 ? (
-                            quizHistory.slice(0, 5).map((quiz: any, index: number) => (
+                        {userQuizHistory.length > 0 ? (
+                            userQuizHistory.slice(0, 5).map((quiz: any, index: number) => (
                                 <div key={index} className="history-item">
                                     <div className="history-icon">
-                                        {quiz.score >= 70 ? (
+                                        {quiz.score >= passThreshold ? (
                                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                                                 <polyline points="22 4 12 14.01 9 11.01" />
@@ -122,7 +150,7 @@ const UserDashboard: React.FC = () => {
                                         <h4>{quiz.categoryTitle || 'Test'}</h4>
                                         <p>{formatDate(quiz.completedAt)}</p>
                                     </div>
-                                    <div className={`history-score ${quiz.score >= 70 ? 'passed' : 'failed'}`}>
+                                    <div className={`history-score ${quiz.score >= passThreshold ? 'passed' : 'failed'}`}>
                                         {quiz.score}%
                                     </div>
                                 </div>
@@ -145,7 +173,6 @@ const UserDashboard: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Quick Actions */}
                 <div className="dashboard-card actions-card">
                     <div className="card-header">
                         <h2>Acțiuni Rapide</h2>
@@ -191,4 +218,3 @@ const UserDashboard: React.FC = () => {
 };
 
 export default UserDashboard;
-
