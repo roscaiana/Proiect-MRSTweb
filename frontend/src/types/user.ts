@@ -6,6 +6,8 @@ export interface User {
     fullName: string;
     role: UserRole;
     createdAt: Date;
+    isBlocked?: boolean;
+    lastLoginAt?: Date | string;
 }
 
 export interface AuthCredentials {
