@@ -6,6 +6,13 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // Mock admin credentials
 const ADMIN_EMAIL = 'admin@electoral.md';
 const ADMIN_PASSWORD = 'admin123';
+const USERS_STORAGE_KEY = 'users';
+
+const emitStorageUpdate = (key: string): void => {
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('app-storage-updated', { detail: { key } }));
+    }
+};
 
 // Validate email format
 export const validateEmail = (email: string): boolean => {
@@ -66,40 +73,50 @@ export const validateLogin = (data: AuthCredentials): AuthError[] => {
 };
 
 // Mock login function
-export const mockLogin = async (credentials: AuthCredentials, isAdmin: boolean): Promise<User> => {
+export const mockLogin = async (credentials: AuthCredentials): Promise<User> => {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Check admin credentials
-    if (isAdmin) {
-        if (credentials.email === ADMIN_EMAIL && credentials.password === ADMIN_PASSWORD) {
-            return {
-                id: 'admin-1',
-                email: ADMIN_EMAIL,
-                fullName: 'Administrator',
-                role: 'admin',
-                createdAt: new Date()
-            };
-        } else {
-            throw new Error('Credențiale de administrator invalide');
-        }
+    if (credentials.email === ADMIN_EMAIL && credentials.password === ADMIN_PASSWORD) {
+        return {
+            id: 'admin-1',
+            email: ADMIN_EMAIL,
+            fullName: 'Administrator',
+            role: 'admin',
+            createdAt: new Date(),
+            isBlocked: false
+        };
     }
 
     // Check user credentials from localStorage
     const users = getStoredUsers();
-    const user = users.find(u => u.email === credentials.email);
+    const userIndex = users.findIndex(u => u.email === credentials.email);
+    const user = userIndex >= 0 ? users[userIndex] : undefined;
 
     if (!user) {
-        throw new Error('Email-ul nu este înregistrat');
+        throw new Error('Email-ul nu este inregistrat');
+    }
+
+    if (user.isBlocked) {
+        throw new Error('Contul este blocat. Contacteaza administratorul.');
     }
 
     // In a real app, we'd hash and compare passwords
     const storedPassword = localStorage.getItem(`password_${user.email}`);
     if (storedPassword !== credentials.password) {
-        throw new Error('Parolă incorectă');
+        throw new Error('Parola incorecta');
     }
 
-    return user;
+    const updatedUser: User = {
+        ...user,
+        lastLoginAt: new Date()
+    };
+    users[userIndex] = updatedUser;
+    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+    emitStorageUpdate(USERS_STORAGE_KEY);
+
+    return updatedUser;
 };
 
 // Mock register function
@@ -119,12 +136,14 @@ export const mockRegister = async (data: RegisterData): Promise<User> => {
         email: data.email,
         fullName: data.fullName,
         role: 'user',
-        createdAt: new Date()
+        createdAt: new Date(),
+        isBlocked: false
     };
 
     // Store user and password
     users.push(newUser);
-    localStorage.setItem('users', JSON.stringify(users));
+    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+    emitStorageUpdate(USERS_STORAGE_KEY);
     localStorage.setItem(`password_${data.email}`, data.password);
 
     return newUser;
@@ -132,7 +151,7 @@ export const mockRegister = async (data: RegisterData): Promise<User> => {
 
 // Get stored users from localStorage
 const getStoredUsers = (): User[] => {
-    const stored = localStorage.getItem('users');
+    const stored = localStorage.getItem(USERS_STORAGE_KEY);
     if (!stored) return [];
 
     try {

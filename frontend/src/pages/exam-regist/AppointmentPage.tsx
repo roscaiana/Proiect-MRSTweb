@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from 'react';
+﻿import React, { useEffect, useState, useMemo } from 'react';
 import { AppointmentFormData, FormErrors, TIME_SLOTS } from '../../types/appointment';
 import {
     isAllowedDay,
@@ -8,11 +8,24 @@ import {
     getDayName,
     getMonthName
 } from '../../utils/dateUtils';
+import { useAuth } from '../../hooks/useAuth';
+import type { AdminAppointmentRecord } from '../../features/admin/types';
+import { readAppointments, readExamSettings, STORAGE_KEYS, writeAppointments } from '../../features/admin/storage';
 import './AppointmentPage.css';
 
+const isSameCalendarDay = (first: Date, secondIso: string): boolean => {
+    const second = new Date(secondIso);
+    return (
+        first.getFullYear() === second.getFullYear() &&
+        first.getMonth() === second.getMonth() &&
+        first.getDate() === second.getDate()
+    );
+};
+
 const AppointmentPage: React.FC = () => {
+    const { user } = useAuth();
     const [formData, setFormData] = useState<AppointmentFormData>({
-        fullName: '',
+        fullName: user?.fullName || '',
         idOrPhone: '',
         selectedDate: null,
         selectedSlot: null
@@ -21,6 +34,37 @@ const AppointmentPage: React.FC = () => {
     const [errors, setErrors] = useState<FormErrors>({});
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [examSettings, setExamSettings] = useState(() => readExamSettings());
+    const [appointments, setAppointments] = useState(() => readAppointments());
+
+    useEffect(() => {
+        const refreshData = () => {
+            setExamSettings(readExamSettings());
+            setAppointments(readAppointments());
+        };
+
+        const handleStorage = (event: StorageEvent) => {
+            if (event.key === STORAGE_KEYS.settings || event.key === STORAGE_KEYS.appointments) {
+                refreshData();
+            }
+        };
+
+        const handleAppStorageUpdated = (event: Event) => {
+            const customEvent = event as CustomEvent<{ key?: string }>;
+            const key = customEvent.detail?.key;
+            if (key === STORAGE_KEYS.settings || key === STORAGE_KEYS.appointments) {
+                refreshData();
+            }
+        };
+
+        window.addEventListener('storage', handleStorage);
+        window.addEventListener('app-storage-updated', handleAppStorageUpdated as EventListener);
+
+        return () => {
+            window.removeEventListener('storage', handleStorage);
+            window.removeEventListener('app-storage-updated', handleAppStorageUpdated as EventListener);
+        };
+    }, []);
 
     // Get minimum selectable date (Jan 1st, 2026)
     const minDate = useMemo(() => {
@@ -35,25 +79,85 @@ const AppointmentPage: React.FC = () => {
         return date;
     }, []);
 
+    const selectedDayAppointments = useMemo(() => {
+        if (!formData.selectedDate) {
+            return [];
+        }
+
+        return appointments.filter(
+            (appointment) =>
+                appointment.status !== 'rejected' &&
+                isSameCalendarDay(formData.selectedDate as Date, appointment.date)
+        );
+    }, [appointments, formData.selectedDate]);
+
+    const remainingAppointmentsForDay = useMemo(() => {
+        return Math.max(0, examSettings.appointmentsPerDay - selectedDayAppointments.length);
+    }, [examSettings.appointmentsPerDay, selectedDayAppointments.length]);
+
+    const availableSlots = useMemo(() => {
+        const occupiedSlots = new Set(
+            selectedDayAppointments.map((appointment) => `${appointment.slotStart}-${appointment.slotEnd}`)
+        );
+
+        return TIME_SLOTS.map((slot) => ({
+            ...slot,
+            available:
+                remainingAppointmentsForDay > 0 &&
+                !occupiedSlots.has(`${slot.startTime}-${slot.endTime}`),
+        }));
+    }, [remainingAppointmentsForDay, selectedDayAppointments]);
+
+    useEffect(() => {
+        if (!formData.selectedSlot) {
+            return;
+        }
+
+        const stillAvailable = availableSlots.some(
+            (slot) => slot.id === formData.selectedSlot?.id && slot.available
+        );
+
+        if (!stillAvailable) {
+            setFormData((prev) => ({ ...prev, selectedSlot: null }));
+            setErrors((prev) => ({
+                ...prev,
+                slot: 'Intervalul selectat nu mai este disponibil. Alegeți alt interval.',
+            }));
+        }
+    }, [availableSlots, formData.selectedSlot]);
+
     const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const dateString = e.target.value;
         if (!dateString) {
-            setFormData({ ...formData, selectedDate: null });
+            setFormData({ ...formData, selectedDate: null, selectedSlot: null });
             return;
         }
 
         const selectedDate = new Date(dateString + 'T00:00:00');
 
         if (isAllowedDay(selectedDate)) {
-            setFormData({ ...formData, selectedDate });
-            setErrors({ ...errors, date: undefined });
+            const dayAppointments = appointments.filter(
+                (appointment) =>
+                    appointment.status !== 'rejected' &&
+                    isSameCalendarDay(selectedDate, appointment.date)
+            );
+            const isDayFullyBooked = dayAppointments.length >= examSettings.appointmentsPerDay;
+
+            setFormData({ ...formData, selectedDate, selectedSlot: null });
+            setErrors({
+                ...errors,
+                date: isDayFullyBooked
+                    ? `Ziua selectată este complet rezervată (${examSettings.appointmentsPerDay}/${examSettings.appointmentsPerDay}).`
+                    : undefined,
+                slot: isDayFullyBooked ? 'Nu mai sunt intervale disponibile pentru această zi.' : undefined,
+            });
         } else {
             setErrors({ ...errors, date: 'Vă rugăm să selectați Luni, Miercuri sau Vineri' });
         }
     };
 
     const handleSlotSelect = (slotId: string) => {
-        const slot = TIME_SLOTS.find(s => s.id === slotId);
+        const slot = availableSlots.find(s => s.id === slotId && s.available);
         if (slot) {
             setFormData({ ...formData, selectedSlot: slot });
             setErrors({ ...errors, slot: undefined });
@@ -77,10 +181,28 @@ const AppointmentPage: React.FC = () => {
 
         if (!formData.selectedDate) {
             newErrors.date = 'Vă rugăm să selectați o dată';
+        } else {
+            const dayAppointments = appointments.filter(
+                (appointment) =>
+                    appointment.status !== 'rejected' &&
+                    isSameCalendarDay(formData.selectedDate as Date, appointment.date)
+            );
+
+            if (dayAppointments.length >= examSettings.appointmentsPerDay) {
+                newErrors.date = `Limita zilnică de ${examSettings.appointmentsPerDay} programări a fost atinsă.`;
+            }
         }
 
         if (!formData.selectedSlot) {
             newErrors.slot = 'Vă rugăm să selectați un interval orar';
+        } else {
+            const isSelectedSlotAvailable = availableSlots.some(
+                (slot) => slot.id === formData.selectedSlot?.id && slot.available
+            );
+
+            if (!isSelectedSlotAvailable) {
+                newErrors.slot = 'Intervalul selectat nu mai este disponibil.';
+            }
         }
 
         setErrors(newErrors);
@@ -99,6 +221,56 @@ const AppointmentPage: React.FC = () => {
         // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 1500));
 
+        if (formData.selectedDate && formData.selectedSlot) {
+            const latestAppointments = readAppointments();
+            const latestSettings = readExamSettings();
+            const sameDayAppointments = latestAppointments.filter(
+                (appointment) =>
+                    appointment.status !== 'rejected' &&
+                    isSameCalendarDay(formData.selectedDate as Date, appointment.date)
+            );
+
+            if (sameDayAppointments.length >= latestSettings.appointmentsPerDay) {
+                setErrors((prev) => ({
+                    ...prev,
+                    date: `Între timp, limita zilnică de ${latestSettings.appointmentsPerDay} programări a fost atinsă.`,
+                }));
+                setIsSubmitting(false);
+                return;
+            }
+
+            const slotAlreadyTaken = sameDayAppointments.some(
+                (appointment) =>
+                    appointment.slotStart === formData.selectedSlot?.startTime &&
+                    appointment.slotEnd === formData.selectedSlot?.endTime
+            );
+
+            if (slotAlreadyTaken) {
+                setErrors((prev) => ({
+                    ...prev,
+                    slot: 'Intervalul ales a fost ocupat între timp. Alege alt interval.',
+                }));
+                setIsSubmitting(false);
+                return;
+            }
+
+            const newAppointment: AdminAppointmentRecord = {
+                id: `appointment-${Date.now()}`,
+                fullName: formData.fullName.trim(),
+                idOrPhone: formData.idOrPhone.trim(),
+                userEmail: user?.email,
+                date: formData.selectedDate.toISOString(),
+                slotStart: formData.selectedSlot.startTime,
+                slotEnd: formData.selectedSlot.endTime,
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+
+            const nextAppointments = [newAppointment, ...latestAppointments];
+            writeAppointments(nextAppointments);
+            setAppointments(nextAppointments);
+        }
+
         setIsSubmitting(false);
         setIsSubmitted(true);
 
@@ -108,7 +280,7 @@ const AppointmentPage: React.FC = () => {
 
     const handleNewAppointment = () => {
         setFormData({
-            fullName: '',
+            fullName: user?.fullName || '',
             idOrPhone: '',
             selectedDate: null,
             selectedSlot: null
@@ -238,9 +410,14 @@ const AppointmentPage: React.FC = () => {
                             <p className="card-description">
                                 Alegeți intervalul orar care vi se potrivește pentru examen.
                             </p>
+                            {formData.selectedDate && (
+                                <p className="card-description">
+                                    Locuri rămase în ziua selectată: <strong>{remainingAppointmentsForDay}</strong> / {examSettings.appointmentsPerDay}
+                                </p>
+                            )}
 
                             <div className="time-slots">
-                                {TIME_SLOTS.map((slot) => (
+                                {availableSlots.map((slot) => (
                                     <button
                                         key={slot.id}
                                         type="button"
@@ -333,7 +510,8 @@ const AppointmentPage: React.FC = () => {
                         <div className="info-content">
                             <h4>Informații Importante</h4>
                             <ul>
-                                <li>Examenul durează aproximativ 30 minute</li>
+                                <li>Examenul durează aproximativ {examSettings.testDurationMinutes} minute</li>
+                                <li>Limită zilnică configurată de admin: {examSettings.appointmentsPerDay} programări</li>
                                 <li>Vă rugăm să vă prezentați cu 15 minute înainte de ora programării</li>
                                 <li>Este necesar să aveți actul de identitate asupra dumneavoastră</li>
                                 <li>Veți primi un email de confirmare după înregistrare</li>
@@ -371,6 +549,7 @@ const AppointmentPage: React.FC = () => {
 };
 
 export default AppointmentPage;
+
 
 
 

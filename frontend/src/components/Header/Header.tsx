@@ -1,4 +1,6 @@
-﻿import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { formatNotificationDate, useNotifications } from "../../hooks/useNotifications";
 import { useAuth } from "../../hooks/useAuth";
 import "./Header.css";
 
@@ -7,7 +9,15 @@ type Props = { onOpenSidebar: () => void };
 export default function Header({ onOpenSidebar }: Props) {
     const stopLink = (e: React.MouseEvent<HTMLAnchorElement>) => e.preventDefault();
     const navigate = useNavigate();
-    const { isAuthenticated, isAdmin, logout } = useAuth();
+    const { isAuthenticated, isAdmin, user, logout } = useAuth();
+    const [notificationsOpen, setNotificationsOpen] = useState(false);
+    const notificationRef = useRef<HTMLDivElement>(null);
+
+    const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications({
+        isAuthenticated,
+        isAdmin,
+        user,
+    });
 
     const accountPath = isAuthenticated ? (isAdmin ? "/admin" : "/dashboard") : "/login";
     const accountLabel = isAuthenticated ? "Dashboard" : "Autentificare";
@@ -17,6 +27,25 @@ export default function Header({ onOpenSidebar }: Props) {
         logout();
         navigate("/");
     };
+
+    useEffect(() => {
+        if (!notificationsOpen) {
+            return;
+        }
+
+        const handleClickOutside = (event: MouseEvent) => {
+            if (!notificationRef.current) {
+                return;
+            }
+
+            if (!notificationRef.current.contains(event.target as Node)) {
+                setNotificationsOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [notificationsOpen]);
 
     return (
         <header className="main-header">
@@ -76,6 +105,54 @@ export default function Header({ onOpenSidebar }: Props) {
                     >
                         <i className="fas fa-right-from-bracket"></i> Deconectare
                     </button>
+
+                    {isAuthenticated && (
+                        <div className="notification-wrapper" ref={notificationRef}>
+                            <button
+                                className="btn btn-outline notification-btn"
+                                type="button"
+                                aria-label="Notificari"
+                                onClick={() => setNotificationsOpen((prev) => !prev)}
+                            >
+                                <i className="fas fa-bell"></i>
+                                {unreadCount > 0 && <span className="notification-dot"></span>}
+                            </button>
+
+                            {notificationsOpen && (
+                                <div className="notification-panel">
+                                    <div className="notification-panel-header">
+                                        <h4>Notificari</h4>
+                                        {unreadCount > 0 && (
+                                            <button type="button" className="mark-read-btn" onClick={markAllAsRead}>
+                                                Marcheaza citite
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    <div className="notification-list">
+                                        {notifications.length === 0 ? (
+                                            <p className="notification-empty">Nu ai notificari.</p>
+                                        ) : (
+                                            notifications.map((notification) => (
+                                                <button
+                                                    key={notification.id}
+                                                    type="button"
+                                                    className={`notification-item ${notification.read ? "" : "unread"}`}
+                                                    onClick={() => markAsRead(notification.id)}
+                                                >
+                                                    <span className="notification-title">{notification.title}</span>
+                                                    <span className="notification-message">{notification.message}</span>
+                                                    <span className="notification-time">
+                                                        {formatNotificationDate(notification.createdAt)}
+                                                    </span>
+                                                </button>
+                                            ))
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </header>

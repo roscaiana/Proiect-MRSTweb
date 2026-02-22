@@ -401,6 +401,70 @@ body {
     color: var(--error-red);
 }
 
+.dashboard-history-trend {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--gray-200);
+}
+
+.dashboard-history-trend h3 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--primary-navy);
+    margin-bottom: 10px;
+}
+
+.dashboard-trend-bars {
+    min-height: 150px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(28px, 1fr));
+    gap: 10px;
+    align-items: end;
+}
+
+.dashboard-trend-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.dashboard-trend-fill {
+    width: 100%;
+    min-height: 8px;
+    border-radius: 8px 8px 4px 4px;
+    background: linear-gradient(180deg, var(--accent-gold) 0%, var(--primary-navy-light) 100%);
+}
+
+.dashboard-trend-column span {
+    font-size: 12px;
+    color: var(--gray-600);
+    font-weight: 700;
+}
+
+.appointment-status {
+    font-size: 13px;
+    font-weight: 700;
+    padding: 8px 12px;
+    border-radius: var(--border-radius-sm);
+    white-space: nowrap;
+}
+
+.appointment-status.pending {
+    background-color: rgba(251, 191, 36, 0.16);
+    color: #b45309;
+}
+
+.appointment-status.approved {
+    background-color: rgba(34, 197, 94, 0.14);
+    color: var(--success-green);
+}
+
+.appointment-status.rejected {
+    background-color: rgba(239, 68, 68, 0.14);
+    color: var(--error-red);
+}
+
 /* Actions Card */
 .actions-card {
     grid-column: span 1;
