@@ -101,8 +101,8 @@ const TestForm: React.FC<Props> = ({ mode, initialValue, onSubmit, onCancel }) =
             return "Titlul testului este obligatoriu.";
         }
 
-        if (form.durationMinutes < 5 || form.durationMinutes > 180) {
-            return "Durata testului trebuie sa fie intre 5 si 180 minute.";
+        if (form.durationMinutes < 1 || form.durationMinutes > 180) {
+            return "Durata testului trebuie sa fie intre 1 si 180 minute.";
         }
 
         if (form.passingScore < 1 || form.passingScore > 100) {
@@ -134,6 +134,17 @@ const TestForm: React.FC<Props> = ({ mode, initialValue, onSubmit, onCancel }) =
         return "";
     };
 
+    const buildPayload = (): AdminTestInput => ({
+        ...form,
+        title: form.title.trim(),
+        description: form.description.trim(),
+        questions: form.questions.map((question) => ({
+            ...question,
+            text: question.text.trim(),
+            options: question.options.map((option) => option.trim()),
+        })),
+    });
+
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
         const validationError = validateForm();
@@ -143,16 +154,26 @@ const TestForm: React.FC<Props> = ({ mode, initialValue, onSubmit, onCancel }) =
         }
 
         setError("");
-        onSubmit({
-            ...form,
-            title: form.title.trim(),
-            description: form.description.trim(),
-            questions: form.questions.map((question) => ({
-                ...question,
-                text: question.text.trim(),
-                options: question.options.map((option) => option.trim()),
-            })),
-        });
+        onSubmit(buildPayload());
+    };
+
+    const handleDurationBlur = () => {
+        if (mode !== "edit" || !initialValue) {
+            return;
+        }
+
+        if (form.durationMinutes === initialValue.durationMinutes) {
+            return;
+        }
+
+        const validationError = validateForm();
+        if (validationError) {
+            setError(validationError);
+            return;
+        }
+
+        setError("");
+        onSubmit(buildPayload());
     };
 
     return (
@@ -174,7 +195,7 @@ const TestForm: React.FC<Props> = ({ mode, initialValue, onSubmit, onCancel }) =
                     <span>Durata (minute)</span>
                     <input
                         type="number"
-                        min={5}
+                        min={1}
                         max={180}
                         value={form.durationMinutes}
                         onChange={(event) =>
@@ -183,6 +204,7 @@ const TestForm: React.FC<Props> = ({ mode, initialValue, onSubmit, onCancel }) =
                                 durationMinutes: Number(event.target.value) || 0,
                             }))
                         }
+                        onBlur={handleDurationBlur}
                     />
                 </label>
 

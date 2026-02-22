@@ -25,7 +25,7 @@ const AdminTestsPage: React.FC = () => {
     const handleSaveSettings = (event: React.FormEvent) => {
         event.preventDefault();
         if (
-            settingsDraft.testDurationMinutes < 5 ||
+            settingsDraft.testDurationMinutes < 1 ||
             settingsDraft.testDurationMinutes > 180 ||
             settingsDraft.passingThreshold < 1 ||
             settingsDraft.passingThreshold > 100 ||
@@ -55,7 +55,7 @@ const AdminTestsPage: React.FC = () => {
                         <span>Durata test (minute)</span>
                         <input
                             type="number"
-                            min={5}
+                            min={1}
                             max={180}
                             value={settingsDraft.testDurationMinutes}
                             onChange={(event) =>

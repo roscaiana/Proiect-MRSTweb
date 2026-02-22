@@ -407,10 +407,8 @@ export const getQuizCategories = (): QuizCategory[] => {
     return tests.map((test, index) => {
         const id = test.id || `admin-test-${index + 1}`;
         const questionCount = Array.isArray(test.questions) ? test.questions.length : 0;
-        const estimatedTime =
-            typeof test.durationMinutes === "number" && test.durationMinutes > 0
-                ? test.durationMinutes
-                : 15;
+        const parsedDuration = Number(test.durationMinutes);
+        const estimatedTime = Number.isFinite(parsedDuration) && parsedDuration > 0 ? parsedDuration : 15;
 
         return {
             id,
