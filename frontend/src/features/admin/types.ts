@@ -60,6 +60,20 @@ export interface QuizHistoryRecord {
     categoryTitle: string;
     score: number;
     completedAt: string;
+    mode?: "training" | "exam";
+    totalQuestions?: number;
+    correctAnswers?: number;
+    wrongAnswers?: number;
+    unanswered?: number;
+    timeTaken?: number;
+    durationSeconds?: number;
+    chapterStats?: Array<{
+        chapterId: string;
+        chapterTitle: string;
+        total: number;
+        correct: number;
+        accuracy: number;
+    }>;
     userEmail?: string;
     userName?: string;
 }

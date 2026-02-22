@@ -188,6 +188,32 @@ export const readQuizHistory = (): QuizHistoryRecord[] => {
         categoryId: entry.categoryId || "unknown",
         categoryTitle: entry.categoryTitle || "Test",
         score: Number(entry.score) || 0,
+        mode: entry.mode === "training" || entry.mode === "exam" ? entry.mode : undefined,
+        totalQuestions: Number.isFinite(Number(entry.totalQuestions))
+            ? Number(entry.totalQuestions)
+            : undefined,
+        correctAnswers: Number.isFinite(Number(entry.correctAnswers))
+            ? Number(entry.correctAnswers)
+            : undefined,
+        wrongAnswers: Number.isFinite(Number(entry.wrongAnswers))
+            ? Number(entry.wrongAnswers)
+            : undefined,
+        unanswered: Number.isFinite(Number(entry.unanswered)) ? Number(entry.unanswered) : undefined,
+        timeTaken: Number.isFinite(Number(entry.timeTaken)) ? Number(entry.timeTaken) : undefined,
+        durationSeconds: Number.isFinite(Number(entry.durationSeconds))
+            ? Number(entry.durationSeconds)
+            : undefined,
+        chapterStats: Array.isArray(entry.chapterStats)
+            ? entry.chapterStats
+                  .map((chapter: any) => ({
+                      chapterId: String(chapter?.chapterId || "general"),
+                      chapterTitle: String(chapter?.chapterTitle || "General"),
+                      total: Number(chapter?.total) || 0,
+                      correct: Number(chapter?.correct) || 0,
+                      accuracy: Number(chapter?.accuracy) || 0,
+                  }))
+                  .filter((chapter: any) => chapter.total > 0)
+            : undefined,
         completedAt: entry.completedAt
             ? new Date(entry.completedAt).toISOString()
             : new Date().toISOString(),
