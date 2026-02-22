@@ -1,22 +1,28 @@
 ﻿import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
-import { readExamSettings, readQuizHistory, STORAGE_KEYS } from '../../../features/admin/storage';
+import { readAppointments, readExamSettings, readQuizHistory, STORAGE_KEYS } from '../../../features/admin/storage';
 import './UserDashboard.css';
 
 const UserDashboard: React.FC = () => {
     const { user } = useAuth();
     const [quizHistory, setQuizHistory] = useState(() => readQuizHistory());
     const [passThreshold, setPassThreshold] = useState(() => readExamSettings().passingThreshold);
+    const [appointments, setAppointments] = useState(() => readAppointments());
 
     useEffect(() => {
         const refreshDashboardData = () => {
             setQuizHistory(readQuizHistory());
             setPassThreshold(readExamSettings().passingThreshold);
+            setAppointments(readAppointments());
         };
 
         const handleStorage = (event: StorageEvent) => {
-            if (event.key === STORAGE_KEYS.quizHistory || event.key === STORAGE_KEYS.settings) {
+            if (
+                event.key === STORAGE_KEYS.quizHistory ||
+                event.key === STORAGE_KEYS.settings ||
+                event.key === STORAGE_KEYS.appointments
+            ) {
                 refreshDashboardData();
             }
         };
@@ -24,7 +30,11 @@ const UserDashboard: React.FC = () => {
         const handleAppStorageUpdated = (event: Event) => {
             const customEvent = event as CustomEvent<{ key?: string }>;
             const key = customEvent.detail?.key;
-            if (key === STORAGE_KEYS.quizHistory || key === STORAGE_KEYS.settings) {
+            if (
+                key === STORAGE_KEYS.quizHistory ||
+                key === STORAGE_KEYS.settings ||
+                key === STORAGE_KEYS.appointments
+            ) {
                 refreshDashboardData();
             }
         };
@@ -45,6 +55,29 @@ const UserDashboard: React.FC = () => {
 
         return quizHistory.filter((entry) => entry.userEmail === user.email);
     }, [quizHistory, user?.email]);
+
+    const sortedUserQuizHistory = useMemo(() => {
+        return [...userQuizHistory].sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime());
+    }, [userQuizHistory]);
+
+    const recentAttempts = useMemo(() => sortedUserQuizHistory.slice(0, 5), [sortedUserQuizHistory]);
+    const trendAttempts = useMemo(() => [...sortedUserQuizHistory].slice(0, 8).reverse(), [sortedUserQuizHistory]);
+
+    const userAppointments = useMemo(() => {
+        if (!user?.email) {
+            return [];
+        }
+
+        return appointments
+            .filter((appointment) => appointment.userEmail === user.email)
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    }, [appointments, user?.email]);
+
+    const appointmentStatusLabel = (status: string) => {
+        if (status === 'approved') return 'Aprobat';
+        if (status === 'rejected') return 'Respins';
+        return 'In asteptare';
+    };
 
     const formatDate = (dateString: string) => {
         const date = new Date(dateString);
@@ -106,15 +139,15 @@ const UserDashboard: React.FC = () => {
                         </div>
                         <div className="stat-item">
                             <div className="stat-value">
-                                {userQuizHistory.length > 0
-                                    ? Math.round(userQuizHistory.reduce((acc: number, q: any) => acc + q.score, 0) / userQuizHistory.length)
+                                {sortedUserQuizHistory.length > 0
+                                    ? Math.round(sortedUserQuizHistory.reduce((acc: number, q: any) => acc + q.score, 0) / sortedUserQuizHistory.length)
                                     : 0}%
                             </div>
                             <div className="stat-label">Scor Mediu</div>
                         </div>
                         <div className="stat-item">
                             <div className="stat-value">
-                                {userQuizHistory.filter((q: any) => q.score >= passThreshold).length}
+                                {sortedUserQuizHistory.filter((q: any) => q.score >= passThreshold).length}
                             </div>
                             <div className="stat-label">Teste Promovate</div>
                         </div>
@@ -129,8 +162,8 @@ const UserDashboard: React.FC = () => {
                         </Link>
                     </div>
                     <div className="history-list">
-                        {userQuizHistory.length > 0 ? (
-                            userQuizHistory.slice(0, 5).map((quiz: any, index: number) => (
+                        {recentAttempts.length > 0 ? (
+                            recentAttempts.map((quiz: any, index: number) => (
                                 <div key={index} className="history-item">
                                     <div className="history-icon">
                                         {quiz.score >= passThreshold ? (
@@ -167,6 +200,49 @@ const UserDashboard: React.FC = () => {
                                 <p>Nu ați completat încă niciun test</p>
                                 <Link to="/tests" className="btn-primary">
                                     Începe un Test
+                                </Link>
+                            </div>
+                        )}
+                    </div>
+                    {trendAttempts.length > 0 && (
+                        <div className="dashboard-history-trend">
+                            <h3>Evolutie in timp</h3>
+                            <div className="dashboard-trend-bars">
+                                {trendAttempts.map((attempt, index) => (
+                                    <div key={`${attempt.completedAt}-trend-${index}`} className="dashboard-trend-column">
+                                        <div className="dashboard-trend-fill" style={{ height: `${Math.max(8, attempt.score)}%` }} title={`${attempt.score}%`} />
+                                        <span>{attempt.score}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                <div className="dashboard-card appointments-card">
+                    <div className="card-header">
+                        <h2>Programarile Mele</h2>
+                    </div>
+                    <div className="history-list">
+                        {userAppointments.length > 0 ? (
+                            userAppointments.slice(0, 4).map((appointment) => (
+                                <div key={appointment.id} className="history-item">
+                                    <div className="history-content">
+                                        <h4>{formatDate(appointment.date)}</h4>
+                                        <p>
+                                            Interval: {appointment.slotStart} - {appointment.slotEnd}
+                                        </p>
+                                    </div>
+                                    <div className={`appointment-status ${appointment.status}`}>
+                                        {appointmentStatusLabel(appointment.status)}
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="empty-state">
+                                <p>Nu ai programari inregistrate.</p>
+                                <Link to="/appointment" className="btn-primary">
+                                    Creeaza programare
                                 </Link>
                             </div>
                         )}
@@ -218,3 +294,4 @@ const UserDashboard: React.FC = () => {
 };
 
 export default UserDashboard;
+
