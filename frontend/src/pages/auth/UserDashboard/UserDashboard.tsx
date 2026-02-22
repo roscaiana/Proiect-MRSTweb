@@ -90,6 +90,32 @@ const UserDashboard: React.FC = () => {
         });
     };
 
+    const formatTrendDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ro-RO', {
+            day: '2-digit',
+            month: '2-digit'
+        });
+    };
+
+    const trendAverageScore = useMemo(() => {
+        if (trendAttempts.length === 0) {
+            return 0;
+        }
+
+        return Math.round(trendAttempts.reduce((acc, attempt) => acc + attempt.score, 0) / trendAttempts.length);
+    }, [trendAttempts]);
+
+    const trendDelta = useMemo(() => {
+        if (trendAttempts.length < 2) {
+            return null;
+        }
+
+        const firstScore = trendAttempts[0].score;
+        const lastScore = trendAttempts[trendAttempts.length - 1].score;
+        return lastScore - firstScore;
+    }, [trendAttempts]);
+
     return (
         <div className="dashboard-container">
             <div className="dashboard-header">
@@ -206,12 +232,38 @@ const UserDashboard: React.FC = () => {
                     </div>
                     {trendAttempts.length > 0 && (
                         <div className="dashboard-history-trend">
-                            <h3>Evolutie in timp</h3>
-                            <div className="dashboard-trend-bars">
+                            <div className="dashboard-history-trend-header">
+                                <div>
+                                    <h3>Evolutie in timp</h3>
+                                    <p className="dashboard-history-trend-subtitle">Ultimele {trendAttempts.length} incercari</p>
+                                </div>
+                                <div className="dashboard-trend-summary">
+                                    <span className="dashboard-trend-chip">Medie {trendAverageScore}%</span>
+                                    {trendDelta !== null && (
+                                        <span className={`dashboard-trend-chip delta ${trendDelta >= 0 ? 'up' : 'down'}`}>
+                                            {trendDelta >= 0 ? '+' : ''}{trendDelta}%
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="dashboard-trend-chart">
                                 {trendAttempts.map((attempt, index) => (
-                                    <div key={`${attempt.completedAt}-trend-${index}`} className="dashboard-trend-column">
-                                        <div className="dashboard-trend-fill" style={{ height: `${Math.max(8, attempt.score)}%` }} title={`${attempt.score}%`} />
-                                        <span>{attempt.score}</span>
+                                    <div
+                                        key={`${attempt.completedAt}-trend-${index}`}
+                                        className="dashboard-trend-column"
+                                        title={`${attempt.categoryTitle || 'Test'} • ${attempt.score}% • ${formatDate(attempt.completedAt)}`}
+                                    >
+                                        <span className={`dashboard-trend-score ${attempt.score >= passThreshold ? 'passed' : 'failed'}`}>
+                                            {attempt.score}%
+                                        </span>
+                                        <div className="dashboard-trend-bar-rail" aria-hidden="true">
+                                            <div
+                                                className={`dashboard-trend-fill ${attempt.score >= passThreshold ? 'passed' : 'failed'}`}
+                                                style={{ height: `${Math.max(6, Math.min(100, attempt.score))}%` }}
+                                            />
+                                        </div>
+                                        <span className="dashboard-trend-date">{formatTrendDate(attempt.completedAt)}</span>
+                                        <span className="dashboard-trend-label">{attempt.categoryTitle || 'Test'}</span>
                                     </div>
                                 ))}
                             </div>

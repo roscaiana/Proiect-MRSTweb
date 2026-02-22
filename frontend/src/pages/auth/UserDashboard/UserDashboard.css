@@ -407,26 +407,117 @@ body {
     border-top: 1px solid var(--gray-200);
 }
 
+.dashboard-history-trend-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
 .dashboard-history-trend h3 {
     font-size: 18px;
     font-weight: 700;
     color: var(--primary-navy);
-    margin-bottom: 10px;
+    margin-bottom: 2px;
 }
 
-.dashboard-trend-bars {
-    min-height: 150px;
+.dashboard-history-trend-subtitle {
+    font-size: 13px;
+    color: var(--gray-500);
+}
+
+.dashboard-trend-summary {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+}
+
+.dashboard-trend-chip {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    background: var(--gray-100);
+    color: var(--primary-navy);
+    border: 1px solid var(--gray-200);
+}
+
+.dashboard-trend-chip.delta.up {
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--success-green);
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+.dashboard-trend-chip.delta.down {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error-red);
+    border-color: rgba(239, 68, 68, 0.16);
+}
+
+.dashboard-trend-chart {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(28px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(62px, 1fr));
     gap: 10px;
     align-items: end;
+    padding: 14px 12px 10px;
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--gray-200);
+    background:
+        repeating-linear-gradient(
+            to top,
+            rgba(209, 213, 219, 0.5) 0,
+            rgba(209, 213, 219, 0.5) 1px,
+            transparent 1px,
+            transparent 32px
+        ),
+        linear-gradient(180deg, #fbfdff 0%, #f7fafc 100%);
 }
 
 .dashboard-trend-column {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-rows: auto 128px auto auto;
     align-items: center;
     gap: 6px;
+    min-width: 0;
+}
+
+.dashboard-trend-score {
+    font-size: 11px;
+    font-weight: 800;
+    border-radius: 999px;
+    padding: 3px 7px;
+    line-height: 1;
+    border: 1px solid transparent;
+    background: var(--gray-100);
+    color: var(--primary-navy);
+}
+
+.dashboard-trend-score.passed {
+    background: rgba(16, 185, 129, 0.12);
+    color: var(--success-green);
+    border-color: rgba(16, 185, 129, 0.2);
+}
+
+.dashboard-trend-score.failed {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--error-red);
+    border-color: rgba(239, 68, 68, 0.16);
+}
+
+.dashboard-trend-bar-rail {
+    width: 100%;
+    height: 128px;
+    border-radius: 10px;
+    border: 1px solid rgba(209, 213, 219, 0.75);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.8) 0%, rgba(243, 244, 246, 0.9) 100%);
+    padding: 3px;
+    display: flex;
+    align-items: flex-end;
 }
 
 .dashboard-trend-fill {
@@ -434,12 +525,33 @@ body {
     min-height: 8px;
     border-radius: 8px 8px 4px 4px;
     background: linear-gradient(180deg, var(--accent-gold) 0%, var(--primary-navy-light) 100%);
+    box-shadow: 0 4px 10px rgba(0, 33, 71, 0.18);
 }
 
-.dashboard-trend-column span {
-    font-size: 12px;
+.dashboard-trend-fill.passed {
+    background: linear-gradient(180deg, #34d399 0%, #059669 100%);
+}
+
+.dashboard-trend-fill.failed {
+    background: linear-gradient(180deg, #fca5a5 0%, #ef4444 100%);
+}
+
+.dashboard-trend-date {
+    font-size: 11px;
     color: var(--gray-600);
     font-weight: 700;
+    line-height: 1;
+}
+
+.dashboard-trend-label {
+    font-size: 10px;
+    color: var(--gray-500);
+    text-align: center;
+    line-height: 1.15;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .appointment-status {
@@ -762,5 +874,35 @@ body {
     .logout-btn {
         width: 100%;
         justify-content: center;
+    }
+
+    .dashboard-history-trend-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+
+    .dashboard-trend-summary {
+        justify-content: flex-start;
+    }
+
+    .dashboard-trend-chart {
+        grid-template-columns: repeat(auto-fit, minmax(54px, 1fr));
+        gap: 8px;
+        padding: 10px 8px 8px;
+    }
+
+    .dashboard-trend-column {
+        grid-template-rows: auto 96px auto auto;
+        gap: 5px;
+    }
+
+    .dashboard-trend-bar-rail {
+        height: 96px;
+        border-radius: 8px;
+    }
+
+    .dashboard-trend-label {
+        font-size: 9px;
     }
 }
