@@ -4,6 +4,7 @@ import {
     buildNotificationStorageKey,
     type NotificationRole,
 } from "../../../utils/notificationUtils";
+import { notifyAppointmentStatusChanged } from "../../../utils/appEventNotifications";
 import {
     STORAGE_KEYS,
     loadAdminState,
@@ -14,6 +15,7 @@ import {
     writeSentNotifications,
 } from "../storage";
 import type {
+    AdminAppointmentRecord,
     AdminState,
     AdminTestInput,
     AppointmentStatus,
@@ -29,7 +31,17 @@ type AdminAction =
     | { type: "test/delete"; payload: { id: string } }
     | { type: "settings/update"; payload: ExamSettings }
     | { type: "user/toggle-block"; payload: { id: string } }
-    | { type: "appointment/set-status"; payload: { id: string; status: AppointmentStatus } }
+    | {
+          type: "appointment/set-status";
+          payload: {
+              id: string;
+              status: AppointmentStatus;
+              reason?: string | null;
+              adminNote?: string | null;
+              cancelledBy?: "user" | "admin";
+          };
+      }
+    | { type: "appointment/update"; payload: { id: string; patch: Partial<AdminAppointmentRecord> } }
     | { type: "notifications/log"; payload: SentNotificationLog };
 
 type AdminPanelContextValue = {
@@ -39,7 +51,12 @@ type AdminPanelContextValue = {
     deleteTest: (id: string) => void;
     updateSettings: (settings: ExamSettings) => void;
     toggleUserBlocked: (userId: string) => void;
-    updateAppointmentStatus: (appointmentId: string, status: AppointmentStatus) => void;
+    updateAppointmentStatus: (
+        appointmentId: string,
+        status: AppointmentStatus,
+        options?: { reason?: string | null; adminNote?: string | null; cancelledBy?: "user" | "admin" }
+    ) => void;
+    updateAppointment: (appointmentId: string, patch: Partial<AdminAppointmentRecord>) => void;
     sendNotification: (input: SendNotificationInput) => number;
     refreshState: () => void;
 };
@@ -121,7 +138,36 @@ const reducer = (state: AdminState, action: AdminAction): AdminState => {
                 ...state,
                 appointments: state.appointments.map((appointment) =>
                     appointment.id === action.payload.id
-                        ? { ...appointment, status: action.payload.status }
+                        ? {
+                              ...appointment,
+                              status: action.payload.status,
+                              statusReason:
+                                  action.payload.reason !== undefined
+                                      ? action.payload.reason || undefined
+                                      : appointment.statusReason,
+                              adminNote:
+                                  action.payload.adminNote !== undefined
+                                      ? action.payload.adminNote || undefined
+                                      : appointment.adminNote,
+                              cancelledBy:
+                                  action.payload.status === "cancelled"
+                                      ? action.payload.cancelledBy || appointment.cancelledBy
+                                      : appointment.cancelledBy,
+                              updatedAt: new Date().toISOString(),
+                          }
+                        : appointment
+                ),
+            };
+        case "appointment/update":
+            return {
+                ...state,
+                appointments: state.appointments.map((appointment) =>
+                    appointment.id === action.payload.id
+                        ? {
+                              ...appointment,
+                              ...action.payload.patch,
+                              updatedAt: new Date().toISOString(),
+                          }
                         : appointment
                 ),
             };
@@ -237,8 +283,67 @@ export const AdminPanelProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         dispatch({ type: "user/toggle-block", payload: { id: userId } });
     }, []);
 
-    const updateAppointmentStatus = useCallback((appointmentId: string, status: AppointmentStatus) => {
-        dispatch({ type: "appointment/set-status", payload: { id: appointmentId, status } });
+    const updateAppointmentStatus = useCallback(
+        (
+            appointmentId: string,
+            status: AppointmentStatus,
+            options?: { reason?: string | null; adminNote?: string | null; cancelledBy?: "user" | "admin" }
+        ) => {
+            const targetAppointment = state.appointments.find((a) => a.id === appointmentId);
+            let recipientEmail = targetAppointment?.userEmail;
+
+            // Backfill recipient for older appointments that were created without userEmail linkage.
+            if (!recipientEmail && targetAppointment) {
+                const phoneOrIdValue = targetAppointment.idOrPhone.trim();
+                if (phoneOrIdValue.includes("@")) {
+                    recipientEmail = phoneOrIdValue;
+                } else {
+                    const normalizedFullName = targetAppointment.fullName.trim().toLowerCase();
+                    const matchedUsers = state.users.filter(
+                        (user) =>
+                            user.role === "user" &&
+                            user.fullName.trim().toLowerCase() === normalizedFullName
+                    );
+                    if (matchedUsers.length === 1) {
+                        recipientEmail = matchedUsers[0].email;
+                    }
+                }
+            }
+
+            if (recipientEmail && targetAppointment && !targetAppointment.userEmail) {
+                dispatch({
+                    type: "appointment/update",
+                    payload: {
+                        id: appointmentId,
+                        patch: { userEmail: recipientEmail },
+                    },
+                });
+            }
+
+            dispatch({
+                type: "appointment/set-status",
+                payload: {
+                    id: appointmentId,
+                    status,
+                    reason: options?.reason,
+                    adminNote: options?.adminNote,
+                    cancelledBy: options?.cancelledBy,
+                },
+            });
+
+            notifyAppointmentStatusChanged({
+                appointmentId: targetAppointment?.id || appointmentId,
+                userEmail: recipientEmail,
+                appointmentCode: targetAppointment?.appointmentCode,
+                status,
+                reason: options?.reason || undefined,
+            });
+        },
+        [state.appointments, state.users]
+    );
+
+    const updateAppointment = useCallback((appointmentId: string, patch: Partial<AdminAppointmentRecord>) => {
+        dispatch({ type: "appointment/update", payload: { id: appointmentId, patch } });
     }, []);
 
     const sendNotification = useCallback(
@@ -284,6 +389,7 @@ export const AdminPanelProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             updateSettings,
             toggleUserBlocked,
             updateAppointmentStatus,
+            updateAppointment,
             sendNotification,
             refreshState,
         }),
@@ -295,6 +401,7 @@ export const AdminPanelProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             updateSettings,
             toggleUserBlocked,
             updateAppointmentStatus,
+            updateAppointment,
             sendNotification,
             refreshState,
         ]

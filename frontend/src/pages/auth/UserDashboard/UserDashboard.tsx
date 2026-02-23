@@ -1,19 +1,27 @@
 ﻿import React, { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
-import { readAppointments, readExamSettings, readQuizHistory, STORAGE_KEYS } from '../../../features/admin/storage';
+import { readAppointments, readExamSettings, readQuizHistory, STORAGE_KEYS, writeAppointments } from '../../../features/admin/storage';
+import type { AdminAppointmentRecord } from '../../../features/admin/types';
+import { notifyUser } from '../../../utils/appEventNotifications';
 import './UserDashboard.css';
+
+const APPOINTMENT_RESCHEDULE_KEY = 'appointmentRescheduleDraft';
 
 const UserDashboard: React.FC = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [quizHistory, setQuizHistory] = useState(() => readQuizHistory());
+    const [examSettings, setExamSettings] = useState(() => readExamSettings());
     const [passThreshold, setPassThreshold] = useState(() => readExamSettings().passingThreshold);
     const [appointments, setAppointments] = useState(() => readAppointments());
 
     useEffect(() => {
         const refreshDashboardData = () => {
             setQuizHistory(readQuizHistory());
-            setPassThreshold(readExamSettings().passingThreshold);
+            const settings = readExamSettings();
+            setExamSettings(settings);
+            setPassThreshold(settings.passingThreshold);
             setAppointments(readAppointments());
         };
 
@@ -76,7 +84,50 @@ const UserDashboard: React.FC = () => {
     const appointmentStatusLabel = (status: string) => {
         if (status === 'approved') return 'Aprobat';
         if (status === 'rejected') return 'Respins';
+        if (status === 'cancelled') return 'Anulat';
         return 'In asteptare';
+    };
+
+    const canCancelAppointment = (status: string) => status === 'pending' || status === 'approved';
+    const canRescheduleAppointment = (appointment: any) =>
+        (appointment.status === 'pending' || appointment.status === 'approved') &&
+        (appointment.rescheduleCount || 0) < examSettings.maxReschedulesPerUser;
+
+    const handleCancelAppointment = (appointmentId: string) => {
+        const target = appointments.find((appointment) => appointment.id === appointmentId);
+        if (!target) {
+            return;
+        }
+
+        const updatedAt = new Date().toISOString();
+        const nextAppointments: AdminAppointmentRecord[] = appointments.map((appointment) =>
+            appointment.id === appointmentId
+                ? {
+                      ...appointment,
+                      status: 'cancelled',
+                      cancelledBy: 'user',
+                      statusReason: 'Anulată din dashboard de utilizator',
+                      updatedAt,
+                  }
+                : appointment
+        );
+
+        writeAppointments(nextAppointments);
+        setAppointments(nextAppointments);
+        notifyUser(user?.email, {
+            title: 'Programare anulată',
+            message: `Programarea ${target.appointmentCode || ''} a fost anulată din dashboard.`,
+            link: '/dashboard',
+            tag: `appointment-cancelled-user-${appointmentId}-${updatedAt}`,
+        });
+    };
+
+    const handleRescheduleAppointment = (appointmentId: string) => {
+        localStorage.setItem(
+            APPOINTMENT_RESCHEDULE_KEY,
+            JSON.stringify({ appointmentId, createdAt: new Date().toISOString() })
+        );
+        navigate(`/appointment?reschedule=${encodeURIComponent(appointmentId)}`);
     };
 
     const formatDate = (dateString: string) => {
@@ -284,6 +335,40 @@ const UserDashboard: React.FC = () => {
                                         <p>
                                             Interval: {appointment.slotStart} - {appointment.slotEnd}
                                         </p>
+                                        {appointment.appointmentCode && <p>Cod: {appointment.appointmentCode}</p>}
+                                        {appointment.statusReason && (
+                                            <p className={`appointment-reason ${appointment.status}`}>
+                                                Motiv: {appointment.statusReason}
+                                            </p>
+                                        )}
+                                        {appointment.adminNote && (
+                                            <p className="appointment-admin-note">
+                                                Notă admin: {appointment.adminNote}
+                                            </p>
+                                        )}
+                                        <div className="appointment-item-actions">
+                                            <button
+                                                type="button"
+                                                className="dashboard-mini-btn"
+                                                disabled={!canRescheduleAppointment(appointment)}
+                                                onClick={() => handleRescheduleAppointment(appointment.id)}
+                                                title={
+                                                    canRescheduleAppointment(appointment)
+                                                        ? 'Reprogramează'
+                                                        : `Limita de ${examSettings.maxReschedulesPerUser} reprogramări a fost atinsă`
+                                                }
+                                            >
+                                                Reprogramează
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="dashboard-mini-btn danger"
+                                                disabled={!canCancelAppointment(appointment.status)}
+                                                onClick={() => handleCancelAppointment(appointment.id)}
+                                            >
+                                                Anulează
+                                            </button>
+                                        </div>
                                     </div>
                                     <div className={`appointment-status ${appointment.status}`}>
                                         {appointmentStatusLabel(appointment.status)}

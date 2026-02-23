@@ -6,6 +6,8 @@ export type AppNotification = {
     message: string;
     createdAt: string;
     read: boolean;
+    link?: string;
+    tag?: string;
 };
 
 export const buildNotificationStorageKey = (role: NotificationRole, email: string): string => {
@@ -20,7 +22,18 @@ export const readNotifications = (storageKey: string): AppNotification[] => {
 
     try {
         const parsed = JSON.parse(raw) as AppNotification[];
-        return Array.isArray(parsed) ? parsed : [];
+        if (!Array.isArray(parsed)) {
+            return [];
+        }
+        return parsed.map((item) => ({
+            id: String(item?.id || `notif-${Date.now()}`),
+            title: String(item?.title || ""),
+            message: String(item?.message || ""),
+            createdAt: item?.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
+            read: Boolean(item?.read),
+            link: typeof item?.link === "string" && item.link.trim() ? item.link.trim() : undefined,
+            tag: typeof item?.tag === "string" && item.tag.trim() ? item.tag.trim() : undefined,
+        }));
     } catch {
         return [];
     }
@@ -32,6 +45,9 @@ export const saveNotifications = (storageKey: string, notifications: AppNotifica
 
 export const appendNotification = (storageKey: string, notification: AppNotification): void => {
     const existing = readNotifications(storageKey);
+    if (notification.tag && existing.some((item) => item.tag === notification.tag)) {
+        return;
+    }
     const next = [notification, ...existing].slice(0, 100);
     saveNotifications(storageKey, next);
     if (typeof window !== "undefined") {

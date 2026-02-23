@@ -577,6 +577,62 @@ body {
     color: var(--error-red);
 }
 
+.appointment-status.cancelled {
+    background-color: rgba(100, 116, 139, 0.14);
+    color: #475569;
+}
+
+.appointment-item-actions {
+    margin-top: 8px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.dashboard-mini-btn {
+    border: 1px solid var(--gray-300);
+    background: var(--white);
+    color: var(--primary-navy);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.dashboard-mini-btn:hover:not(:disabled) {
+    border-color: var(--accent-gold);
+    background: #fffbea;
+}
+
+.dashboard-mini-btn.danger:hover:not(:disabled) {
+    border-color: var(--error-red);
+    background: #fff5f5;
+    color: var(--error-red);
+}
+
+.dashboard-mini-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.appointment-reason {
+    margin-top: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-700);
+}
+
+.appointment-reason.rejected {
+    color: var(--error-red);
+}
+
+.appointment-admin-note {
+    margin-top: 2px;
+    font-size: 12px;
+    color: var(--gray-600);
+}
+
 /* Actions Card */
 .actions-card {
     grid-column: span 1;

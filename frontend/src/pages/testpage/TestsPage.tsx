@@ -7,6 +7,7 @@ import { readAdminTests, readExamSettings, readQuizHistory, STORAGE_KEYS, writeQ
 import QuestionNavigationGrid from './QuestionNavigationGrid';
 import { difficultyLabel, fmt, inferChapter, modeLabel, normalizeText, renderCategoryIcon } from './testsPageUtils';
 import { useQuestionGridAutoScroll } from './useQuestionGridAutoScroll';
+import { notifyQuizCompleted } from '../../utils/appEventNotifications';
 import './TestsPage.css';
 
 const TestsPage: React.FC = () => {
@@ -31,11 +32,13 @@ const TestsPage: React.FC = () => {
             setExamSettings(readExamSettings());
         };
         const onStorage = (event: StorageEvent) => {
-            if ([STORAGE_KEYS.tests, STORAGE_KEYS.settings].includes(event.key || '')) refresh();
+            const changedKey = event.key;
+            if (changedKey === STORAGE_KEYS.tests || changedKey === STORAGE_KEYS.settings) refresh();
         };
         const onAppStorage = (event: Event) => {
             const customEvent = event as CustomEvent<{ key?: string }>;
-            if ([STORAGE_KEYS.tests, STORAGE_KEYS.settings].includes(customEvent.detail?.key || '')) refresh();
+            const changedKey = customEvent.detail?.key;
+            if (changedKey === STORAGE_KEYS.tests || changedKey === STORAGE_KEYS.settings) refresh();
         };
         window.addEventListener('storage', onStorage);
         window.addEventListener('app-storage-updated', onAppStorage as EventListener);
@@ -164,6 +167,12 @@ const TestsPage: React.FC = () => {
         };
         const nextHistory = [historyEntry, ...readQuizHistory()].slice(0, 100);
         writeQuizHistory(nextHistory);
+        notifyQuizCompleted({
+            userEmail: user?.email,
+            categoryTitle: result.categoryTitle,
+            score: result.score,
+            passed: result.score >= examSettings.passingThreshold,
+        });
         setCompletionReason(reason);
         setQuizResult(result);
         setQuizSession(null);
@@ -304,11 +313,11 @@ const TestsPage: React.FC = () => {
         const isLast = quizSession.currentQuestionIndex === quizSession.questions.length - 1;
         const showFeedback = quizSession.mode === 'training' && currentAnswer !== null;
         const isCorrect = currentAnswer !== null && currentAnswer === currentQuestion.correctAnswer;
-        const correctCount = quizSession.answers.reduce((acc, answer, index) => {
+        const correctCount = quizSession.answers.reduce<number>((acc, answer, index) => {
             if (answer === null) return acc;
             return acc + (answer === quizSession.questions[index].correctAnswer ? 1 : 0);
         }, 0);
-        const incorrectCount = quizSession.answers.reduce((acc, answer, index) => {
+        const incorrectCount = quizSession.answers.reduce<number>((acc, answer, index) => {
             if (answer === null) return acc;
             return acc + (answer !== quizSession.questions[index].correctAnswer ? 1 : 0);
         }, 0);
