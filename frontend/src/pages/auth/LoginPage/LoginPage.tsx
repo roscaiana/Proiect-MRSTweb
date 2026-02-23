@@ -1,13 +1,13 @@
 ﻿import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AuthCredentials, AuthError } from '../types/user';
-import { validateLogin, mockLogin } from '../utils/authUtils';
-import { useAuth } from '../context/AuthContext';
+import { AuthCredentials, AuthError } from '../../../types/user';
+import { validateLogin, mockLogin } from '../../../utils/authUtils';
+import { useAuth } from '../../../hooks/useAuth';
+import './LoginPage.css';
 
 const LoginPage: React.FC = () => {
     const navigate = useNavigate();
     const { login } = useAuth();
-    const [isAdmin, setIsAdmin] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [credentials, setCredentials] = useState<AuthCredentials>({
         email: '',
@@ -33,7 +33,7 @@ const LoginPage: React.FC = () => {
 
         try {
             // Mock login
-            const user = await mockLogin(credentials, isAdmin);
+            const user = await mockLogin(credentials);
 
             // Use AuthContext to store auth state
             const mockToken = `token-${Date.now()}`;
@@ -77,33 +77,6 @@ const LoginPage: React.FC = () => {
                     <div className="auth-card-header">
                         <h2>Autentificare</h2>
                         <p>Conectați-vă la contul dumneavoastră</p>
-                    </div>
-
-                    {/* User Type Toggle */}
-                    <div className="user-type-toggle">
-                        <button
-                            type="button"
-                            className={`toggle-btn ${!isAdmin ? 'active' : ''}`}
-                            onClick={() => setIsAdmin(false)}
-                        >
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                                <circle cx="12" cy="7" r="4" />
-                            </svg>
-                            Candidat
-                        </button>
-                        <button
-                            type="button"
-                            className={`toggle-btn ${isAdmin ? 'active' : ''}`}
-                            onClick={() => setIsAdmin(true)}
-                        >
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                                <path d="M2 17l10 5 10-5" />
-                                <path d="M2 12l10 5 10-5" />
-                            </svg>
-                            Administrator
-                        </button>
                     </div>
 
                     {/* General Error */}
@@ -211,16 +184,14 @@ const LoginPage: React.FC = () => {
                     </div>
 
                     {/* Admin Hint */}
-                    {isAdmin && (
-                        <div className="auth-hint">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <circle cx="12" cy="12" r="10" />
-                                <line x1="12" y1="16" x2="12" y2="12" />
-                                <line x1="12" y1="8" x2="12.01" y2="8" />
-                            </svg>
-                            <span>Credențiale admin: admin@electoral.md / admin123</span>
-                        </div>
-                    )}
+                    <div className="auth-hint">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="16" x2="12" y2="12" />
+                            <line x1="12" y1="8" x2="12.01" y2="8" />
+                        </svg>
+                        <span>Credențiale admin: admin@electoral.md / admin123</span>
+                    </div>
                 </div>
 
                 {/* Back to Home */}
