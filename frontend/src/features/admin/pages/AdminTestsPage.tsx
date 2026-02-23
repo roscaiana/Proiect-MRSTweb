@@ -29,7 +29,13 @@ const AdminTestsPage: React.FC = () => {
             settingsDraft.testDurationMinutes > 180 ||
             settingsDraft.passingThreshold < 1 ||
             settingsDraft.passingThreshold > 100 ||
-            settingsDraft.appointmentsPerDay < 1
+            settingsDraft.appointmentsPerDay < 1 ||
+            settingsDraft.appointmentLeadTimeHours < 0 ||
+            settingsDraft.appointmentLeadTimeHours > 720 ||
+            settingsDraft.maxReschedulesPerUser < 0 ||
+            settingsDraft.maxReschedulesPerUser > 20 ||
+            settingsDraft.rejectionCooldownDays < 0 ||
+            settingsDraft.rejectionCooldownDays > 365
         ) {
             setSettingsMessage("Valorile introduse sunt invalide.");
             return;
@@ -94,6 +100,82 @@ const AdminTestsPage: React.FC = () => {
                                 setSettingsDraft((prev) => ({
                                     ...prev,
                                     appointmentsPerDay: Number(event.target.value) || 0,
+                                }))
+                            }
+                        />
+                    </label>
+
+                    <label className="admin-field">
+                        <span>Lead time programare (ore)</span>
+                        <input
+                            type="number"
+                            min={0}
+                            max={720}
+                            value={settingsDraft.appointmentLeadTimeHours}
+                            onChange={(event) =>
+                                setSettingsDraft((prev) => ({
+                                    ...prev,
+                                    appointmentLeadTimeHours: Number(event.target.value) || 0,
+                                }))
+                            }
+                        />
+                    </label>
+
+                    <label className="admin-field">
+                        <span>Max reprogramari / cerere</span>
+                        <input
+                            type="number"
+                            min={0}
+                            max={20}
+                            value={settingsDraft.maxReschedulesPerUser}
+                            onChange={(event) =>
+                                setSettingsDraft((prev) => ({
+                                    ...prev,
+                                    maxReschedulesPerUser: Number(event.target.value) || 0,
+                                }))
+                            }
+                        />
+                    </label>
+
+                    <label className="admin-field">
+                        <span>Cooldown dupa respingere (zile)</span>
+                        <input
+                            type="number"
+                            min={0}
+                            max={365}
+                            value={settingsDraft.rejectionCooldownDays}
+                            onChange={(event) =>
+                                setSettingsDraft((prev) => ({
+                                    ...prev,
+                                    rejectionCooldownDays: Number(event.target.value) || 0,
+                                }))
+                            }
+                        />
+                    </label>
+
+                    <label className="admin-field">
+                        <span>Locatie examen</span>
+                        <input
+                            type="text"
+                            value={settingsDraft.appointmentLocation}
+                            onChange={(event) =>
+                                setSettingsDraft((prev) => ({
+                                    ...prev,
+                                    appointmentLocation: event.target.value,
+                                }))
+                            }
+                        />
+                    </label>
+
+                    <label className="admin-field">
+                        <span>Sala</span>
+                        <input
+                            type="text"
+                            value={settingsDraft.appointmentRoom}
+                            onChange={(event) =>
+                                setSettingsDraft((prev) => ({
+                                    ...prev,
+                                    appointmentRoom: event.target.value,
                                 }))
                             }
                         />

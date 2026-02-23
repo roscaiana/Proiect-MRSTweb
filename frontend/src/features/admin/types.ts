@@ -1,5 +1,25 @@
-export type AppointmentStatus = "pending" | "approved" | "rejected";
+export type AppointmentStatus = "pending" | "approved" | "rejected" | "cancelled";
 export type NotificationTarget = "all" | "users" | "admins" | "email";
+
+export interface AppointmentBlockedDate {
+    date: string; // YYYY-MM-DD
+    note?: string;
+}
+
+export interface AppointmentCapacityOverride {
+    date: string; // YYYY-MM-DD
+    appointmentsPerDay: number;
+}
+
+export interface AppointmentSlotOverride {
+    date: string; // YYYY-MM-DD
+    slots: Array<{
+        id: string;
+        startTime: string;
+        endTime: string;
+        available?: boolean;
+    }>;
+}
 
 export interface AdminQuestion {
     id: string;
@@ -31,6 +51,14 @@ export interface ExamSettings {
     testDurationMinutes: number;
     passingThreshold: number;
     appointmentsPerDay: number;
+    appointmentLeadTimeHours: number;
+    maxReschedulesPerUser: number;
+    rejectionCooldownDays: number;
+    appointmentLocation: string;
+    appointmentRoom: string;
+    blockedDates: AppointmentBlockedDate[];
+    capacityOverrides: AppointmentCapacityOverride[];
+    slotOverrides: AppointmentSlotOverride[];
 }
 
 export interface AdminUserRecord {
@@ -45,6 +73,7 @@ export interface AdminUserRecord {
 
 export interface AdminAppointmentRecord {
     id: string;
+    appointmentCode?: string;
     fullName: string;
     idOrPhone: string;
     userEmail?: string;
@@ -52,7 +81,13 @@ export interface AdminAppointmentRecord {
     slotStart: string;
     slotEnd: string;
     status: AppointmentStatus;
+    statusReason?: string;
+    adminNote?: string;
+    cancelledBy?: "user" | "admin";
+    previousAppointmentId?: string;
+    rescheduleCount?: number;
     createdAt: string;
+    updatedAt?: string;
 }
 
 export interface QuizHistoryRecord {

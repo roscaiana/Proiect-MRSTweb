@@ -28,6 +28,14 @@ const DEFAULT_SETTINGS: ExamSettings = {
     testDurationMinutes: 30,
     passingThreshold: 70,
     appointmentsPerDay: 30,
+    appointmentLeadTimeHours: 24,
+    maxReschedulesPerUser: 2,
+    rejectionCooldownDays: 2,
+    appointmentLocation: "Centrul de Instruire Continuă",
+    appointmentRoom: "Sala A-12",
+    blockedDates: [],
+    capacityOverrides: [],
+    slotOverrides: [],
 };
 
 const readArray = <T>(raw: string | null): T[] => {
@@ -125,6 +133,73 @@ export const readExamSettings = (): ExamSettings => {
             passingThreshold: Number(parsed.passingThreshold) || DEFAULT_SETTINGS.passingThreshold,
             appointmentsPerDay:
                 Number(parsed.appointmentsPerDay) || DEFAULT_SETTINGS.appointmentsPerDay,
+            appointmentLeadTimeHours:
+                Math.max(0, Number(parsed.appointmentLeadTimeHours)) ||
+                DEFAULT_SETTINGS.appointmentLeadTimeHours,
+            maxReschedulesPerUser:
+                Math.max(0, Number(parsed.maxReschedulesPerUser)) ||
+                DEFAULT_SETTINGS.maxReschedulesPerUser,
+            rejectionCooldownDays:
+                Math.max(0, Number(parsed.rejectionCooldownDays)) ||
+                DEFAULT_SETTINGS.rejectionCooldownDays,
+            appointmentLocation:
+                typeof parsed.appointmentLocation === "string" && parsed.appointmentLocation.trim()
+                    ? parsed.appointmentLocation.trim()
+                    : DEFAULT_SETTINGS.appointmentLocation,
+            appointmentRoom:
+                typeof parsed.appointmentRoom === "string" && parsed.appointmentRoom.trim()
+                    ? parsed.appointmentRoom.trim()
+                    : DEFAULT_SETTINGS.appointmentRoom,
+            blockedDates: Array.isArray(parsed.blockedDates)
+                ? parsed.blockedDates
+                      .map((item: any) => ({
+                          date: String(item?.date || "").slice(0, 10),
+                          note:
+                              typeof item?.note === "string" && item.note.trim()
+                                  ? item.note.trim()
+                                  : undefined,
+                      }))
+                      .filter((item) => /^\d{4}-\d{2}-\d{2}$/.test(item.date))
+                : DEFAULT_SETTINGS.blockedDates,
+            capacityOverrides: Array.isArray(parsed.capacityOverrides)
+                ? parsed.capacityOverrides
+                      .map((item: any) => ({
+                          date: String(item?.date || "").slice(0, 10),
+                          appointmentsPerDay: Number(item?.appointmentsPerDay) || 0,
+                      }))
+                      .filter(
+                          (item) =>
+                              /^\d{4}-\d{2}-\d{2}$/.test(item.date) && item.appointmentsPerDay > 0
+                      )
+                : DEFAULT_SETTINGS.capacityOverrides,
+            slotOverrides: Array.isArray(parsed.slotOverrides)
+                ? parsed.slotOverrides
+                      .map((item: any) => ({
+                          date: String(item?.date || "").slice(0, 10),
+                          slots: Array.isArray(item?.slots)
+                              ? item.slots
+                                    .map((slot: any, slotIndex: number) => ({
+                                        id: String(slot?.id || `slot-${slotIndex + 1}`),
+                                        startTime: String(slot?.startTime || ""),
+                                        endTime: String(slot?.endTime || ""),
+                                        available:
+                                            typeof slot?.available === "boolean"
+                                                ? slot.available
+                                                : true,
+                                    }))
+                                    .filter(
+                                        (slot: any) =>
+                                            slot.startTime.length > 0 && slot.endTime.length > 0
+                                    )
+                              : [],
+                      }))
+                      .filter(
+                          (item) =>
+                              /^\d{4}-\d{2}-\d{2}$/.test(item.date) &&
+                              Array.isArray(item.slots) &&
+                              item.slots.length > 0
+                      )
+                : DEFAULT_SETTINGS.slotOverrides,
         };
     } catch {
         return DEFAULT_SETTINGS;
@@ -160,6 +235,10 @@ export const readAppointments = (): AdminAppointmentRecord[] => {
 
     return rawAppointments.map((appointment, index) => ({
         id: appointment.id || `appointment-${index + 1}`,
+        appointmentCode:
+            typeof appointment.appointmentCode === "string" && appointment.appointmentCode.trim()
+                ? appointment.appointmentCode.trim()
+                : `AP-${String(index + 1).padStart(4, "0")}`,
         fullName: appointment.fullName || "",
         idOrPhone: appointment.idOrPhone || "",
         userEmail: appointment.userEmail || undefined,
@@ -167,12 +246,38 @@ export const readAppointments = (): AdminAppointmentRecord[] => {
         slotStart: appointment.slotStart || "00:00",
         slotEnd: appointment.slotEnd || "00:30",
         status:
-            appointment.status === "approved" || appointment.status === "rejected"
+            appointment.status === "approved" ||
+            appointment.status === "rejected" ||
+            appointment.status === "cancelled"
                 ? appointment.status
                 : "pending",
+        statusReason:
+            typeof appointment.statusReason === "string" && appointment.statusReason.trim()
+                ? appointment.statusReason.trim()
+                : undefined,
+        adminNote:
+            typeof appointment.adminNote === "string" && appointment.adminNote.trim()
+                ? appointment.adminNote.trim()
+                : undefined,
+        cancelledBy:
+            appointment.cancelledBy === "user" || appointment.cancelledBy === "admin"
+                ? appointment.cancelledBy
+                : undefined,
+        previousAppointmentId:
+            typeof appointment.previousAppointmentId === "string" &&
+            appointment.previousAppointmentId.trim()
+                ? appointment.previousAppointmentId.trim()
+                : undefined,
+        rescheduleCount:
+            Number.isFinite(Number(appointment.rescheduleCount))
+                ? Math.max(0, Number(appointment.rescheduleCount))
+                : 0,
         createdAt: appointment.createdAt
             ? new Date(appointment.createdAt).toISOString()
             : new Date().toISOString(),
+        updatedAt: appointment.updatedAt
+            ? new Date(appointment.updatedAt).toISOString()
+            : undefined,
     }));
 };
 

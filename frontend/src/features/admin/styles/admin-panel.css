@@ -216,6 +216,11 @@
     color: #b91c1c;
 }
 
+.admin-pill.cancelled {
+    background: #eef2f7;
+    color: #475569;
+}
+
 .admin-pill.neutral {
     background: #eef2ff;
     color: #4f46e5;
@@ -454,5 +459,165 @@
 
     .admin-options-grid {
         grid-template-columns: 1fr;
+    }
+}
+
+.admin-feedback-banner {
+    border: 1px solid #bfdbfe;
+    background: #eff6ff;
+    color: #1e3a8a;
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-weight: 600;
+    margin-bottom: 14px;
+}
+
+.admin-inline-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.admin-inline-checkbox input {
+    width: 16px;
+    height: 16px;
+}
+
+.admin-field-hint {
+    color: #64748b;
+    font-size: 0.78rem;
+}
+
+.admin-appointments-config-grid {
+    margin-bottom: 14px;
+}
+
+.admin-appointment-heatmap {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+    gap: 10px;
+}
+
+.admin-appointment-heatmap-day {
+    border: 1px solid #dbe4f0;
+    border-radius: 12px;
+    background: #ffffff;
+    padding: 10px 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    cursor: pointer;
+    transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin-appointment-heatmap-day:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(2, 6, 23, 0.06);
+}
+
+.admin-appointment-heatmap-day strong {
+    color: #0f172a;
+    font-size: 0.92rem;
+}
+
+.admin-appointment-heatmap-day span {
+    color: #475569;
+    font-size: 0.75rem;
+}
+
+.admin-appointment-heatmap-day.low {
+    background: #f8fafc;
+}
+
+.admin-appointment-heatmap-day.medium {
+    background: #fefce8;
+    border-color: #fde68a;
+}
+
+.admin-appointment-heatmap-day.high {
+    background: #fff7ed;
+    border-color: #fdba74;
+}
+
+.admin-appointment-heatmap-day.full {
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+.admin-appointment-heatmap-day.blocked {
+    background: #f1f5f9;
+    border-style: dashed;
+    border-color: #94a3b8;
+}
+
+.admin-appointment-heatmap-day.active {
+    border-color: #2563eb;
+    box-shadow: inset 0 0 0 1px #2563eb;
+}
+
+.admin-appointments-day-summary,
+.admin-appointments-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+}
+
+.admin-summary-chip {
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 10px 12px;
+    background: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.admin-summary-chip span {
+    font-size: 0.75rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.admin-summary-chip strong {
+    color: #0f172a;
+    font-size: 0.95rem;
+}
+
+.admin-summary-chip.danger {
+    background: #fef2f2;
+    border-color: #fecaca;
+}
+
+.admin-toolbar-appointments {
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    margin-bottom: 12px;
+}
+
+.admin-appointment-meta-cell p {
+    margin: 4px 0 0;
+}
+
+.admin-appointment-status-note {
+    margin: 6px 0 0;
+    color: #475569;
+    font-size: 0.8rem;
+    line-height: 1.3;
+}
+
+.admin-actions-row-wrap {
+    flex-wrap: wrap;
+    row-gap: 6px;
+}
+
+@media (max-width: 900px) {
+    .admin-toolbar-appointments {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-appointment-heatmap {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
