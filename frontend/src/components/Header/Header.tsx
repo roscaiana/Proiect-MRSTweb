@@ -138,7 +138,13 @@ export default function Header({ onOpenSidebar }: Props) {
                                                     key={notification.id}
                                                     type="button"
                                                     className={`notification-item ${notification.read ? "" : "unread"}`}
-                                                    onClick={() => markAsRead(notification.id)}
+                                                    onClick={() => {
+                                                        markAsRead(notification.id);
+                                                        setNotificationsOpen(false);
+                                                        if (notification.link) {
+                                                            navigate(notification.link);
+                                                        }
+                                                    }}
                                                 >
                                                     <span className="notification-title">{notification.title}</span>
                                                     <span className="notification-message">{notification.message}</span>
