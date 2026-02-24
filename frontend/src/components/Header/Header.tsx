@@ -1,15 +1,47 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { formatNotificationDate, useNotifications } from "../../hooks/useNotifications";
 import { useAuth } from "../../hooks/useAuth";
+import { PUBLIC_PAGES, getSearchPages, type SitePage } from "../navigation/siteNavigation";
 import "./Header.css";
 
-type Props = { onOpenSidebar: () => void };
+type Props = {
+    onOpenSidebar: () => void;
+    isSidebarOpen: boolean;
+};
 
-export default function Header({ onOpenSidebar }: Props) {
+function normalizeText(value: string): string {
+    return value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+}
+
+function getFirstSearchMatch(query: string, pages: SitePage[]): string | null {
+    const trimmed = query.trim();
+    if (!trimmed) {
+        return null;
+    }
+
+    const normalizedQuery = normalizeText(trimmed);
+
+    const byPath = pages.find((page) => page.path.toLowerCase() === trimmed.toLowerCase());
+    if (byPath) {
+        return byPath.path;
+    }
+
+    const byLabelOrKeyword = pages.find((page) => {
+        const labelMatch = normalizeText(page.label).includes(normalizedQuery);
+        const pathMatch = page.path.toLowerCase().includes(normalizedQuery);
+        const keywordMatch = page.keywords.some((keyword) => normalizeText(keyword).includes(normalizedQuery));
+        return labelMatch || pathMatch || keywordMatch;
+    });
+
+    return byLabelOrKeyword ? byLabelOrKeyword.path : null;
+}
+
+export default function Header({ onOpenSidebar, isSidebarOpen }: Props) {
     const navigate = useNavigate();
     const { isAuthenticated, isAdmin, user, logout } = useAuth();
     const [notificationsOpen, setNotificationsOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
     const notificationRef = useRef<HTMLDivElement>(null);
 
     const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications({
@@ -22,9 +54,26 @@ export default function Header({ onOpenSidebar }: Props) {
     const accountLabel = isAuthenticated ? "Dashboard" : "Autentificare";
     const accountIcon = isAuthenticated ? "fas fa-gauge-high" : "fas fa-user-lock";
 
+    const searchablePages = useMemo(
+        () => getSearchPages(isAuthenticated, isAdmin),
+        [isAuthenticated, isAdmin],
+    );
+
     const handleLogout = () => {
         logout();
         navigate("/");
+    };
+
+    const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        const matchedPath = getFirstSearchMatch(searchQuery, searchablePages);
+        if (!matchedPath) {
+            return;
+        }
+
+        navigate(matchedPath);
+        setSearchQuery("");
     };
 
     useEffect(() => {
@@ -47,14 +96,14 @@ export default function Header({ onOpenSidebar }: Props) {
     }, [notificationsOpen]);
 
     return (
-        <header className="main-header">
+        <header className={`main-header ${isSidebarOpen ? "is-blurred" : ""}`}>
             <div className="container flex-between">
                 <div className="header-left">
                     <button className="sidebar-trigger" onClick={onOpenSidebar} aria-label="Open sidebar">
                         <i className="fas fa-bars"></i>
                     </button>
 
-                    <Link to="/" className="logo-area" aria-label="Acasă">
+                    <Link to="/" className="logo-area" aria-label={"Acas\u0103"}>
                         <div className="logo-emblem">
                             <svg viewBox="0 0 100 100" className="svg-logo">
                                 <defs>
@@ -80,106 +129,99 @@ export default function Header({ onOpenSidebar }: Props) {
 
                 <nav className="main-nav">
                     <ul>
-                        <li>
-                            <NavLink to="/" end className={({ isActive }) => (isActive ? "active" : "")}>
-                                Acasă
-                            </NavLink>
-                        </li>
-                        <li>
-                            <NavLink to="/tests" className={({ isActive }) => (isActive ? "active" : "")}>
-                                Teste
-                            </NavLink>
-                        </li>
-                        <li>
-                            <NavLink to="/appointment" className={({ isActive }) => (isActive ? "active" : "")}>
-                                Înscriere
-                            </NavLink>
-                        </li>
-                        <li>
-                            <NavLink to="/news" className={({ isActive }) => (isActive ? "active" : "")}>
-                                Noutăți
-                            </NavLink>
-                        </li>
-                        <li>
-                            <NavLink to="/support" className={({ isActive }) => (isActive ? "active" : "")}>
-                                Suport
-                            </NavLink>
-                        </li>
-                        <li>
-                            <NavLink to="/contact" className={({ isActive }) => (isActive ? "active" : "")}>
-                                Contacte
-                            </NavLink>
-                        </li>
+                        {PUBLIC_PAGES.map((page) => (
+                            <li key={page.path}>
+                                <NavLink to={page.path} end={page.path === "/"} className={({ isActive }) => (isActive ? "active" : "")}>
+                                    {page.label}
+                                </NavLink>
+                            </li>
+                        ))}
                     </ul>
                 </nav>
 
                 <div className="header-actions">
-                    <button className="btn btn-outline" type="button">
-                        <i className="fas fa-search"></i>
-                    </button>
-                    <Link to={accountPath} className="btn btn-primary">
-                        <i className={accountIcon}></i> {accountLabel}
-                    </Link>
-                    <button
-                        className={`btn btn-outline btn-logout ${!isAuthenticated ? "is-hidden" : ""}`}
-                        type="button"
-                        onClick={handleLogout}
-                        disabled={!isAuthenticated}
-                    >
-                        <i className="fas fa-right-from-bracket"></i> Deconectare
-                    </button>
+                    <div className="header-main-actions">
+                        <form className="header-search-form" onSubmit={handleSearchSubmit} role="search">
+                            <i className="fas fa-search header-search-icon" aria-hidden="true"></i>
+                            <input
+                                className="header-search-input"
+                                type="search"
+                                value={searchQuery}
+                                onChange={(event) => setSearchQuery(event.target.value)}
+                                placeholder={"Caut\u0103 pagin\u0103..."}
+                                aria-label={"Caut\u0103 pagin\u0103"}
+                            />
+                            <button type="submit" className="header-search-submit" aria-label={"Caut\u0103"}>
+                                <i className="fas fa-arrow-right" aria-hidden="true"></i>
+                            </button>
+                        </form>
+
+                        <Link to={accountPath} className="btn btn-primary header-auth-btn">
+                            <i className={accountIcon}></i> {accountLabel}
+                        </Link>
+                    </div>
 
                     {isAuthenticated && (
-                        <div className="notification-wrapper" ref={notificationRef}>
+                        <div className="header-secondary-actions">
                             <button
-                                className="btn btn-outline notification-btn"
+                                className="btn btn-outline btn-logout"
                                 type="button"
-                                aria-label="Notificări"
-                                onClick={() => setNotificationsOpen((prev) => !prev)}
+                                onClick={handleLogout}
                             >
-                                <i className="fas fa-bell"></i>
-                                {unreadCount > 0 && <span className="notification-dot"></span>}
+                                <i className="fas fa-right-from-bracket"></i> Deconectare
                             </button>
 
-                            {notificationsOpen && (
-                                <div className="notification-panel">
-                                    <div className="notification-panel-header">
-                                        <h4>Notificări</h4>
-                                        {unreadCount > 0 && (
-                                            <button type="button" className="mark-read-btn" onClick={markAllAsRead}>
-                                                Marchează citite
-                                            </button>
-                                        )}
-                                    </div>
+                            <div className="notification-wrapper" ref={notificationRef}>
+                                <button
+                                    className="btn btn-outline notification-btn"
+                                    type="button"
+                                    aria-label={"Notific\u0103ri"}
+                                    onClick={() => setNotificationsOpen((prev) => !prev)}
+                                >
+                                    <i className="fas fa-bell"></i>
+                                    {unreadCount > 0 && <span className="notification-dot"></span>}
+                                </button>
 
-                                    <div className="notification-list">
-                                        {notifications.length === 0 ? (
-                                            <p className="notification-empty">Nu ai notificări.</p>
-                                        ) : (
-                                            notifications.map((notification) => (
-                                                <button
-                                                    key={notification.id}
-                                                    type="button"
-                                                    className={`notification-item ${notification.read ? "" : "unread"}`}
-                                                    onClick={() => {
-                                                        markAsRead(notification.id);
-                                                        setNotificationsOpen(false);
-                                                        if (notification.link) {
-                                                            navigate(notification.link);
-                                                        }
-                                                    }}
-                                                >
-                                                    <span className="notification-title">{notification.title}</span>
-                                                    <span className="notification-message">{notification.message}</span>
-                                                    <span className="notification-time">
-                                                        {formatNotificationDate(notification.createdAt)}
-                                                    </span>
+                                {notificationsOpen && (
+                                    <div className="notification-panel">
+                                        <div className="notification-panel-header">
+                                            <h4>{"Notific\u0103ri"}</h4>
+                                            {unreadCount > 0 && (
+                                                <button type="button" className="mark-read-btn" onClick={markAllAsRead}>
+                                                    {"Marcheaz\u0103 citite"}
                                                 </button>
-                                            ))
-                                        )}
+                                            )}
+                                        </div>
+
+                                        <div className="notification-list">
+                                            {notifications.length === 0 ? (
+                                                <p className="notification-empty">{"Nu ai notific\u0103ri."}</p>
+                                            ) : (
+                                                notifications.map((notification) => (
+                                                    <button
+                                                        key={notification.id}
+                                                        type="button"
+                                                        className={`notification-item ${notification.read ? "" : "unread"}`}
+                                                        onClick={() => {
+                                                            markAsRead(notification.id);
+                                                            setNotificationsOpen(false);
+                                                            if (notification.link) {
+                                                                navigate(notification.link);
+                                                            }
+                                                        }}
+                                                    >
+                                                        <span className="notification-title">{notification.title}</span>
+                                                        <span className="notification-message">{notification.message}</span>
+                                                        <span className="notification-time">
+                                                            {formatNotificationDate(notification.createdAt)}
+                                                        </span>
+                                                    </button>
+                                                ))
+                                            )}
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
                     )}
                 </div>
