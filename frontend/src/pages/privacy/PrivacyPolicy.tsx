@@ -6,7 +6,7 @@ export default function PrivacyPolicy() {
         <div className="privacy-page">
             <section className="privacy-hero">
                 <div className="container privacy-hero-content">
-                    <h1>Politică și confidențialitate</h1>
+                    <h1>Politică de confidențialitate</h1>
                     <p>
                         Informații esențiale despre date cu caracter personal și utilizarea platformei e-Electoral.
                     </p>
