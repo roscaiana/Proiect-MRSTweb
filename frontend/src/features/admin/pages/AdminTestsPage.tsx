@@ -42,19 +42,19 @@ const AdminTestsPage: React.FC = () => {
         }
 
         updateSettings(settingsDraft);
-        setSettingsMessage("Setarile au fost actualizate.");
+        setSettingsMessage("Setările au fost actualizate.");
     };
 
     return (
         <div className="admin-page-content">
             <section className="admin-page-header">
                 <h2>Management teste</h2>
-                <p>Creeaza, editeaza si sterge teste. Ajusteaza parametrii globali ai examenului.</p>
+                <p>Creează, editează și șterge teste. Ajustează parametrii globali ai examenului.</p>
             </section>
 
             <section className="admin-panel-card">
                 <div className="admin-card-header">
-                    <h3>Setari globale examen</h3>
+                    <h3>Setări globale examen</h3>
                 </div>
                 <form className="admin-inline-form" onSubmit={handleSaveSettings}>
                     <label className="admin-field">
@@ -90,7 +90,7 @@ const AdminTestsPage: React.FC = () => {
                     </label>
 
                     <label className="admin-field">
-                        <span>Programari/zi</span>
+                        <span>Programări/zi</span>
                         <input
                             type="number"
                             min={1}
@@ -122,7 +122,7 @@ const AdminTestsPage: React.FC = () => {
                     </label>
 
                     <label className="admin-field">
-                        <span>Max reprogramari / cerere</span>
+                        <span>Max reprogramări / cerere</span>
                         <input
                             type="number"
                             min={0}
@@ -138,7 +138,7 @@ const AdminTestsPage: React.FC = () => {
                     </label>
 
                     <label className="admin-field">
-                        <span>Cooldown dupa respingere (zile)</span>
+                        <span>Cooldown după respingere (zile)</span>
                         <input
                             type="number"
                             min={0}
@@ -154,7 +154,7 @@ const AdminTestsPage: React.FC = () => {
                     </label>
 
                     <label className="admin-field">
-                        <span>Locatie examen</span>
+                        <span>Locație examen</span>
                         <input
                             type="text"
                             value={settingsDraft.appointmentLocation}
@@ -168,7 +168,7 @@ const AdminTestsPage: React.FC = () => {
                     </label>
 
                     <label className="admin-field">
-                        <span>Sala</span>
+                        <span>Sală</span>
                         <input
                             type="text"
                             value={settingsDraft.appointmentRoom}
@@ -182,7 +182,7 @@ const AdminTestsPage: React.FC = () => {
                     </label>
 
                     <button className="admin-btn primary" type="submit">
-                        Salveaza setarile
+                        Salvează setările
                     </button>
                 </form>
                 {settingsMessage && <p className="admin-muted-text">{settingsMessage}</p>}
@@ -199,7 +199,7 @@ const AdminTestsPage: React.FC = () => {
                             setEditingTestId(null);
                         }}
                     >
-                        {creating ? "Inchide formular" : "Test nou"}
+                        {creating ? "Închide formular" : "Test nou"}
                     </button>
                 </div>
 
@@ -231,10 +231,10 @@ const AdminTestsPage: React.FC = () => {
                         <thead>
                             <tr>
                                 <th>Titlu</th>
-                                <th>Intrebari</th>
+                                <th>Întrebări</th>
                                 <th>Durata</th>
                                 <th>Prag</th>
-                                <th>Actiuni</th>
+                                <th>Acțiuni</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -257,14 +257,14 @@ const AdminTestsPage: React.FC = () => {
                                                     setCreating(false);
                                                 }}
                                             >
-                                                Editeaza
+                                                Editează
                                             </button>
                                             <button
                                                 className="admin-text-btn danger"
                                                 type="button"
                                                 onClick={() => deleteTest(test.id)}
                                             >
-                                                Sterge
+                                                Șterge
                                             </button>
                                         </div>
                                     </td>

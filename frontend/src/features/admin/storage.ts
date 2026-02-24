@@ -32,7 +32,7 @@ const DEFAULT_SETTINGS: ExamSettings = {
     maxReschedulesPerUser: 2,
     rejectionCooldownDays: 2,
     appointmentLocation: "Centrul de Instruire Continuă",
-    appointmentRoom: "Sala A-12",
+    appointmentRoom: "Sală A-12",
     blockedDates: [],
     capacityOverrides: [],
     slotOverrides: [],
@@ -57,7 +57,7 @@ const createSeedTests = (): AdminTest[] => {
     return quizCategories.map((category) => {
         const questions = (questionBanks[category.id] || []).map((question, index) => ({
             id: question.id || `${category.id}-q-${index + 1}`,
-            text: question.text || `Intrebarea ${index + 1}`,
+            text: question.text || `Întrebarea ${index + 1}`,
             options: Array.isArray(question.options) ? question.options.slice(0, 4) : [],
             correctAnswer: typeof question.correctAnswer === "number" ? question.correctAnswer : 0,
         }));
