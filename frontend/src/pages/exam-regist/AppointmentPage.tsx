@@ -103,7 +103,7 @@ const AppointmentPage: React.FC = () => {
 
         if (sourceId) {
             setRescheduleSourceId(sourceId);
-            setDraftNotice('Mod reprogramare activ: selecteaza o data si un interval nou.');
+            setDraftNotice('Mod reprogramare activ: selectează o dată și un interval nou.');
         }
     }, [location.search]);
 
@@ -727,7 +727,7 @@ const AppointmentPage: React.FC = () => {
                             <div><span>Data</span><strong>{formData.selectedDate ? formatDate(formData.selectedDate) : 'Neselectată'}</strong></div>
                             <div><span>Interval</span><strong>{formData.selectedSlot ? `${formData.selectedSlot.startTime}-${formData.selectedSlot.endTime}` : 'Neselectat'}</strong></div>
                             <div><span>Locație</span><strong>{examSettings.appointmentLocation}</strong></div>
-                            <div><span>Sala</span><strong>{examSettings.appointmentRoom}</strong></div>
+                            <div><span>Sală</span><strong>{examSettings.appointmentRoom}</strong></div>
                             <div><span>Lead time</span><strong>{examSettings.appointmentLeadTimeHours}h</strong></div>
                             <div><span>Capacitate/zi</span><strong>{selectedDateKey ? `${remainingAppointmentsForDay}/${currentDayCapacity} libere` : `${examSettings.appointmentsPerDay}/zi`}</strong></div>
                         </div>

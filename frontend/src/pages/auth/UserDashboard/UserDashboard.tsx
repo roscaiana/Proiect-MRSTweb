@@ -85,7 +85,7 @@ const UserDashboard: React.FC = () => {
         if (status === 'approved') return 'Aprobat';
         if (status === 'rejected') return 'Respins';
         if (status === 'cancelled') return 'Anulat';
-        return 'In asteptare';
+        return 'În așteptare';
     };
 
     const canCancelAppointment = (status: string) => status === 'pending' || status === 'approved';
@@ -324,7 +324,7 @@ const UserDashboard: React.FC = () => {
 
                 <div className="dashboard-card appointments-card">
                     <div className="card-header">
-                        <h2>Programarile Mele</h2>
+                        <h2>Programările Mele</h2>
                     </div>
                     <div className="history-list">
                         {userAppointments.length > 0 ? (
@@ -377,9 +377,9 @@ const UserDashboard: React.FC = () => {
                             ))
                         ) : (
                             <div className="empty-state">
-                                <p>Nu ai programari inregistrate.</p>
+                                <p>Nu ai programări înregistrate.</p>
                                 <Link to="/appointment" className="btn-primary">
-                                    Creeaza programare
+                                    Creează programare
                                 </Link>
                             </div>
                         )}
