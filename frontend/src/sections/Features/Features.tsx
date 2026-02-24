@@ -1,4 +1,5 @@
-﻿import "./Features.css";
+﻿import { Link } from "react-router-dom";
+import "./Features.css";
 
 export default function Features() {
     const block = (e: React.MouseEvent) => e.preventDefault();
@@ -28,7 +29,7 @@ export default function Features() {
                         </div>
                         <h3>Simulatoare Examen</h3>
                         <p>Teste cronometrate care reproduc fidel condițiile de examinare reală. Feedback instantaneu.</p>
-                        <a href="#" className="link-arrow" onClick={block}>Începe Test &rarr;</a>
+                        <Link to="/tests" className="link-arrow">Începe Test &rarr;</Link>
                     </div>
 
                     <div className="feature-box">
@@ -46,7 +47,7 @@ export default function Features() {
                         </div>
                         <h3>Noutăți Electorale</h3>
                         <p>Cele mai recente informații despre desfășurarea alegerilor și actualizări legislative.</p>
-                        <a href="#" className="link-arrow" onClick={block}>Vezi Noutăți &rarr;</a>
+                        <Link to="/news" className="link-arrow">Vezi Noutăți &rarr;</Link>
                     </div>
                 </div>
             </div>
