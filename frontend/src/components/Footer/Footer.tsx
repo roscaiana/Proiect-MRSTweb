@@ -1,5 +1,4 @@
-﻿import "./Footer.css";
-
+﻿import { Link } from "react-router-dom";
 import "./Footer.css";
 
 export default function Footer() {
@@ -52,9 +51,9 @@ export default function Footer() {
                     <h4>Resurse</h4>
                     <ul className="footer-links">
                         <li>
-                            <a href="#" onClick={stop}>
+                            <Link to="/support">
                                 Întrebări frecvente / Suport
-                            </a>
+                            </Link>
                         </li>
                     </ul>
                 </div>
@@ -85,3 +84,5 @@ export default function Footer() {
         </footer>
     );
 }
+
+
