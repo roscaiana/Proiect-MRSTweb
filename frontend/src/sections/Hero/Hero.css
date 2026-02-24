@@ -6,6 +6,7 @@
     display: flex;
     align-items: center;
     overflow: hidden;
+    padding: 2rem 0;
 }
 
 .hero-bg-pattern {
@@ -107,10 +108,11 @@
     background: rgba(25, 40, 65, 0.6);
     backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.15);
-    border-top: 3px solid #FFC107; /* Linia galbenă de sus */
+    border-top: 3px solid #FFC107;
     border-radius: 24px;
     padding: 3rem;
-    width: 440px;
+    width: 100%;
+    max-width: 440px;
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
     text-align: center;
     transform: perspective(1000px) rotateY(-10deg) rotateX(5deg);
@@ -186,22 +188,203 @@
         text-align: center;
         gap: 3rem;
     }
+
     .hero-pad-left {
         padding-left: 0;
         display: flex;
         flex-direction: column;
         align-items: center;
     }
+
     .hero-title-main {
         font-size: 3rem;
+    }
+
+    .lead {
+        max-width: 100%;
+    }
+
+    .hero-stats-row {
+        justify-content: center;
+    }
+
+    .glass-certification-card {
+        transform: none;
+        animation: none;
+    }
+
+    .glass-certification-card:hover {
+        transform: none;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-complex {
+        min-height: auto;
+        padding: 3rem 0;
+    }
+
+    .hero-grid {
+        gap: 2.5rem;
+    }
+
+    .hero-title-main {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .hero-title-main br {
+        display: none;
+    }
+
+    .lead {
+        font-size: 1.1rem;
+        margin-bottom: 2rem;
+    }
+
+    .badge-new {
+        font-size: 0.85rem;
+        padding: 4px 12px;
+    }
+
+    .hero-buttons {
+        width: 100%;
+        margin-bottom: 2rem;
+    }
+
+    .btn-lg {
+        width: 100%;
+        padding: 1rem 1.5rem;
+    }
+
+    .hero-stats-row {
+        gap: 2rem;
+        padding-top: 1.5rem;
+        flex-wrap: wrap;
+    }
+
+    .mini-stat {
+        flex: 0 0 calc(33.33% - 1.5rem);
+        min-width: 80px;
+    }
+
+    .mini-stat strong {
+        font-size: 1.5rem;
+    }
+
+    .mini-stat span {
+        font-size: 0.75rem;
+    }
+
+    .glass-certification-card {
+        padding: 2rem 1.5rem;
+    }
+
+    .card-logo-wrap {
+        width: 100px;
+        margin-bottom: 1rem;
+    }
+
+    .glass-body h3 {
+        font-size: 1.5rem;
+    }
+
+    .glass-body p {
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .approval-badge {
+        padding: 0.7rem 1.2rem;
+        font-size: 0.9rem;
+    }
+
+    .hero-visual::before {
+        width: 300px;
+        height: 300px;
     }
 }
 
 @media (max-width: 480px) {
+    .hero-complex {
+        padding: 2rem 0;
+    }
+
+    .hero-grid {
+        gap: 2rem;
+    }
+
+    .hero-title-main {
+        font-size: 2rem;
+        letter-spacing: -0.5px;
+    }
+
+    .lead {
+        font-size: 1rem;
+    }
+
+    .badge-new {
+        font-size: 0.8rem;
+    }
+
+    .hero-stats-row {
+        gap: 1rem;
+    }
+
+    .mini-stat {
+        flex: 0 0 calc(50% - 0.5rem);
+    }
+
+    .mini-stat:last-child {
+        flex: 0 0 100%;
+        margin-top: 0.5rem;
+    }
+
+    .glass-certification-card {
+        padding: 1.5rem 1rem;
+        border-radius: 16px;
+    }
+
+    .card-logo-wrap {
+        width: 80px;
+    }
+
+    .glass-body h3 {
+        font-size: 1.3rem;
+    }
+
+    .glass-body p {
+        font-size: 0.9rem;
+    }
+
+    .approval-badge {
+        padding: 0.6rem 1rem;
+        font-size: 0.85rem;
+        gap: 8px;
+    }
+}
+
+@media (max-width: 768px) and (orientation: landscape) {
+    .hero-complex {
+        min-height: auto;
+        padding: 1.5rem 0;
+    }
+
+    .hero-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 2rem;
+        text-align: left;
+    }
+
+    .hero-pad-left {
+        align-items: flex-start;
+    }
+
     .hero-title-main {
         font-size: 2rem;
     }
-    .btn-lg {
-        width: 100%;
+
+    .glass-certification-card {
+        padding: 1.5rem;
     }
 }

@@ -1,15 +1,34 @@
-import React from 'react';
+﻿import React from 'react';
 import type { Question, QuizMode } from '../../types/quiz';
 
 export const normalizeText = (value: string): string => {
     if (!value) return '';
-    return value
-        .replace(/\u0219|\u0218/g, 's')
-        .replace(/\u021b|\u021a/g, 't')
-        .replace(/\u0103|\u0102/g, 'a')
-        .replace(/\u00e2|\u00c2/g, 'a')
-        .replace(/\u00ee|\u00ce/g, 'i')
-        .replace(/\u00c2/g, '')
+
+    let normalized = value;
+
+    // Repair common mojibake sequences while preserving Romanian diacritics.
+    const replacements: Array<[RegExp, string]> = [
+        [/ÃŽ/g, 'Î'],
+        [/Ã®/g, 'î'],
+        [/Ã‚/g, 'Â'],
+        [/Ã¢/g, 'â'],
+        [/Ä‚/g, 'Ă'],
+        [/Äƒ/g, 'ă'],
+        [/È˜/g, 'Ș'],
+        [/È™/g, 'ș'],
+        [/Èš/g, 'Ț'],
+        [/È›/g, 'ț'],
+        [/Åž/g, 'Ș'],
+        [/ÅŸ/g, 'ș'],
+        [/Å¢/g, 'Ț'],
+        [/Å£/g, 'ț'],
+    ];
+
+    replacements.forEach(([pattern, replacement]) => {
+        normalized = normalized.replace(pattern, replacement);
+    });
+
+    return normalized
         .replace(/\uFFFD/g, '')
         .replace(/\s+/g, ' ')
         .trim();

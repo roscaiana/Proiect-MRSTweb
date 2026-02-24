@@ -1,5 +1,6 @@
 ﻿import { Link } from "react-router-dom";
 import "./Footer.css";
+import { APP_ROUTES } from "../../routes/appRoutes";
 
 export default function Footer() {
     const stop = (e: React.MouseEvent<HTMLAnchorElement>) => e.preventDefault();
@@ -36,14 +37,14 @@ export default function Footer() {
                     <h4>Linkuri Rapide</h4>
                     <ul className="footer-links">
                         <li>
-                            <a href="#" onClick={stop}>
+                            <Link to={APP_ROUTES.terms}>
                                 Termeni și Condiții
-                            </a>
+                            </Link>
                         </li>
                         <li>
-                            <a href="#" onClick={stop}>
-                                Politica de Confidențialitate
-                            </a>
+                            <Link to={APP_ROUTES.privacy}>
+                                Politică de confidențialitate
+                            </Link>
                         </li>
                     </ul>
                 </div>
@@ -51,7 +52,7 @@ export default function Footer() {
                     <h4>Resurse</h4>
                     <ul className="footer-links">
                         <li>
-                            <Link to="/support">
+                            <Link to={APP_ROUTES.support}>
                                 Întrebări frecvente / Suport
                             </Link>
                         </li>
@@ -84,5 +85,3 @@ export default function Footer() {
         </footer>
     );
 }
-
-

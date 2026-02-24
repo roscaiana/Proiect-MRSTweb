@@ -1,4 +1,6 @@
-import { Link } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
+import { PUBLIC_PAGES } from "../navigation/siteNavigation";
 import "./SideBar.css";
 
 type Props = {
@@ -7,11 +9,22 @@ type Props = {
 };
 
 export default function Sidebar({ open, onClose }: Props) {
+    const navigate = useNavigate();
+    const { isAuthenticated, logout } = useAuth();
+
+    const accountTitle = isAuthenticated ? "Contul Meu" : "Autentificare";
+
+    const handleLogout = () => {
+        logout();
+        onClose();
+        navigate("/");
+    };
+
     return (
         <>
-            <nav className={`sidebar ${open ? "active" : ""}`} id="main-sidebar">
+            <nav className={`sidebar ${open ? "active" : ""}`} id="main-sidebar" aria-hidden={!open}>
                 <div className="sidebar-header">
-                    <Link to="/" className="logo-area white-text" onClick={onClose} aria-label="Acasă">
+                    <Link to="/" className="logo-area white-text" onClick={onClose} aria-label={"Acas\u0103"}>
                         <div className="logo-emblem" style={{ width: 40, height: 40 }}>
                             <svg viewBox="0 0 100 100" className="svg-logo">
                                 <defs>
@@ -37,26 +50,48 @@ export default function Sidebar({ open, onClose }: Props) {
 
                 <div className="sidebar-content">
                     <div className="sidebar-section">
-                        <h4>Navigație</h4>
+                        <h4>{"Naviga\u021Bie"}</h4>
                         <ul>
-                            <li><Link to="/" onClick={onClose}><i className="fas fa-home"></i> Acasă</Link></li>
-                            <li><Link to="/tests" onClick={onClose}><i className="fas fa-clipboard-check"></i> Teste</Link></li>
-                            <li><Link to="/appointment" onClick={onClose}><i className="fas fa-user-plus"></i> Înscriere</Link></li>
-                            <li><Link to="/support" onClick={onClose}><i className="fas fa-book-open"></i> Resurse</Link></li>
+                            {PUBLIC_PAGES.map((page) => (
+                                <li key={page.path}>
+                                    <NavLink
+                                        to={page.path}
+                                        end={page.path === "/"}
+                                        onClick={onClose}
+                                        className={({ isActive }) => (isActive ? "active" : "")}
+                                    >
+                                        <i className={page.icon}></i>
+                                        {page.label}
+                                    </NavLink>
+                                </li>
+                            ))}
                         </ul>
                     </div>
 
                     <div className="sidebar-section">
-                        <h4>Contul Meu</h4>
+                        <h4>{accountTitle}</h4>
                         <ul>
-                            <li><Link to="/dashboard" onClick={onClose}><i className="fas fa-headset"></i> Suport</Link></li>
-                            <li><Link to="/register" onClick={onClose}><i className="fas fa-sign-out-alt"></i> Autentificare</Link></li>
+                            {!isAuthenticated ? (
+                                <li>
+                                    <NavLink to="/login" onClick={onClose} className={({ isActive }) => (isActive ? "active" : "")}>
+                                        <i className="fas fa-right-to-bracket"></i>
+                                        Autentificare
+                                    </NavLink>
+                                </li>
+                            ) : (
+                                <li>
+                                    <button type="button" className="sidebar-logout-btn" onClick={handleLogout}>
+                                        <i className="fas fa-right-from-bracket"></i>
+                                        Deconectare
+                                    </button>
+                                </li>
+                            )}
                         </ul>
                     </div>
                 </div>
 
                 <div className="sidebar-footer">
-                    <p>© 2026 e-Electoral</p>
+                    <p>{"\u00A9 2026 e-Electoral"}</p>
                 </div>
             </nav>
 
