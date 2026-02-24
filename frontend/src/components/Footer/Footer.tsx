@@ -36,14 +36,14 @@ export default function Footer() {
                     <h4>Linkuri Rapide</h4>
                     <ul className="footer-links">
                         <li>
-                            <a href="#" onClick={stop}>
+                            <Link to="/politica-confidentialitate">
                                 Termeni și Condiții
-                            </a>
+                            </Link>
                         </li>
                         <li>
-                            <a href="#" onClick={stop}>
+                            <Link to="/politica-confidentialitate">
                                 Politica de Confidențialitate
-                            </a>
+                            </Link>
                         </li>
                     </ul>
                 </div>

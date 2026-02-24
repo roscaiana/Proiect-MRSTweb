@@ -7,6 +7,7 @@ import News from "./pages/news/News";
 import Contact from "./pages/contacts/Contact";
 import TestsPage from "./pages/testpage/TestsPage";
 import AppointmentPage from "./pages/exam-regist/AppointmentPage";
+import PrivacyPolicy from "./pages/privacy/PrivacyPolicy";
 import LoginPage from "./pages/auth/LoginPage/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage/RegisterPage";
 import UserDashboard from "./pages/auth/UserDashboard/UserDashboard";
@@ -14,11 +15,11 @@ import AdminDashboard from "./pages/auth/AdminDashboard/AdminDashboard";
 import { AuthProvider } from "./context/AuthContext";
 
 function ScrollToTop() {
-    const { pathname } = useLocation();
+    const { pathname, search } = useLocation();
 
     useEffect(() => {
-        window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
-    }, [pathname]);
+        window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    }, [pathname, search]);
 
     return null;
 }
@@ -35,6 +36,7 @@ export default function App() {
                         <Route path="/support" element={<Support />} />
                         <Route path="/contact" element={<Contact />} />
                         <Route path="/tests" element={<TestsPage />} />
+                        <Route path="/politica-confidentialitate" element={<PrivacyPolicy />} />
                         <Route path="/appointment" element={<AppointmentPage />} />
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/register" element={<RegisterPage />} />
