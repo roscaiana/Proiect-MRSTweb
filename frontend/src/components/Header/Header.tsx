@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { formatNotificationDate, useNotifications } from "../../hooks/useNotifications";
 import { useAuth } from "../../hooks/useAuth";
 import "./Header.css";
@@ -7,7 +7,6 @@ import "./Header.css";
 type Props = { onOpenSidebar: () => void };
 
 export default function Header({ onOpenSidebar }: Props) {
-    const stopLink = (e: React.MouseEvent<HTMLAnchorElement>) => e.preventDefault();
     const navigate = useNavigate();
     const { isAuthenticated, isAdmin, user, logout } = useAuth();
     const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -55,7 +54,7 @@ export default function Header({ onOpenSidebar }: Props) {
                         <i className="fas fa-bars"></i>
                     </button>
 
-                    <div className="logo-area">
+                    <Link to="/" className="logo-area" aria-label="Acasă">
                         <div className="logo-emblem">
                             <svg viewBox="0 0 100 100" className="svg-logo">
                                 <defs>
@@ -76,17 +75,41 @@ export default function Header({ onOpenSidebar }: Props) {
                             <h1>e-Electoral</h1>
                             <span className="tagline">Certificare & Integritate</span>
                         </div>
-                    </div>
+                    </Link>
                 </div>
 
                 <nav className="main-nav">
                     <ul>
-                        <li><Link to="/" className="active">Acasa</Link></li>
-                        <li><Link to="/tests">Teste</Link></li>
-                        <li><Link to="/appointment">Inscriere</Link></li>
-                        <li><a href="#" onClick={stopLink}>Despre</a></li>
-                        <li><Link to="/support">Suport</Link></li>
-                        <li><Link to="/contact">Contacte</Link></li>
+                        <li>
+                            <NavLink to="/" end className={({ isActive }) => (isActive ? "active" : "")}>
+                                Acasă
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink to="/tests" className={({ isActive }) => (isActive ? "active" : "")}>
+                                Teste
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink to="/appointment" className={({ isActive }) => (isActive ? "active" : "")}>
+                                Înscriere
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink to="/news" className={({ isActive }) => (isActive ? "active" : "")}>
+                                Noutăți
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink to="/support" className={({ isActive }) => (isActive ? "active" : "")}>
+                                Suport
+                            </NavLink>
+                        </li>
+                        <li>
+                            <NavLink to="/contact" className={({ isActive }) => (isActive ? "active" : "")}>
+                                Contacte
+                            </NavLink>
+                        </li>
                     </ul>
                 </nav>
 
@@ -111,7 +134,7 @@ export default function Header({ onOpenSidebar }: Props) {
                             <button
                                 className="btn btn-outline notification-btn"
                                 type="button"
-                                aria-label="Notificari"
+                                aria-label="Notificări"
                                 onClick={() => setNotificationsOpen((prev) => !prev)}
                             >
                                 <i className="fas fa-bell"></i>
@@ -121,17 +144,17 @@ export default function Header({ onOpenSidebar }: Props) {
                             {notificationsOpen && (
                                 <div className="notification-panel">
                                     <div className="notification-panel-header">
-                                        <h4>Notificari</h4>
+                                        <h4>Notificări</h4>
                                         {unreadCount > 0 && (
                                             <button type="button" className="mark-read-btn" onClick={markAllAsRead}>
-                                                Marcheaza citite
+                                                Marchează citite
                                             </button>
                                         )}
                                     </div>
 
                                     <div className="notification-list">
                                         {notifications.length === 0 ? (
-                                            <p className="notification-empty">Nu ai notificari.</p>
+                                            <p className="notification-empty">Nu ai notificări.</p>
                                         ) : (
                                             notifications.map((notification) => (
                                                 <button
