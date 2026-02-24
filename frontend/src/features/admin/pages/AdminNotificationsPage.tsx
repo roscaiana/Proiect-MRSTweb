@@ -45,12 +45,12 @@ const AdminNotificationsPage: React.FC = () => {
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
         if (!title.trim() || !message.trim()) {
-            setFeedback("Completeaza titlul si mesajul notificarii.");
+            setFeedback("Completează titlul și mesajul notificării.");
             return;
         }
 
         if (target === "email" && !targetEmail.trim()) {
-            setFeedback("Adauga emailul destinatarului.");
+            setFeedback("Adaugă emailul destinatarului.");
             return;
         }
 
@@ -61,7 +61,7 @@ const AdminNotificationsPage: React.FC = () => {
             targetEmail: target === "email" ? targetEmail.trim() : undefined,
         });
 
-        setFeedback(`Notificare trimisa catre ${sentCount} destinatar(i).`);
+        setFeedback(`Notificare trimisă către ${sentCount} destinatar(i).`);
         setTitle("");
         setMessage("");
         if (target === "email") {
@@ -72,15 +72,15 @@ const AdminNotificationsPage: React.FC = () => {
     return (
         <div className="admin-page-content">
             <section className="admin-page-header">
-                <h2>Notificari</h2>
-                <p>Trimite anunturi catre utilizatori si monitorizeaza istoricul mesajelor.</p>
+                <h2>Notificări</h2>
+                <p>Trimite anunțuri către utilizatori și monitorizează istoricul mesajelor.</p>
             </section>
 
             <section className="admin-panel-card">
                 <div className="admin-card-header">
                     <h3>Trimite notificare</h3>
                     <span className="admin-muted-text">
-                        Destinatari estimati: {estimatedRecipients}
+                        Destinatari estimați: {estimatedRecipients}
                     </span>
                 </div>
 
@@ -91,7 +91,7 @@ const AdminNotificationsPage: React.FC = () => {
                             value={target}
                             onChange={(event) => setTarget(event.target.value as NotificationTarget)}
                         >
-                            <option value="all">Toata platforma</option>
+                            <option value="all">Toată platforma</option>
                             <option value="users">Doar utilizatori</option>
                             <option value="admins">Doar administratori</option>
                             <option value="email">Email specific</option>
@@ -141,10 +141,10 @@ const AdminNotificationsPage: React.FC = () => {
 
             <section className="admin-panel-card">
                 <div className="admin-card-header">
-                    <h3>Istoric notificari</h3>
+                    <h3>Istoric notificări</h3>
                 </div>
                 {state.sentNotifications.length === 0 ? (
-                    <p className="admin-muted-text">Nu exista notificari trimise.</p>
+                    <p className="admin-muted-text">Nu există notificări trimise.</p>
                 ) : (
                     <div className="admin-table-wrapper">
                         <table className="admin-table">
@@ -153,7 +153,7 @@ const AdminNotificationsPage: React.FC = () => {
                                     <th>Titlu</th>
                                     <th>Target</th>
                                     <th>Destinatari</th>
-                                    <th>Trimisa la</th>
+                                    <th>Trimisă la</th>
                                 </tr>
                             </thead>
                             <tbody>
