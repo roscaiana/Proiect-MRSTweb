@@ -36,13 +36,13 @@ const AdminUsersPage: React.FC = () => {
         <div className="admin-page-content">
             <section className="admin-page-header">
                 <h2>Management utilizatori</h2>
-                <p>Cauta, filtreaza si gestioneaza accesul utilizatorilor in platforma.</p>
+                <p>Caută, filtrează și gestionează accesul utilizatorilor în platformă.</p>
             </section>
 
             <section className="admin-panel-card">
                 <div className="admin-toolbar">
                     <label className="admin-field">
-                        <span>Cauta</span>
+                        <span>Caută</span>
                         <input
                             type="text"
                             placeholder="Nume sau email"
@@ -81,7 +81,7 @@ const AdminUsersPage: React.FC = () => {
                 </div>
 
                 <p className="admin-muted-text">
-                    Afisate {filteredUsers.length} din {state.users.length} conturi.
+                    Afișate {filteredUsers.length} din {state.users.length} conturi.
                 </p>
 
                 <div className="admin-table-wrapper">
@@ -93,7 +93,7 @@ const AdminUsersPage: React.FC = () => {
                                 <th>Creat la</th>
                                 <th>Ultima logare</th>
                                 <th>Status</th>
-                                <th>Actiuni</th>
+                                <th>Acțiuni</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -117,7 +117,7 @@ const AdminUsersPage: React.FC = () => {
                                             type="button"
                                             onClick={() => toggleUserBlocked(user.id)}
                                         >
-                                            {user.isBlocked ? "Deblocheaza" : "Blocheaza"}
+                                            {user.isBlocked ? "Deblochează" : "Blochează"}
                                         </button>
                                     </td>
                                 </tr>
