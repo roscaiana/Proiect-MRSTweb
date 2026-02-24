@@ -61,23 +61,23 @@ export const renderCategoryIcon = (categoryId: string) => {
 };
 
 export const difficultyLabel = (difficulty: string): string => {
-    if (difficulty === 'beginner') return 'Incepator';
+    if (difficulty === 'beginner') return 'Începător';
     if (difficulty === 'intermediate') return 'Intermediar';
     return 'Avansat';
 };
 
 const categoryFallbackById: Record<string, { chapterId: string; chapterTitle: string }> = {
-    'legislative-basics': { chapterId: 'legislatie', chapterTitle: 'Legislatie' },
+    'legislative-basics': { chapterId: 'legislatie', chapterTitle: 'Legislație' },
     procedures: { chapterId: 'proceduri', chapterTitle: 'Proceduri' },
-    ethics: { chapterId: 'etica', chapterTitle: 'Etica si integritate' },
-    technology: { chapterId: 'tehnologie', chapterTitle: 'Tehnologie electorala' },
+    ethics: { chapterId: 'etica', chapterTitle: 'Etică și integritate' },
+    technology: { chapterId: 'tehnologie', chapterTitle: 'Tehnologie electorală' },
 };
 
 const topicByKeyword: Array<{ chapterId: string; chapterTitle: string; test: RegExp }> = [
-    { chapterId: 'legislatie', chapterTitle: 'Legislatie', test: /lege|legisl|constit|mandat|candidat|prag/i },
-    { chapterId: 'proceduri', chapterTitle: 'Proceduri', test: /secti|vot|buletin|numar|proces|program/i },
-    { chapterId: 'etica', chapterTitle: 'Etica si integritate', test: /etic|integrit|impartial|neutral|conflict/i },
-    { chapterId: 'tehnologie', chapterTitle: 'Tehnologie electorala', test: /sistem|electronic|tehnolog|cibern|date/i },
+    { chapterId: 'legislatie', chapterTitle: 'Legislație', test: /lege|legisl|constit|mandat|candidat|prag/i },
+    { chapterId: 'proceduri', chapterTitle: 'Proceduri', test: /sec(ți|ti)|vot|buletin|num(ă|a)r|proces|program/i },
+    { chapterId: 'etica', chapterTitle: 'Etică și integritate', test: /etic|integrit|impartial|neutral|conflict/i },
+    { chapterId: 'tehnologie', chapterTitle: 'Tehnologie electorală', test: /sistem|electronic|tehnolog|cibern|date/i },
 ];
 
 export const inferChapter = (q: Question, categoryId: string, fallbackTitle: string) => {
