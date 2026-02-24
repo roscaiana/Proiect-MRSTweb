@@ -146,16 +146,27 @@
 .appointment-page .card-icon {
     width: 52px;
     height: 52px;
-    background: linear-gradient(135deg, #003366 0%, #002147 100%);
-    border-radius: 14px;
+    background: #eff6ff;
+    color: #003366;
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
     margin-bottom: 18px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.1);
+    transition: background-color 0.22s ease, color 0.22s ease, transform 0.22s ease, box-shadow 0.22s ease;
 }
 
 .appointment-page .card-icon svg {
-    color: #ffcc00;
+    color: currentColor;
+    transition: color 0.22s ease;
+}
+
+.appointment-page .form-card:hover .card-icon {
+    background: #003366;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 16px rgba(0, 51, 102, 0.25);
 }
 
 .appointment-page .form-card h3 {

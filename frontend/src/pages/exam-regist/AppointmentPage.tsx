@@ -21,7 +21,6 @@ import {
     getNextEligibleDates,
     isDateBlocked,
     isLeadTimeSatisfied,
-    parseDateKey,
     toDateKey,
 } from '../../utils/appointmentScheduling';
 import { notifyAppointmentCreated, notifyUser } from '../../utils/appEventNotifications';
@@ -47,10 +46,12 @@ const AppointmentPage: React.FC = () => {
     const [examSettings, setExamSettings] = useState(() => readExamSettings());
     const [appointments, setAppointments] = useState(() => readAppointments());
     const [slotFilter, setSlotFilter] = useState<SlotFilter>('all');
-    const [draftNotice, setDraftNotice] = useState('');
     const [submitMessage, setSubmitMessage] = useState('');
     const [submittedAppointment, setSubmittedAppointment] = useState<AdminAppointmentRecord | null>(null);
     const [rescheduleSourceId, setRescheduleSourceId] = useState<string | null>(null);
+    const previousUserEmailRef = React.useRef<string | null>(
+        user?.email ? user.email.trim().toLowerCase() : null
+    );
 
     useEffect(() => {
         const refreshData = () => {
@@ -87,6 +88,28 @@ const AppointmentPage: React.FC = () => {
     }, [user?.fullName]);
 
     useEffect(() => {
+        const currentUserEmail = user?.email ? user.email.trim().toLowerCase() : null;
+        const previousUserEmail = previousUserEmailRef.current;
+
+        if (previousUserEmail && previousUserEmail !== currentUserEmail) {
+            setFormData({
+                fullName: '',
+                idOrPhone: '',
+                selectedDate: null,
+                selectedSlot: null,
+            });
+            setErrors({});
+            setSubmitMessage('');
+            setSubmittedAppointment(null);
+            setRescheduleSourceId(null);
+            localStorage.removeItem(APPOINTMENT_DRAFT_KEY);
+            localStorage.removeItem(APPOINTMENT_RESCHEDULE_KEY);
+        }
+
+        previousUserEmailRef.current = currentUserEmail;
+    }, [user?.email]);
+
+    useEffect(() => {
         const searchParams = new URLSearchParams(location.search);
         const rescheduleIdFromQuery = searchParams.get('reschedule');
         const rawRescheduleDraft = localStorage.getItem(APPOINTMENT_RESCHEDULE_KEY);
@@ -103,64 +126,14 @@ const AppointmentPage: React.FC = () => {
 
         if (sourceId) {
             setRescheduleSourceId(sourceId);
-            setDraftNotice('Mod reprogramare activ: selectează o dată și un interval nou.');
         }
     }, [location.search]);
 
     useEffect(() => {
-        const rawDraft = localStorage.getItem(APPOINTMENT_DRAFT_KEY);
-        if (!rawDraft || isSubmitted) return;
-
-        try {
-            const parsed = JSON.parse(rawDraft) as {
-                userEmail?: string;
-                fullName?: string;
-                idOrPhone?: string;
-                selectedDate?: string | null;
-                selectedSlotId?: string | null;
-                savedAt?: string;
-            };
-
-            if (parsed.userEmail && user?.email && parsed.userEmail !== user.email) {
-                return;
-            }
-
-            setFormData((prev) => ({
-                ...prev,
-                fullName: parsed.fullName || prev.fullName,
-                idOrPhone: parsed.idOrPhone || prev.idOrPhone,
-                selectedDate: parsed.selectedDate ? parseDateKey(parsed.selectedDate) : prev.selectedDate,
-                selectedSlot: parsed.selectedSlotId
-                    ? (TIME_SLOTS.find((slot) => slot.id === parsed.selectedSlotId) || prev.selectedSlot)
-                    : prev.selectedSlot,
-            }));
-
-            if (parsed.savedAt) {
-                setDraftNotice(`Am restaurat un draft salvat la ${new Date(parsed.savedAt).toLocaleString('ro-RO')}.`);
-            }
-        } catch {
-            // ignore invalid draft
-        }
-    }, [isSubmitted, user?.email]);
-
-    useEffect(() => {
-        if (isSubmitted) {
-            localStorage.removeItem(APPOINTMENT_DRAFT_KEY);
-            localStorage.removeItem(APPOINTMENT_RESCHEDULE_KEY);
-            return;
-        }
-
-        const payload = {
-            userEmail: user?.email,
-            fullName: formData.fullName,
-            idOrPhone: formData.idOrPhone,
-            selectedDate: formData.selectedDate ? toDateKey(formData.selectedDate) : null,
-            selectedSlotId: formData.selectedSlot?.id || null,
-            savedAt: new Date().toISOString(),
-        };
-
-        localStorage.setItem(APPOINTMENT_DRAFT_KEY, JSON.stringify(payload));
-    }, [formData, isSubmitted, user?.email]);
+        if (!isSubmitted) return;
+        localStorage.removeItem(APPOINTMENT_DRAFT_KEY);
+        localStorage.removeItem(APPOINTMENT_RESCHEDULE_KEY);
+    }, [isSubmitted]);
 
     // Get minimum selectable date (Jan 1st, 2026)
     const minDate = useMemo(() => {
@@ -316,9 +289,9 @@ const AppointmentPage: React.FC = () => {
         }
 
         if (!formData.idOrPhone.trim()) {
-            newErrors.idOrPhone = 'IDNP sau Telefonul este obligatoriu';
-        } else if (formData.idOrPhone.trim().length < 6) {
-            newErrors.idOrPhone = 'Introduceți un număr de telefon valid';
+            newErrors.idOrPhone = 'Numărul de telefon este obligatoriu';
+        } else if (!/^\d{9}$/.test(formData.idOrPhone.trim())) {
+            newErrors.idOrPhone = 'Introduceți un număr de telefon corect (exact 9 cifre).';
         }
 
         if (!formData.selectedDate) {
@@ -584,7 +557,6 @@ const AppointmentPage: React.FC = () => {
         setIsSubmitted(false);
         setSubmittedAppointment(null);
         setSubmitMessage('');
-        setDraftNotice('');
         setRescheduleSourceId(null);
         localStorage.removeItem(APPOINTMENT_DRAFT_KEY);
         localStorage.removeItem(APPOINTMENT_RESCHEDULE_KEY);
@@ -705,7 +677,6 @@ const AppointmentPage: React.FC = () => {
                         ))}
                     </div>
 
-                    {draftNotice && <div className="appointment-inline-banner">{draftNotice}</div>}
                     {rescheduleSourceAppointment && (
                         <div className="appointment-inline-banner info">
                             Reprogramezi cererea <strong>{rescheduleSourceAppointment.appointmentCode || rescheduleSourceAppointment.id}</strong>
@@ -719,7 +690,7 @@ const AppointmentPage: React.FC = () => {
                     )}
 
                     {/* Appointment Form */}
-                    <form className="appointment-form" onSubmit={handleSubmit}>
+                    <form className="appointment-form" onSubmit={handleSubmit} autoComplete="off">
                         <div className="appointment-summary-card">
                             <div className="appointment-summary-header">
                                 <h3>Rezumat programare</h3>
@@ -925,10 +896,14 @@ const AppointmentPage: React.FC = () => {
                                             type="text"
                                             id="idOrPhone"
                                             className={`text-input ${errors.idOrPhone ? 'error' : ''}`}
-                                            placeholder="Ex: +373 69 123 456"
+                                            placeholder="Ex: 691234567"
+                                            inputMode="numeric"
+                                            pattern="\d{9}"
+                                            maxLength={9}
                                             value={formData.idOrPhone}
                                             onChange={(e) => {
-                                                setFormData({ ...formData, idOrPhone: e.target.value });
+                                                const onlyDigits = e.target.value.replace(/\D/g, '').slice(0, 9);
+                                                setFormData({ ...formData, idOrPhone: onlyDigits });
                                                 setErrors({ ...errors, idOrPhone: undefined });
                                             }}
                                         />
