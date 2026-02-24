@@ -533,12 +533,12 @@ const AppointmentPage: React.FC = () => {
                 nextAppointments = nextAppointments.map((appointment) =>
                     appointment.id === sourceAppointment.id
                         ? {
-                              ...appointment,
-                              status: 'cancelled',
-                              cancelledBy: 'user',
-                              statusReason: 'Reprogramată de utilizator',
-                              updatedAt: createdAt,
-                          }
+                            ...appointment,
+                            status: 'cancelled',
+                            cancelledBy: 'user',
+                            statusReason: 'Reprogramată de utilizator',
+                            updatedAt: createdAt,
+                        }
                         : appointment
                 );
                 notifyUser(user?.email, {
@@ -674,322 +674,324 @@ const AppointmentPage: React.FC = () => {
     }
 
     return (
-        <div className="appointment-page">
-            <div className="container">
-                {/* Page Header */}
-                <div className="page-header">
-                    <h1>Înscriere la Examen</h1>
-                    <p className="page-subtitle">
-                        Programați-vă pentru examenul de certificare electorală. Alegeți data și intervalul orar care vi se potrivește.
-                    </p>
+        <div className="appointment-page appointment-page-form">
+            <section className="appointment-hero-simple" aria-labelledby="appointment-page-title">
+                <div className="appointment-hero-overlay appointment-hero-overlay-right" />
+                <div className="appointment-hero-overlay appointment-hero-overlay-left" />
+                <div className="container">
+                    <div className="appointment-hero-simple-content">
+                        <h1 id="appointment-page-title">Înscriere la Examen</h1>
+                    </div>
                 </div>
+            </section>
 
-                <div className="appointment-stepper" aria-label="Pași programare">
-                    {[
-                        'Alege data',
-                        'Alege interval',
-                        'Date personale',
-                        'Confirmare',
-                    ].map((label, index) => (
-                        <div
-                            key={label}
-                            className={`step-item ${currentStep > index + 1 ? 'done' : ''} ${currentStep === index + 1 ? 'active' : ''}`}
-                        >
-                            <span className="step-index">{index + 1}</span>
-                            <span className="step-label">{label}</span>
+            <div className="container appointment-content-shell">
+                <div className="appointment-content-panel">
+
+                    <div className="appointment-stepper" aria-label="Pași programare">
+                        {[
+                            'Alege data',
+                            'Alege interval',
+                            'Date personale',
+                            'Confirmare',
+                        ].map((label, index) => (
+                            <div
+                                key={label}
+                                className={`step-item ${currentStep > index + 1 ? 'done' : ''} ${currentStep === index + 1 ? 'active' : ''}`}
+                            >
+                                <span className="step-index">{index + 1}</span>
+                                <span className="step-label">{label}</span>
+                            </div>
+                        ))}
+                    </div>
+
+                    {draftNotice && <div className="appointment-inline-banner">{draftNotice}</div>}
+                    {rescheduleSourceAppointment && (
+                        <div className="appointment-inline-banner info">
+                            Reprogramezi cererea <strong>{rescheduleSourceAppointment.appointmentCode || rescheduleSourceAppointment.id}</strong>
+                            {' '}({formatDate(new Date(rescheduleSourceAppointment.date))}, {rescheduleSourceAppointment.slotStart}-{rescheduleSourceAppointment.slotEnd}).
                         </div>
-                    ))}
-                </div>
+                    )}
+                    {!rescheduleSourceId && activeUserAppointments.length > 0 && (
+                        <div className="appointment-inline-banner warning">
+                            Ai deja o programare activă. Pentru o nouă dată/oră, folosește <strong>Reprogramează</strong> din dashboard.
+                        </div>
+                    )}
 
-                {draftNotice && <div className="appointment-inline-banner">{draftNotice}</div>}
-                {rescheduleSourceAppointment && (
-                    <div className="appointment-inline-banner info">
-                        Reprogramezi cererea <strong>{rescheduleSourceAppointment.appointmentCode || rescheduleSourceAppointment.id}</strong>
-                        {' '}({formatDate(new Date(rescheduleSourceAppointment.date))}, {rescheduleSourceAppointment.slotStart}-{rescheduleSourceAppointment.slotEnd}).
-                    </div>
-                )}
-                {!rescheduleSourceId && activeUserAppointments.length > 0 && (
-                    <div className="appointment-inline-banner warning">
-                        Ai deja o programare activă. Pentru o nouă dată/oră, folosește <strong>Reprogramează</strong> din dashboard.
-                    </div>
-                )}
-
-                {/* Appointment Form */}
-                <form className="appointment-form" onSubmit={handleSubmit}>
-                    <div className="appointment-summary-card">
-                        <div className="appointment-summary-header">
-                            <h3>Rezumat programare</h3>
-                            <span className={`summary-chip ${rescheduleSourceId ? 'reschedule' : ''}`}>
+                    {/* Appointment Form */}
+                    <form className="appointment-form" onSubmit={handleSubmit}>
+                        <div className="appointment-summary-card">
+                            <div className="appointment-summary-header">
+                                <h3>Rezumat programare</h3>
+                                <span className={`summary-chip ${rescheduleSourceId ? 'reschedule' : ''}`}>
                                 {rescheduleSourceId ? 'Reprogramare' : 'Cerere nouă'}
                             </span>
-                        </div>
-                        <div className="appointment-summary-grid">
-                            <div><span>Data</span><strong>{formData.selectedDate ? formatDate(formData.selectedDate) : 'Neselectată'}</strong></div>
-                            <div><span>Interval</span><strong>{formData.selectedSlot ? `${formData.selectedSlot.startTime}-${formData.selectedSlot.endTime}` : 'Neselectat'}</strong></div>
-                            <div><span>Locație</span><strong>{examSettings.appointmentLocation}</strong></div>
-                            <div><span>Sală</span><strong>{examSettings.appointmentRoom}</strong></div>
-                            <div><span>Lead time</span><strong>{examSettings.appointmentLeadTimeHours}h</strong></div>
-                            <div><span>Capacitate/zi</span><strong>{selectedDateKey ? `${remainingAppointmentsForDay}/${currentDayCapacity} libere` : `${examSettings.appointmentsPerDay}/zi`}</strong></div>
-                        </div>
-                    </div>
-                    <div className="form-grid">
-                        {/* Date Selection Card */}
-                        <div className="form-card">
-                            <div className="card-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                                    <line x1="16" y1="2" x2="16" y2="6" />
-                                    <line x1="8" y1="2" x2="8" y2="6" />
-                                    <line x1="3" y1="10" x2="21" y2="10" />
-                                </svg>
                             </div>
-                            <h3>Selectați Data</h3>
-                            <p className="card-description">
-                                Puteți programa examenul doar în zilele de <strong>Luni, Miercuri și Vineri</strong>.
-                            </p>
+                            <div className="appointment-summary-grid">
+                                <div><span>Data</span><strong>{formData.selectedDate ? formatDate(formData.selectedDate) : 'Neselectată'}</strong></div>
+                                <div><span>Interval</span><strong>{formData.selectedSlot ? `${formData.selectedSlot.startTime}-${formData.selectedSlot.endTime}` : 'Neselectat'}</strong></div>
+                                <div><span>Locație</span><strong>{examSettings.appointmentLocation}</strong></div>
+                                <div><span>Sală</span><strong>{examSettings.appointmentRoom}</strong></div>
+                                <div><span>Lead time</span><strong>{examSettings.appointmentLeadTimeHours}h</strong></div>
+                                <div><span>Capacitate/zi</span><strong>{selectedDateKey ? `${remainingAppointmentsForDay}/${currentDayCapacity} libere` : `${examSettings.appointmentsPerDay}/zi`}</strong></div>
+                            </div>
+                        </div>
+                        <div className="form-grid">
+                            {/* Date Selection Card */}
+                            <div className="form-card">
+                                <div className="card-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                        <line x1="16" y1="2" x2="16" y2="6" />
+                                        <line x1="8" y1="2" x2="8" y2="6" />
+                                        <line x1="3" y1="10" x2="21" y2="10" />
+                                    </svg>
+                                </div>
+                                <h3>Selectați Data</h3>
+                                <p className="card-description">
+                                    Puteți programa examenul doar în zilele de <strong>Luni, Miercuri și Vineri</strong>.
+                                </p>
 
-                            <div className="form-group">
-                                <label htmlFor="examDate">
-                                    Alege Data <span className="required">*</span>
-                                </label>
-                                <input
-                                    type="date"
-                                    id="examDate"
-                                    className={`date-input ${errors.date ? 'error' : ''}`}
-                                    min={formatDateForInput(minDate)}
-                                    max={formatDateForInput(maxDate)}
-                                    onChange={handleDateChange}
-                                    value={formData.selectedDate ? formatDateForInput(formData.selectedDate) : ''}
-                                />
-                                {errors.date && <span className="error-message">{errors.date}</span>}
-                                {formData.selectedDate && (
-                                    <div className="selected-date-display">
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <polyline points="20 6 9 17 4 12" />
-                                        </svg>
-                                        {getDayName(formData.selectedDate)}, {formData.selectedDate.getDate()} {getMonthName(formData.selectedDate)} {formData.selectedDate.getFullYear()}
-                                    </div>
-                                )}
-                                {selectedBlockedEntry && (
-                                    <span className="error-message">
+                                <div className="form-group">
+                                    <label htmlFor="examDate">
+                                        Alege Data <span className="required">*</span>
+                                    </label>
+                                    <input
+                                        type="date"
+                                        id="examDate"
+                                        className={`date-input ${errors.date ? 'error' : ''}`}
+                                        min={formatDateForInput(minDate)}
+                                        max={formatDateForInput(maxDate)}
+                                        onChange={handleDateChange}
+                                        value={formData.selectedDate ? formatDateForInput(formData.selectedDate) : ''}
+                                    />
+                                    {errors.date && <span className="error-message">{errors.date}</span>}
+                                    {formData.selectedDate && (
+                                        <div className="selected-date-display">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <polyline points="20 6 9 17 4 12" />
+                                            </svg>
+                                            {getDayName(formData.selectedDate)}, {formData.selectedDate.getDate()} {getMonthName(formData.selectedDate)} {formData.selectedDate.getFullYear()}
+                                        </div>
+                                    )}
+                                    {selectedBlockedEntry && (
+                                        <span className="error-message">
                                         Zi blocată{selectedBlockedEntry.note ? `: ${selectedBlockedEntry.note}` : '.'}
                                     </span>
-                                )}
+                                    )}
+                                </div>
+
+                                <div className="availability-preview">
+                                    <div className="availability-preview-header">
+                                        <strong>Zile disponibile (preview)</strong>
+                                        <span>următoarele {availabilityPreviewDays.length}</span>
+                                    </div>
+                                    <div className="availability-preview-grid">
+                                        {availabilityPreviewDays.map((day) => {
+                                            const ratio = day.capacity > 0 ? day.occupied / day.capacity : 0;
+                                            const statusClass = day.blocked
+                                                ? 'blocked'
+                                                : day.remaining === 0
+                                                    ? 'full'
+                                                    : ratio >= 0.8
+                                                        ? 'tight'
+                                                        : 'open';
+                                            return (
+                                                <button
+                                                    key={day.dateKey}
+                                                    type="button"
+                                                    className={`availability-day ${statusClass} ${selectedDateKey === day.dateKey ? 'selected' : ''}`}
+                                                    onClick={() => handleDateChange({ target: { value: day.dateKey } } as React.ChangeEvent<HTMLInputElement>)}
+                                                    title={
+                                                        day.blocked
+                                                            ? `Blocată${day.blockedNote ? `: ${day.blockedNote}` : ''}`
+                                                            : `${day.remaining}/${day.capacity} locuri libere`
+                                                    }
+                                                >
+                                                    <span>{new Date(day.date).toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit' })}</span>
+                                                    <small>{day.blocked ? 'blocată' : `${day.remaining} lib.`}</small>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="availability-preview">
-                                <div className="availability-preview-header">
-                                    <strong>Zile disponibile (preview)</strong>
-                                    <span>următoarele {availabilityPreviewDays.length}</span>
+                            {/* Time Slot Selection Card */}
+                            <div className="form-card">
+                                <div className="card-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <circle cx="12" cy="12" r="10" />
+                                        <polyline points="12 6 12 12 16 14" />
+                                    </svg>
                                 </div>
-                                <div className="availability-preview-grid">
-                                    {availabilityPreviewDays.map((day) => {
-                                        const ratio = day.capacity > 0 ? day.occupied / day.capacity : 0;
-                                        const statusClass = day.blocked
-                                            ? 'blocked'
-                                            : day.remaining === 0
-                                                ? 'full'
-                                                : ratio >= 0.8
-                                                    ? 'tight'
-                                                    : 'open';
-                                        return (
-                                            <button
-                                                key={day.dateKey}
-                                                type="button"
-                                                className={`availability-day ${statusClass} ${selectedDateKey === day.dateKey ? 'selected' : ''}`}
-                                                onClick={() => handleDateChange({ target: { value: day.dateKey } } as React.ChangeEvent<HTMLInputElement>)}
-                                                title={
-                                                    day.blocked
-                                                        ? `Blocată${day.blockedNote ? `: ${day.blockedNote}` : ''}`
-                                                        : `${day.remaining}/${day.capacity} locuri libere`
-                                                }
-                                            >
-                                                <span>{new Date(day.date).toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit' })}</span>
-                                                <small>{day.blocked ? 'blocată' : `${day.remaining} lib.`}</small>
-                                            </button>
-                                        );
-                                    })}
+                                <h3>Selectați Intervalul Orar</h3>
+                                <p className="card-description">
+                                    Alegeți intervalul orar care vi se potrivește pentru examen.
+                                </p>
+                                {formData.selectedDate && (
+                                    <p className="card-description">
+                                        Locuri rămase în ziua selectată: <strong>{remainingAppointmentsForDay}</strong> / {currentDayCapacity}
+                                    </p>
+                                )}
+
+                                <div className="slot-filter-row">
+                                    <div className="slot-filter-group" role="tablist" aria-label="Filtru intervale">
+                                        <button type="button" className={slotFilter === 'all' ? 'active' : ''} onClick={() => setSlotFilter('all')}>Toate</button>
+                                        <button type="button" className={slotFilter === 'midday' ? 'active' : ''} onClick={() => setSlotFilter('midday')}>Prânz</button>
+                                        <button type="button" className={slotFilter === 'afternoon' ? 'active' : ''} onClick={() => setSlotFilter('afternoon')}>După-amiază</button>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        className="slot-suggest-btn"
+                                        onClick={() => recommendedSlot && handleSlotSelect(recommendedSlot.id)}
+                                        disabled={!recommendedSlot}
+                                    >
+                                        Sugerează primul slot liber
+                                    </button>
+                                </div>
+
+                                <div className="time-slots">
+                                    {availableSlots.length === 0 && (
+                                        <div className="slot-empty-note">
+                                            Nu există intervale în filtrul selectat. Încearcă „Toate”.
+                                        </div>
+                                    )}
+                                    {availableSlots.map((slot) => (
+                                        <button
+                                            key={slot.id}
+                                            type="button"
+                                            className={`time-slot ${formData.selectedSlot?.id === slot.id ? 'selected' : ''} ${!slot.available ? 'disabled' : ''}`}
+                                            onClick={() => handleSlotSelect(slot.id)}
+                                            disabled={!slot.available}
+                                        >
+                                            <div className="slot-time">
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                    <circle cx="12" cy="12" r="10" />
+                                                    <polyline points="12 6 12 12 16 14" />
+                                                </svg>
+                                                <span>{slot.startTime} - {slot.endTime}</span>
+                                            </div>
+                                            {formData.selectedSlot?.id === slot.id && (
+                                                <div className="check-icon">
+                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                                                        <polyline points="20 6 9 17 4 12" />
+                                                    </svg>
+                                                </div>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                                {errors.slot && <span className="error-message">{errors.slot}</span>}
+                            </div>
+
+                            {/* Personal Information Card */}
+                            <div className="form-card full-width">
+                                <div className="card-icon">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                                        <circle cx="12" cy="7" r="4" />
+                                    </svg>
+                                </div>
+                                <h3>Informații Personale</h3>
+                                <p className="card-description">
+                                    Introduceți datele dumneavoastră personale pentru confirmare.
+                                </p>
+
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label htmlFor="fullName">
+                                            Nume Complet <span className="required">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="fullName"
+                                            className={`text-input ${errors.fullName ? 'error' : ''}`}
+                                            placeholder="Ex: Ion Popescu"
+                                            value={formData.fullName}
+                                            onChange={(e) => {
+                                                setFormData({ ...formData, fullName: e.target.value });
+                                                setErrors({ ...errors, fullName: undefined });
+                                            }}
+                                        />
+                                        {errors.fullName && <span className="error-message">{errors.fullName}</span>}
+                                    </div>
+
+                                    <div className="form-group">
+                                        <label htmlFor="idOrPhone">
+                                            Număr de Telefon <span className="required">*</span>
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="idOrPhone"
+                                            className={`text-input ${errors.idOrPhone ? 'error' : ''}`}
+                                            placeholder="Ex: +373 69 123 456"
+                                            value={formData.idOrPhone}
+                                            onChange={(e) => {
+                                                setFormData({ ...formData, idOrPhone: e.target.value });
+                                                setErrors({ ...errors, idOrPhone: undefined });
+                                            }}
+                                        />
+                                        {errors.idOrPhone && <span className="error-message">{errors.idOrPhone}</span>}
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Time Slot Selection Card */}
-                        <div className="form-card">
-                            <div className="card-icon">
+                        {/* Important Information */}
+                        <div className="info-box">
+                            <div className="info-icon">
                                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <circle cx="12" cy="12" r="10" />
-                                    <polyline points="12 6 12 12 16 14" />
+                                    <line x1="12" y1="16" x2="12" y2="12" />
+                                    <line x1="12" y1="8" x2="12.01" y2="8" />
                                 </svg>
                             </div>
-                            <h3>Selectați Intervalul Orar</h3>
-                            <p className="card-description">
-                                Alegeți intervalul orar care vi se potrivește pentru examen.
-                            </p>
-                            {formData.selectedDate && (
-                                <p className="card-description">
-                                    Locuri rămase în ziua selectată: <strong>{remainingAppointmentsForDay}</strong> / {currentDayCapacity}
-                                </p>
-                            )}
-
-                            <div className="slot-filter-row">
-                                <div className="slot-filter-group" role="tablist" aria-label="Filtru intervale">
-                                    <button type="button" className={slotFilter === 'all' ? 'active' : ''} onClick={() => setSlotFilter('all')}>Toate</button>
-                                    <button type="button" className={slotFilter === 'midday' ? 'active' : ''} onClick={() => setSlotFilter('midday')}>Prânz</button>
-                                    <button type="button" className={slotFilter === 'afternoon' ? 'active' : ''} onClick={() => setSlotFilter('afternoon')}>După-amiază</button>
-                                </div>
-                                <button
-                                    type="button"
-                                    className="slot-suggest-btn"
-                                    onClick={() => recommendedSlot && handleSlotSelect(recommendedSlot.id)}
-                                    disabled={!recommendedSlot}
-                                >
-                                    Sugerează primul slot liber
-                                </button>
+                            <div className="info-content">
+                                <h4>Informații Importante</h4>
+                                <ul>
+                                    <li>Examenul durează aproximativ {examSettings.testDurationMinutes} minute</li>
+                                    <li>Limită zilnică configurată de admin: {examSettings.appointmentsPerDay} programări</li>
+                                    <li>Programarea se face cu minim {examSettings.appointmentLeadTimeHours} ore înainte</li>
+                                    <li>Maxim {examSettings.maxReschedulesPerUser} reprogramări pentru aceeași cerere</li>
+                                    <li>Cooldown după respingere: {examSettings.rejectionCooldownDays} zile</li>
+                                    <li>Locație examen: {examSettings.appointmentLocation}, {examSettings.appointmentRoom}</li>
+                                    <li>Vă rugăm să vă prezentați cu 15 minute înainte de ora programării</li>
+                                    <li>Este necesar să aveți actul de identitate asupra dumneavoastră</li>
+                                    <li>Statusul se actualizează în dashboard și prin notificări in-app</li>
+                                </ul>
                             </div>
+                        </div>
 
-                            <div className="time-slots">
-                                {availableSlots.length === 0 && (
-                                    <div className="slot-empty-note">
-                                        Nu există intervale în filtrul selectat. Încearcă „Toate”.
-                                    </div>
+                        {/* Submit Button */}
+                        <div className="form-actions">
+                            <button
+                                type="submit"
+                                className="btn-submit"
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <span className="spinner"></span>
+                                        Se procesează...
+                                    </>
+                                ) : (
+                                    <>
+                                        {rescheduleSourceId ? 'Trimite Reprogramarea' : 'Confirmă Programarea'}
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <line x1="5" y1="12" x2="19" y2="12" />
+                                            <polyline points="12 5 19 12 12 19" />
+                                        </svg>
+                                    </>
                                 )}
-                                {availableSlots.map((slot) => (
-                                    <button
-                                        key={slot.id}
-                                        type="button"
-                                        className={`time-slot ${formData.selectedSlot?.id === slot.id ? 'selected' : ''} ${!slot.available ? 'disabled' : ''}`}
-                                        onClick={() => handleSlotSelect(slot.id)}
-                                        disabled={!slot.available}
-                                    >
-                                        <div className="slot-time">
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                <circle cx="12" cy="12" r="10" />
-                                                <polyline points="12 6 12 12 16 14" />
-                                            </svg>
-                                            <span>{slot.startTime} - {slot.endTime}</span>
-                                        </div>
-                                        {formData.selectedSlot?.id === slot.id && (
-                                            <div className="check-icon">
-                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                                                    <polyline points="20 6 9 17 4 12" />
-                                                </svg>
-                                            </div>
-                                        )}
-                                    </button>
-                                ))}
-                            </div>
-                            {errors.slot && <span className="error-message">{errors.slot}</span>}
+                            </button>
                         </div>
-
-                        {/* Personal Information Card */}
-                        <div className="form-card full-width">
-                            <div className="card-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                                    <circle cx="12" cy="7" r="4" />
-                                </svg>
-                            </div>
-                            <h3>Informații Personale</h3>
-                            <p className="card-description">
-                                Introduceți datele dumneavoastră personale pentru confirmare.
-                            </p>
-
-                            <div className="form-row">
-                                <div className="form-group">
-                                    <label htmlFor="fullName">
-                                        Nume Complet <span className="required">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="fullName"
-                                        className={`text-input ${errors.fullName ? 'error' : ''}`}
-                                        placeholder="Ex: Ion Popescu"
-                                        value={formData.fullName}
-                                        onChange={(e) => {
-                                            setFormData({ ...formData, fullName: e.target.value });
-                                            setErrors({ ...errors, fullName: undefined });
-                                        }}
-                                    />
-                                    {errors.fullName && <span className="error-message">{errors.fullName}</span>}
-                                </div>
-
-                                <div className="form-group">
-                                    <label htmlFor="idOrPhone">
-                                        Număr de Telefon <span className="required">*</span>
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="idOrPhone"
-                                        className={`text-input ${errors.idOrPhone ? 'error' : ''}`}
-                                        placeholder="Ex: +373 69 123 456"
-                                        value={formData.idOrPhone}
-                                        onChange={(e) => {
-                                            setFormData({ ...formData, idOrPhone: e.target.value });
-                                            setErrors({ ...errors, idOrPhone: undefined });
-                                        }}
-                                    />
-                                    {errors.idOrPhone && <span className="error-message">{errors.idOrPhone}</span>}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Important Information */}
-                    <div className="info-box">
-                        <div className="info-icon">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <circle cx="12" cy="12" r="10" />
-                                <line x1="12" y1="16" x2="12" y2="12" />
-                                <line x1="12" y1="8" x2="12.01" y2="8" />
-                            </svg>
-                        </div>
-                        <div className="info-content">
-                            <h4>Informații Importante</h4>
-                            <ul>
-                                <li>Examenul durează aproximativ {examSettings.testDurationMinutes} minute</li>
-                                <li>Limită zilnică configurată de admin: {examSettings.appointmentsPerDay} programări</li>
-                                <li>Programarea se face cu minim {examSettings.appointmentLeadTimeHours} ore înainte</li>
-                                <li>Maxim {examSettings.maxReschedulesPerUser} reprogramări pentru aceeași cerere</li>
-                                <li>Cooldown după respingere: {examSettings.rejectionCooldownDays} zile</li>
-                                <li>Locație examen: {examSettings.appointmentLocation}, {examSettings.appointmentRoom}</li>
-                                <li>Vă rugăm să vă prezentați cu 15 minute înainte de ora programării</li>
-                                <li>Este necesar să aveți actul de identitate asupra dumneavoastră</li>
-                                <li>Statusul se actualizează în dashboard și prin notificări in-app</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    {/* Submit Button */}
-                    <div className="form-actions">
-                        <button
-                            type="submit"
-                            className="btn-submit"
-                            disabled={isSubmitting}
-                        >
-                            {isSubmitting ? (
-                                <>
-                                    <span className="spinner"></span>
-                                    Se procesează...
-                                </>
-                            ) : (
-                                <>
-                                    {rescheduleSourceId ? 'Trimite Reprogramarea' : 'Confirmă Programarea'}
-                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <line x1="5" y1="12" x2="19" y2="12" />
-                                        <polyline points="12 5 19 12 12 19" />
-                                    </svg>
-                                </>
-                            )}
-                        </button>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
         </div>
     );
 };
 
 export default AppointmentPage;
-
-
-
 

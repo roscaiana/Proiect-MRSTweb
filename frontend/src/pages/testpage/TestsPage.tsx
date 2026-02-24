@@ -1,5 +1,5 @@
 ﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {ClipboardList, LifeBuoy} from 'lucide-react';
+import { ClipboardList } from 'lucide-react';
 import { getQuizCategories, getQuestionsByCategory, getCategoryById } from '../../data/quizData';
 import { useAuth } from '../../hooks/useAuth';
 import type { QuizMode, QuizResult, QuizSession } from '../../types/quiz';
@@ -25,6 +25,11 @@ const TestsPage: React.FC = () => {
     const mobileQuestionGridRef = React.useRef<HTMLDivElement | null>(null);
     const sidebarQuestionGridRef = React.useRef<HTMLDivElement | null>(null);
     const questionGridRefs = useMemo(() => [mobileQuestionGridRef, sidebarQuestionGridRef], []);
+    const testsView = quizResult ? 'result' : quizSession ? 'session' : 'home';
+
+    useEffect(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    }, [testsView]);
 
     useEffect(() => {
         const refresh = () => {
@@ -519,6 +524,7 @@ const TestsPage: React.FC = () => {
 };
 
 export default TestsPage;
+
 
 
 
