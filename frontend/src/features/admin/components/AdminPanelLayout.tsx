@@ -7,8 +7,8 @@ const navItems = [
     { to: "/admin/overview", label: "Dashboard", iconClass: "fas fa-chart-line" },
     { to: "/admin/tests", label: "Teste", iconClass: "fas fa-file-alt" },
     { to: "/admin/users", label: "Utilizatori", iconClass: "fas fa-users" },
-    { to: "/admin/appointments", label: "Programari", iconClass: "fas fa-calendar-check" },
-    { to: "/admin/notifications", label: "Notificari", iconClass: "fas fa-bell" },
+    { to: "/admin/appointments", label: "Programări", iconClass: "fas fa-calendar-check" },
+    { to: "/admin/notifications", label: "Notificări", iconClass: "fas fa-bell" },
 ];
 
 const AdminPanelLayout: React.FC = () => {

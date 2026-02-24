@@ -40,7 +40,7 @@ const TestForm: React.FC<Props> = ({ mode, initialValue, onSubmit, onCancel }) =
     const [error, setError] = useState("");
 
     const submitLabel = useMemo(
-        () => (mode === "create" ? "Creeaza test" : "Salveaza modificarile"),
+        () => (mode === "create" ? "Creează test" : "Salvează modificările"),
         [mode]
     );
 
@@ -102,32 +102,32 @@ const TestForm: React.FC<Props> = ({ mode, initialValue, onSubmit, onCancel }) =
         }
 
         if (form.durationMinutes < 1 || form.durationMinutes > 180) {
-            return "Durata testului trebuie sa fie intre 1 si 180 minute.";
+            return "Durata testului trebuie să fie între 1 și 180 minute.";
         }
 
         if (form.passingScore < 1 || form.passingScore > 100) {
-            return "Pragul de promovare trebuie sa fie intre 1 si 100.";
+            return "Pragul de promovare trebuie să fie între 1 și 100.";
         }
 
         if (form.questions.length === 0) {
-            return "Adauga cel putin o intrebare.";
+            return "Adaugă cel puțin o întrebare.";
         }
 
         for (let index = 0; index < form.questions.length; index += 1) {
             const question = form.questions[index];
             if (!question.text.trim()) {
-                return `Intrebarea ${index + 1} nu are text completat.`;
+                return `Întrebarea ${index + 1} nu are text completat.`;
             }
 
             if (question.options.some((option) => !option.trim())) {
-                return `Intrebarea ${index + 1} trebuie sa aiba toate optiunile completate.`;
+                return `Întrebarea ${index + 1} trebuie să aibă toate opțiunile completate.`;
             }
 
             if (
                 question.correctAnswer < 0 ||
                 question.correctAnswer >= question.options.length
             ) {
-                return `Selecteaza varianta corecta pentru intrebarea ${index + 1}.`;
+                return `Selectează varianta corectă pentru întrebarea ${index + 1}.`;
             }
         }
 
@@ -187,7 +187,7 @@ const TestForm: React.FC<Props> = ({ mode, initialValue, onSubmit, onCancel }) =
                         onChange={(event) =>
                             setForm((prev) => ({ ...prev, title: event.target.value }))
                         }
-                        placeholder="Ex: Simulare legislatie"
+                        placeholder="Ex: Simulare legislație"
                     />
                 </label>
 
@@ -232,15 +232,15 @@ const TestForm: React.FC<Props> = ({ mode, initialValue, onSubmit, onCancel }) =
                             setForm((prev) => ({ ...prev, description: event.target.value }))
                         }
                         rows={3}
-                        placeholder="Descriere scurta a testului"
+                        placeholder="Descriere scurtă a testului"
                     />
                 </label>
             </div>
 
             <div className="admin-questions-header">
-                <h4>Intrebari</h4>
+                <h4>Întrebări</h4>
                 <button type="button" className="admin-btn secondary" onClick={addQuestion}>
-                    + Adauga intrebare
+                    + Adaugă întrebare
                 </button>
             </div>
 
@@ -248,20 +248,20 @@ const TestForm: React.FC<Props> = ({ mode, initialValue, onSubmit, onCancel }) =
                 {form.questions.map((question, questionIndex) => (
                     <article className="admin-question-card" key={`${question.id}-${questionIndex}`}>
                         <div className="admin-question-card-header">
-                            <h5>Intrebarea {questionIndex + 1}</h5>
+                            <h5>Întrebarea {questionIndex + 1}</h5>
                             {form.questions.length > 1 && (
                                 <button
                                     type="button"
                                     className="admin-text-btn danger"
                                     onClick={() => removeQuestion(questionIndex)}
                                 >
-                                    Sterge
+                                    Șterge
                                 </button>
                             )}
                         </div>
 
                         <label className="admin-field">
-                            <span>Text intrebare</span>
+                            <span>Text întrebare</span>
                             <textarea
                                 value={question.text}
                                 onChange={(event) =>
@@ -274,7 +274,7 @@ const TestForm: React.FC<Props> = ({ mode, initialValue, onSubmit, onCancel }) =
                         <div className="admin-options-grid">
                             {question.options.map((option, optionIndex) => (
                                 <label className="admin-field" key={optionIndex}>
-                                    <span>Optiunea {optionIndex + 1}</span>
+                                    <span>Opțiunea {optionIndex + 1}</span>
                                     <input
                                         type="text"
                                         value={option}
@@ -291,7 +291,7 @@ const TestForm: React.FC<Props> = ({ mode, initialValue, onSubmit, onCancel }) =
                         </div>
 
                         <label className="admin-field">
-                            <span>Varianta corecta</span>
+                            <span>Varianta corectă</span>
                             <select
                                 value={question.correctAnswer}
                                 onChange={(event) =>
@@ -303,7 +303,7 @@ const TestForm: React.FC<Props> = ({ mode, initialValue, onSubmit, onCancel }) =
                             >
                                 {question.options.map((_, optionIndex) => (
                                     <option key={optionIndex} value={optionIndex}>
-                                        Optiunea {optionIndex + 1}
+                                        Opțiunea {optionIndex + 1}
                                     </option>
                                 ))}
                             </select>
@@ -316,7 +316,7 @@ const TestForm: React.FC<Props> = ({ mode, initialValue, onSubmit, onCancel }) =
 
             <div className="admin-form-actions">
                 <button type="button" className="admin-btn ghost" onClick={onCancel}>
-                    Renunta
+                    Renunță
                 </button>
                 <button type="submit" className="admin-btn primary">
                     {submitLabel}

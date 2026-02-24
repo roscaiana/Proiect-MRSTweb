@@ -33,10 +33,10 @@ const formatDateTimeLabel = (value: string): string => {
 };
 
 const statusLabel = (status: AppointmentStatus): string => {
-    if (status === "pending") return "In asteptare";
-    if (status === "approved") return "Aprobata";
-    if (status === "rejected") return "Respinsa";
-    return "Anulata";
+    if (status === "pending") return "În așteptare";
+    if (status === "approved") return "Aprobată";
+    if (status === "rejected") return "Respinsă";
+    return "Anulată";
 };
 
 const AdminAppointmentsPage: React.FC = () => {
@@ -141,7 +141,7 @@ const AdminAppointmentsPage: React.FC = () => {
 
     const handleSaveDayConfig = () => {
         if (!configDate) {
-            setFeedback("Selecteaza o data pentru configurare.");
+            setFeedback("Selectează o dată pentru configurare.");
             return;
         }
 
@@ -170,7 +170,7 @@ const AdminAppointmentsPage: React.FC = () => {
                 .filter(Boolean);
 
             if (parsedLines.length === 0) {
-                setFeedback("Adauga cel putin un slot valid sau dezactiveaza override sloturi.");
+                setFeedback("Adaugă cel puțin un slot valid sau dezactivează override sloturi.");
                 return null;
             }
 
@@ -189,7 +189,7 @@ const AdminAppointmentsPage: React.FC = () => {
             });
 
             if (slots.some((slot) => !slot)) {
-                setFeedback("Format slot invalid. Foloseste linii de forma HH:MM-HH:MM.");
+                setFeedback("Format slot invalid. Folosește linii de forma HH:MM-HH:MM.");
                 return null;
             }
 
@@ -221,7 +221,7 @@ const AdminAppointmentsPage: React.FC = () => {
             slotOverrides: nextSlotOverrides,
         });
 
-        setFeedback(`Configuratia pentru ${configDate} a fost salvata.`);
+        setFeedback(`Configurația pentru ${configDate} a fost salvată.`);
     };
 
     const handleExportCsv = () => {
@@ -255,7 +255,7 @@ const AdminAppointmentsPage: React.FC = () => {
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement("a");
         anchor.href = url;
-        anchor.download = `admin-programari-${new Date().toISOString().slice(0, 10)}.csv`;
+        anchor.download = `admin-programări-${new Date().toISOString().slice(0, 10)}.csv`;
         anchor.click();
         URL.revokeObjectURL(url);
         setFeedback("Export CSV generat.");
@@ -267,13 +267,13 @@ const AdminAppointmentsPage: React.FC = () => {
             reason: null,
             adminNote: adminNote.trim() || null,
         });
-        setFeedback("Programarea a fost aprobata.");
+        setFeedback("Programarea a fost aprobată.");
     };
 
     const handleReject = (appointmentId: string) => {
         const reason = window.prompt("Motivul respingerii (vizibil utilizatorului):", "");
         if (!reason || !reason.trim()) {
-            setFeedback("Respingerea necesita un motiv.");
+            setFeedback("Respingerea necesită un motiv.");
             return;
         }
 
@@ -282,7 +282,7 @@ const AdminAppointmentsPage: React.FC = () => {
             reason: reason.trim(),
             adminNote: adminNote.trim() || null,
         });
-        setFeedback("Programarea a fost respinsa.");
+        setFeedback("Programarea a fost respinsă.");
     };
 
     const handleCancelByAdmin = (appointmentId: string) => {
@@ -291,21 +291,21 @@ const AdminAppointmentsPage: React.FC = () => {
             reason: reason.trim() || null,
             cancelledBy: "admin",
         });
-        setFeedback("Programarea a fost anulata de admin.");
+        setFeedback("Programarea a fost anulată de admin.");
     };
 
     const handleReschedule = (appointmentId: string) => {
         const appointment = state.appointments.find((item) => item.id === appointmentId);
         if (!appointment) return;
 
-        const nextDateValue = window.prompt("Data noua (YYYY-MM-DD):", toDateKey(appointment.date)) || "";
+        const nextDateValue = window.prompt("Data nouă (YYYY-MM-DD):", toDateKey(appointment.date)) || "";
         if (!nextDateValue) return;
         if (!/^\d{4}-\d{2}-\d{2}$/.test(nextDateValue) || !isAllowedDay(parseDateKey(nextDateValue))) {
-            setFeedback("Data introdusa nu este valida (Luni/Miercuri/Vineri).");
+            setFeedback("Data introdusă nu este validă (Luni/Miercuri/Vineri).");
             return;
         }
         if (getBlockedDateEntry(state.settings, nextDateValue)) {
-            setFeedback("Ziua selectata este blocata.");
+            setFeedback("Ziua selectată este blocată.");
             return;
         }
 
@@ -348,20 +348,20 @@ const AdminAppointmentsPage: React.FC = () => {
         });
 
         notifyUser(appointment.userEmail, {
-            title: "Programare reprogramata",
-            message: `Programarea ${appointment.appointmentCode || ""} a fost mutata la ${nextDateValue}, ${validSlot.startTime}-${validSlot.endTime}.`,
+            title: "Programare reprogramată",
+            message: `Programarea ${appointment.appointmentCode || ""} a fost mutată la ${nextDateValue}, ${validSlot.startTime}-${validSlot.endTime}.`,
             link: "/dashboard",
             tag: `admin-reschedule-${appointmentId}-${nextDateValue}-${validSlot.id}`,
         });
 
-        setFeedback("Programarea a fost reprogramata.");
+        setFeedback("Programarea a fost reprogramată.");
     };
 
     return (
         <div className="admin-page-content">
             <section className="admin-page-header">
-                <h2>Programari examen</h2>
-                <p>Revizuieste cererile, gestioneaza ocuparea zilelor si aplica reguli per zi.</p>
+                <h2>Programări examen</h2>
+                <p>Revizuiește cererile, gestionează ocuparea zilelor și aplică reguli per zi.</p>
             </section>
 
             {feedback && (
@@ -395,7 +395,7 @@ const AdminAppointmentsPage: React.FC = () => {
                                 onClick={() => setConfigDate(day.dateKey)}
                                 title={
                                     day.blocked
-                                        ? `Blocata${day.blockedNote ? `: ${day.blockedNote}` : ""}`
+                                        ? `Blocată${day.blockedNote ? `: ${day.blockedNote}` : ""}`
                                         : `${day.occupied}/${day.capacity} ocupate`
                                 }
                             >
@@ -405,7 +405,7 @@ const AdminAppointmentsPage: React.FC = () => {
                                         month: "2-digit",
                                     })}
                                 </strong>
-                                <span>{day.blocked ? "blocata" : `${day.remaining} lib.`}</span>
+                                <span>{day.blocked ? "blocată" : `${day.remaining} lib.`}</span>
                             </button>
                         );
                     })}
@@ -416,7 +416,7 @@ const AdminAppointmentsPage: React.FC = () => {
                 <div className="admin-card-header">
                     <h3>Configurare zi / reguli programare</h3>
                     <button className="admin-btn secondary" type="button" onClick={handleSaveDayConfig}>
-                        Salveaza
+                        Salvează
                     </button>
                 </div>
 
@@ -427,7 +427,7 @@ const AdminAppointmentsPage: React.FC = () => {
                     </label>
 
                     <label className="admin-field">
-                        <span>Locatie examen</span>
+                        <span>Locație examen</span>
                         <input
                             type="text"
                             value={locationValue}
@@ -436,7 +436,7 @@ const AdminAppointmentsPage: React.FC = () => {
                     </label>
 
                     <label className="admin-field">
-                        <span>Sala</span>
+                        <span>Sală</span>
                         <input type="text" value={roomValue} onChange={(event) => setRoomValue(event.target.value)} />
                     </label>
 
@@ -461,7 +461,7 @@ const AdminAppointmentsPage: React.FC = () => {
                     </label>
 
                     <label className="admin-field admin-field-full">
-                        <span>Zi blocata</span>
+                        <span>Zi blocată</span>
                         <div className="admin-inline-checkbox">
                             <input
                                 type="checkbox"
@@ -487,7 +487,7 @@ const AdminAppointmentsPage: React.FC = () => {
                                 checked={overrideSlots}
                                 onChange={(event) => setOverrideSlots(event.target.checked)}
                             />
-                            <span>Foloseste sloturi custom pentru {configDate}</span>
+                            <span>Folosește sloturi custom pentru {configDate}</span>
                         </div>
                         <textarea
                             rows={5}
@@ -497,7 +497,7 @@ const AdminAppointmentsPage: React.FC = () => {
                             placeholder={"08:00-08:30\n09:00-09:30\n14:00-14:30"}
                         />
                         <small className="admin-field-hint">
-                            Cate un slot pe linie, format HH:MM-HH:MM. Daca este dezactivat, se folosesc sloturile implicite.
+                            Câte un slot pe linie, format HH:MM-HH:MM. Dacă este dezactivat, se folosesc sloturile implicite.
                         </small>
                     </label>
                 </div>
@@ -527,14 +527,14 @@ const AdminAppointmentsPage: React.FC = () => {
                     </div>
                     <div className={`admin-summary-chip ${configDayBlockedEntry ? "danger" : ""}`}>
                         <span>Status zi</span>
-                        <strong>{configDayBlockedEntry ? "Blocata" : "Activa"}</strong>
+                        <strong>{configDayBlockedEntry ? "Blocată" : "Activă"}</strong>
                     </div>
                 </div>
             </section>
 
             <section className="admin-panel-card">
                 <div className="admin-card-header">
-                    <h3>Programari</h3>
+                    <h3>Programări</h3>
                     <button className="admin-btn secondary" type="button" onClick={handleExportCsv}>
                         Export CSV
                     </button>
@@ -542,7 +542,7 @@ const AdminAppointmentsPage: React.FC = () => {
 
                 <div className="admin-toolbar admin-toolbar-appointments">
                     <label className="admin-field">
-                        <span>Cauta candidat</span>
+                        <span>Caută candidat</span>
                         <input
                             type="text"
                             placeholder="Nume, email, telefon sau cod"
@@ -558,7 +558,7 @@ const AdminAppointmentsPage: React.FC = () => {
                             onChange={(event) => setStatusFilter(event.target.value as "all" | AppointmentStatus)}
                         >
                             <option value="all">Toate</option>
-                            <option value="pending">In asteptare</option>
+                            <option value="pending">În așteptare</option>
                             <option value="approved">Aprobate</option>
                             <option value="rejected">Respinse</option>
                             <option value="cancelled">Anulate</option>
@@ -588,7 +588,7 @@ const AdminAppointmentsPage: React.FC = () => {
                         <strong>{filteredAppointments.length}</strong>
                     </div>
                     <div className="admin-summary-chip">
-                        <span>In asteptare</span>
+                        <span>În așteptare</span>
                         <strong>{filteredAppointments.filter((item) => item.status === "pending").length}</strong>
                     </div>
                     <div className="admin-summary-chip">
@@ -608,7 +608,7 @@ const AdminAppointmentsPage: React.FC = () => {
                 </div>
 
                 {filteredAppointments.length === 0 ? (
-                    <p className="admin-muted-text">Nu exista programari pentru filtrul selectat.</p>
+                    <p className="admin-muted-text">Nu există programări pentru filtrul selectat.</p>
                 ) : (
                     <div className="admin-table-wrapper">
                         <table className="admin-table">
@@ -619,7 +619,7 @@ const AdminAppointmentsPage: React.FC = () => {
                                     <th>Data examen</th>
                                     <th>Interval</th>
                                     <th>Status</th>
-                                    <th>Actiuni</th>
+                                    <th>Acțiuni</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -634,13 +634,13 @@ const AdminAppointmentsPage: React.FC = () => {
 
                                         <td className="admin-appointment-meta-cell">
                                             <p>
-                                                <strong>{appointment.appointmentCode || "Fara cod"}</strong>
+                                                <strong>{appointment.appointmentCode || "Fără cod"}</strong>
                                             </p>
                                             <p>Actualizat: {formatDateTimeLabel(appointment.updatedAt || appointment.createdAt)}</p>
                                             {typeof appointment.rescheduleCount === "number" && (
-                                                <p>Reprogramari: {appointment.rescheduleCount}</p>
+                                                <p>Reprogramări: {appointment.rescheduleCount}</p>
                                             )}
-                                            {appointment.cancelledBy && <p>Anulata de: {appointment.cancelledBy}</p>}
+                                            {appointment.cancelledBy && <p>Anulată de: {appointment.cancelledBy}</p>}
                                         </td>
 
                                         <td>{formatDateLabel(appointment.date)}</td>
@@ -675,7 +675,7 @@ const AdminAppointmentsPage: React.FC = () => {
                                                         appointment.status === "approved" || appointment.status === "cancelled"
                                                     }
                                                 >
-                                                    Aproba
+                                                    Aprobă
                                                 </button>
                                                 <button
                                                     className="admin-text-btn danger"
@@ -691,7 +691,7 @@ const AdminAppointmentsPage: React.FC = () => {
                                                     onClick={() => handleReschedule(appointment.id)}
                                                     disabled={appointment.status === "cancelled"}
                                                 >
-                                                    Reprogrameaza
+                                                    Reprogramează
                                                 </button>
                                                 <button
                                                     className="admin-text-btn danger"
@@ -699,7 +699,7 @@ const AdminAppointmentsPage: React.FC = () => {
                                                     onClick={() => handleCancelByAdmin(appointment.id)}
                                                     disabled={appointment.status === "cancelled"}
                                                 >
-                                                    Anuleaza
+                                                    Anulează
                                                 </button>
                                             </div>
                                         </td>

@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Layout from "./layouts/Layout";
 import HomePage from "./pages/HomePage/HomePage";
 import Support from "./pages/support/support";
+import News from "./pages/news/News";
 import Contact from "./pages/contacts/Contact";
 import TestsPage from "./pages/testpage/TestsPage";
 import AppointmentPage from "./pages/exam-regist/AppointmentPage";
@@ -30,6 +31,7 @@ export default function App() {
                 <Routes>
                     <Route element={<Layout />}>
                         <Route path="/" element={<HomePage />} />
+                        <Route path="/news" element={<News />} />
                         <Route path="/support" element={<Support />} />
                         <Route path="/contact" element={<Contact />} />
                         <Route path="/tests" element={<TestsPage />} />

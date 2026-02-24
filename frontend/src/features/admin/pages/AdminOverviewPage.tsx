@@ -65,14 +65,14 @@ const AdminOverviewPage: React.FC = () => {
         <div className="admin-page-content">
             <section className="admin-page-header">
                 <h2>Statistici generale</h2>
-                <p>Monitorizeaza activitatea platformei si indicatorii principali.</p>
+                <p>Monitorizează activitatea platformei și indicatorii principali.</p>
             </section>
 
             <section className="admin-stat-grid">
                 <AdminStatCard
                     title="Utilizatori activi (30 zile)"
                     value={String(activeUsers)}
-                    hint={`${state.users.length} utilizatori in total`}
+                    hint={`${state.users.length} utilizatori în total`}
                     iconClass="fas fa-user-check"
                 />
                 <AdminStatCard
@@ -82,15 +82,15 @@ const AdminOverviewPage: React.FC = () => {
                     iconClass="fas fa-award"
                 />
                 <AdminStatCard
-                    title="Programari astazi"
+                    title="Programări astăzi"
                     value={String(appointmentsToday)}
                     hint={`Maxim setat: ${state.settings.appointmentsPerDay}/zi`}
                     iconClass="fas fa-calendar-day"
                 />
                 <AdminStatCard
-                    title="Media programarilor/zi"
+                    title="Media programărilor/zi"
                     value={String(appointmentsPerDay)}
-                    hint={`${state.appointments.length} programari totale`}
+                    hint={`${state.appointments.length} programări totale`}
                     iconClass="fas fa-chart-bar"
                 />
             </section>
@@ -98,10 +98,10 @@ const AdminOverviewPage: React.FC = () => {
             <section className="admin-grid-two">
                 <article className="admin-panel-card">
                     <div className="admin-card-header">
-                        <h3>Programari recente</h3>
+                        <h3>Programări recente</h3>
                     </div>
                     {state.appointments.length === 0 ? (
-                        <p className="admin-muted-text">Nu exista programari inregistrate.</p>
+                        <p className="admin-muted-text">Nu există programări înregistrate.</p>
                     ) : (
                         <div className="admin-simple-list">
                             {state.appointments.slice(0, 6).map((appointment) => (
@@ -124,10 +124,10 @@ const AdminOverviewPage: React.FC = () => {
 
                 <article className="admin-panel-card">
                     <div className="admin-card-header">
-                        <h3>Notificari trimise</h3>
+                        <h3>Notificări trimise</h3>
                     </div>
                     {state.sentNotifications.length === 0 ? (
-                        <p className="admin-muted-text">Nu ai trimis notificari inca.</p>
+                        <p className="admin-muted-text">Nu ai trimis notificări încă.</p>
                     ) : (
                         <div className="admin-simple-list">
                             {state.sentNotifications.slice(0, 6).map((log) => (

@@ -227,7 +227,7 @@ const TestsPage: React.FC = () => {
         if (!quizSession) return;
         if (unansweredIndexes.length > 0 && !canForceSubmit) {
             const preview = unansweredIndexes.slice(0, 6).map((x) => x + 1).join(', ');
-            setSubmitWarning(`Ai ${unansweredIndexes.length} intrebari necompletate (${preview}${unansweredIndexes.length > 6 ? ', ...' : ''}). Completeaza-le sau apasa "Trimite oricum".`);
+            setSubmitWarning(`Ai ${unansweredIndexes.length} întrebări necompletate (${preview}${unansweredIndexes.length > 6 ? ', ...' : ''}). Completează-le sau apasă "Trimite oricum".`);
             setCanForceSubmit(true);
             goToQuestion(unansweredIndexes[0]);
             return;
@@ -244,32 +244,32 @@ const TestsPage: React.FC = () => {
                 <div className="container">
                     <div className="quiz-result-card">
                         <div className={`result-badge ${passed ? 'success' : 'warning'}`}>{passed ? 'Promovat' : 'Nepromovat'}</div>
-                        <h2>{passed ? 'Rezultat bun' : 'Mai ai loc de imbunatatire'}</h2>
+                        <h2>{passed ? 'Rezultat bun' : 'Mai ai loc de îmbunătățire'}</h2>
                         <p className="result-message">
                             {completionReason === 'timeout'
-                                ? 'Timpul a expirat si testul a fost finalizat automat.'
-                                : `Ai finalizat testul in modul ${modeLabel(quizResult.mode)}.`}
+                                ? 'Timpul a expirat și testul a fost finalizat automat.'
+                                : `Ai finalizat testul în modul ${modeLabel(quizResult.mode)}.`}
                         </p>
 
                         <div className="result-actions result-actions-top">
-                            <button className="btn-primary" onClick={resetQuiz}>Inapoi la categorii</button>
-                            <button className="btn-secondary" onClick={() => startQuiz(quizResult.categoryId, quizResult.mode)}>Reincearca acelasi mod</button>
+                            <button className="btn-primary" onClick={resetQuiz}>Înapoi la categorii</button>
+                            <button className="btn-secondary" onClick={() => startQuiz(quizResult.categoryId, quizResult.mode)}>Reîncearcă același mod</button>
                         </div>
 
                         <div className="result-stats">
                             <div className="stat-item"><div className="stat-value">{quizResult.score}%</div><div className="stat-label">Scor final</div></div>
                             <div className="stat-item"><div className="stat-value">{quizResult.correctAnswers}</div><div className="stat-label">Corecte</div></div>
-                            <div className="stat-item"><div className="stat-value">{quizResult.wrongAnswers}</div><div className="stat-label">Gresite</div></div>
-                            <div className="stat-item"><div className="stat-value">{quizResult.unanswered}</div><div className="stat-label">Neraspunse</div></div>
+                            <div className="stat-item"><div className="stat-value">{quizResult.wrongAnswers}</div><div className="stat-label">Greșite</div></div>
+                            <div className="stat-item"><div className="stat-value">{quizResult.unanswered}</div><div className="stat-label">Nerăspunse</div></div>
                             <div className="stat-item"><div className="stat-value">{fmt(quizResult.timeTaken)}</div><div className="stat-label">Timp folosit</div></div>
-                            <div className="stat-item"><div className="stat-value">{quizResult.totalQuestions}</div><div className="stat-label">Intrebari total</div></div>
+                            <div className="stat-item"><div className="stat-value">{quizResult.totalQuestions}</div><div className="stat-label">Întrebări total</div></div>
                         </div>
 
                         <div className="chapter-feedback-grid">
                             <article className="chapter-feedback-card">
                                 <h3>Capitole bune</h3>
                                 {strongChapters.length === 0 ? (
-                                    <p className="chapter-feedback-empty">Niciun capitol peste 70% in aceasta incercare.</p>
+                                    <p className="chapter-feedback-empty">Niciun capitol peste 70% în această încercare.</p>
                                 ) : (
                                     <ul>{strongChapters.map((x) => <li key={x.chapterId}><span>{x.chapterTitle}</span><strong>{x.accuracy}%</strong></li>)}</ul>
                                 )}
@@ -285,13 +285,13 @@ const TestsPage: React.FC = () => {
                         </div>
 
                         <div className="result-details">
-                            <h3>Detalii raspunsuri</h3>
+                            <h3>Detalii răspunsuri</h3>
                             <div className="answer-list">
                                 {quizResult.answers.map((answer, index) => (
                                     <div key={answer.questionId} className={`answer-item ${answer.isCorrect ? 'correct' : 'incorrect'}`}>
-                                        <div className="answer-header"><strong>Intrebarea {index + 1}</strong><span>{answer.chapterTitle}</span></div>
+                                        <div className="answer-header"><strong>Întrebarea {index + 1}</strong><span>{answer.chapterTitle}</span></div>
                                         <p className="answer-question">{answer.questionText}</p>
-                                        <p>Raspunsul tau: <strong>{answer.userAnswerText || 'Neselectat'}</strong></p>
+                                        <p>Răspunsul tău: <strong>{answer.userAnswerText || 'Neselectat'}</strong></p>
                                         {!answer.isCorrect && <p>Corect: <strong>{answer.correctAnswerText}</strong></p>}
                                     </div>
                                 ))}
@@ -299,8 +299,8 @@ const TestsPage: React.FC = () => {
                         </div>
 
                         <div className="result-actions">
-                            <button className="btn-primary" onClick={resetQuiz}>Inapoi la categorii</button>
-                            <button className="btn-secondary" onClick={() => startQuiz(quizResult.categoryId, quizResult.mode)}>Reincearca acelasi mod</button>
+                            <button className="btn-primary" onClick={resetQuiz}>Înapoi la categorii</button>
+                            <button className="btn-secondary" onClick={() => startQuiz(quizResult.categoryId, quizResult.mode)}>Reîncearcă același mod</button>
                         </div>
                     </div>
                 </div>
@@ -327,21 +327,21 @@ const TestsPage: React.FC = () => {
                 <div className="container">
                     <header className="quiz-sticky-header">
                         <div className="quiz-header-top">
-                            <button className="back-btn" onClick={resetQuiz}>Inapoi la categorii</button>
+                            <button className="back-btn" onClick={resetQuiz}>Înapoi la categorii</button>
                             <div className={`mode-badge ${quizSession.mode}`}>{modeLabel(quizSession.mode)}</div>
                         </div>
                         <h2>{normalizeText(getCategoryById(quizSession.categoryId)?.title || 'Test')}</h2>
                         <div className="quiz-header-meta">
-                            <span className={`timer-chip ${quizSession.remainingTimeSeconds <= 60 ? 'danger' : ''}`}>Timp ramas: {fmt(quizSession.remainingTimeSeconds)}</span>
-                            <span className="meta-chip">Intrebarea {quizSession.currentQuestionIndex + 1}/{quizSession.questions.length}</span>
-                            <span className="meta-chip">Raspunse: {answeredCount}</span>
+                            <span className={`timer-chip ${quizSession.remainingTimeSeconds <= 60 ? 'danger' : ''}`}>Timp rămas: {fmt(quizSession.remainingTimeSeconds)}</span>
+                            <span className="meta-chip">Întrebarea {quizSession.currentQuestionIndex + 1}/{quizSession.questions.length}</span>
+                            <span className="meta-chip">Răspunse: {answeredCount}</span>
                         </div>
                         <div className="quiz-progress"><div className="progress-bar"><div className="progress-fill" style={{ width: `${progress}%` }} /></div></div>
-                        <div className="mobile-quick-nav" aria-label="Navigare rapida">
+                        <div className="mobile-quick-nav" aria-label="Navigare rapidă">
                             <div className="mobile-quick-nav-header">
                                 <span className="mobile-quick-nav-title">Navigare</span>
                                 <span className="mobile-quick-nav-meta">
-                                    {quizSession.currentQuestionIndex + 1}/{quizSession.questions.length} • {correctCount} corecte • {incorrectCount} gresite
+                                    {quizSession.currentQuestionIndex + 1}/{quizSession.questions.length} • {correctCount} corecte • {incorrectCount} greșite
                                 </span>
                             </div>
                             <QuestionNavigationGrid
@@ -360,7 +360,7 @@ const TestsPage: React.FC = () => {
                     <div className="quiz-layout">
                         <section className="quiz-question-card">
                             <div className="question-top-row">
-                                <div className="question-number">Intrebarea {quizSession.currentQuestionIndex + 1}</div>
+                                <div className="question-number">Întrebarea {quizSession.currentQuestionIndex + 1}</div>
                             </div>
 
                             <h3 className="question-text">{normalizeText(currentQuestion.text)}</h3>
@@ -381,21 +381,21 @@ const TestsPage: React.FC = () => {
 
                             {showFeedback && (
                                 <div className={`instant-feedback ${isCorrect ? 'correct' : 'incorrect'}`}>
-                                    <strong>{isCorrect ? 'Raspuns corect.' : 'Raspuns gresit.'}</strong>
+                                    <strong>{isCorrect ? 'Răspuns corect.' : 'Răspuns greșit.'}</strong>
                                     {currentQuestion.explanation && <p>{normalizeText(currentQuestion.explanation)}</p>}
                                 </div>
                             )}
 
                             <div className="quiz-navigation">
-                                <button className="btn-secondary" type="button" disabled={quizSession.currentQuestionIndex === 0} onClick={() => goToQuestion(quizSession.currentQuestionIndex - 1)}>Inapoi</button>
-                                <button className="btn-secondary" type="button" disabled={isLast} onClick={() => goToQuestion(quizSession.currentQuestionIndex + 1)}>Urmatoarea</button>
-                                <button className="btn-submit" type="button" onClick={submitQuiz}>Finalizeaza testul</button>
+                                <button className="btn-secondary" type="button" disabled={quizSession.currentQuestionIndex === 0} onClick={() => goToQuestion(quizSession.currentQuestionIndex - 1)}>Înapoi</button>
+                                <button className="btn-secondary" type="button" disabled={isLast} onClick={() => goToQuestion(quizSession.currentQuestionIndex + 1)}>Următoarea</button>
+                                <button className="btn-submit" type="button" onClick={submitQuiz}>Finalizează testul</button>
                                 {canForceSubmit && unansweredIndexes.length > 0 && <button className="btn-warning" type="button" onClick={submitQuiz}>Trimite oricum</button>}
                             </div>
                         </section>
 
                         <aside className="quiz-sidebar">
-                            <div className="sidebar-header"><h3>Navigare rapida</h3><p>Apasa pe un numar pentru salt direct la intrebare.</p></div>
+                            <div className="sidebar-header"><h3>Navigare rapidă</h3><p>Apasă pe un număr pentru salt direct la întrebare.</p></div>
                             <QuestionNavigationGrid
                                 questions={quizSession.questions}
                                 answers={quizSession.answers}
@@ -405,11 +405,11 @@ const TestsPage: React.FC = () => {
                                 keyPrefix="sidebar-nav"
                             />
                             <div className="legend">
-                                <span className="legend-item"><i className="dot correct" />Corecta</span>
-                                <span className="legend-item"><i className="dot incorrect" />Gresita</span>
-                                <span className="legend-item"><i className="dot empty" />Necompletata</span>
+                                <span className="legend-item"><i className="dot correct" />Corectă</span>
+                                <span className="legend-item"><i className="dot incorrect" />Greșită</span>
+                                <span className="legend-item"><i className="dot empty" />Necompletată</span>
                             </div>
-                            {unansweredIndexes.length > 0 && <p className="sidebar-note">Mai sunt {unansweredIndexes.length} intrebari necompletate.</p>}
+                            {unansweredIndexes.length > 0 && <p className="sidebar-note">Mai sunt {unansweredIndexes.length} întrebări necompletate.</p>}
                         </aside>
                     </div>
                 </div>
@@ -420,18 +420,18 @@ const TestsPage: React.FC = () => {
         <div className="tests-page">
             <div className="container">
                 <div className="page-header">
-                    <h1>Teste de pregatire</h1>
-                    <p className="page-subtitle">Alege modul de lucru, porneste un test si urmareste evolutia ta in timp.</p>
+                    <h1>Teste de pregătire</h1>
+                    <p className="page-subtitle">Alege modul de lucru, pornește un test și urmărește evoluția ta în timp.</p>
                 </div>
 
-                <div className="quiz-mode-switch" role="tablist" aria-label="Selectie mod test">
+                <div className="quiz-mode-switch" role="tablist" aria-label="Selecție mod test">
                     <button type="button" className={`mode-switch-btn ${quizMode === 'training' ? 'active' : ''}`} onClick={() => setQuizMode('training')}>
                         Antrenament
-                        <small>Feedback imediat dupa fiecare raspuns</small>
+                        <small>Feedback imediat după fiecare răspuns</small>
                     </button>
                     <button type="button" className={`mode-switch-btn ${quizMode === 'exam' ? 'active' : ''}`} onClick={() => setQuizMode('exam')}>
                         Examen
-                        <small>Fara feedback pana la finalul testului</small>
+                        <small>Fără feedback până la finalul testului</small>
                     </button>
                 </div>
 
@@ -444,11 +444,11 @@ const TestsPage: React.FC = () => {
 
                             <div className="category-meta">
                                 <div className="meta-item"><span>Durata test: {durationByCategoryId[category.id] ?? category.estimatedTime} min</span></div>
-                                <div className="meta-item"><span>{category.questionCount} intrebari</span></div>
+                                <div className="meta-item"><span>{category.questionCount} întrebări</span></div>
                                 <div className="meta-item"><span className={`difficulty-badge ${category.difficulty}`}>{difficultyLabel(category.difficulty)}</span></div>
                             </div>
 
-                            <button className="btn-start-quiz" onClick={() => startQuiz(category.id)}>Incepe in modul {modeLabel(quizMode)}</button>
+                            <button className="btn-start-quiz" onClick={() => startQuiz(category.id)}>Începe în modul {modeLabel(quizMode)}</button>
                         </article>
                     ))}
                 </div>
@@ -458,9 +458,9 @@ const TestsPage: React.FC = () => {
                         <h4>Reguli rapide</h4>
                         <ul>
                             <li>Scor minim de promovare: {examSettings.passingThreshold}%.</li>
-                            <li>Durata fiecarui test vine din setarea testului din Admin (fallback global: {examSettings.testDurationMinutes} minute).</li>
-                            <li>Inainte de submit primesti validare pentru raspunsurile lipsa.</li>
-                            <li>Dupa finalizare primesti analiza pe capitole si istoric.</li>
+                            <li>Durata fiecărui test vine din setarea testului din Admin (fallback global: {examSettings.testDurationMinutes} minute).</li>
+                            <li>Înainte de submit primești validare pentru răspunsurile lipsă.</li>
+                            <li>După finalizare primești analiza pe capitole și istoric.</li>
                         </ul>
                     </div>
                 </section>
@@ -471,4 +471,5 @@ const TestsPage: React.FC = () => {
 };
 
 export default TestsPage;
+
 

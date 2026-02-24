@@ -37,6 +37,15 @@
     display: flex;
     align-items: center;
     gap: 0.8rem;
+    text-decoration: none;
+    color: inherit;
+}
+
+.logo-area:hover,
+.logo-area:visited,
+.logo-area:active {
+    text-decoration: none;
+    color: inherit;
 }
 
 .logo-emblem {

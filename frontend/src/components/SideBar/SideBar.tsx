@@ -11,7 +11,7 @@ export default function Sidebar({ open, onClose }: Props) {
         <>
             <nav className={`sidebar ${open ? "active" : ""}`} id="main-sidebar">
                 <div className="sidebar-header">
-                    <div className="logo-area white-text">
+                    <Link to="/" className="logo-area white-text" onClick={onClose} aria-label="Acasă">
                         <div className="logo-emblem" style={{ width: 40, height: 40 }}>
                             <svg viewBox="0 0 100 100" className="svg-logo">
                                 <defs>
@@ -28,7 +28,7 @@ export default function Sidebar({ open, onClose }: Props) {
                             </svg>
                         </div>
                         <h2>e-Electoral</h2>
-                    </div>
+                    </Link>
 
                     <button className="close-sidebar" onClick={onClose} aria-label="Close sidebar">
                         <i className="fas fa-times"></i>
@@ -37,11 +37,11 @@ export default function Sidebar({ open, onClose }: Props) {
 
                 <div className="sidebar-content">
                     <div className="sidebar-section">
-                        <h4>Navigatie</h4>
+                        <h4>Navigație</h4>
                         <ul>
-                            <li><Link to="/" onClick={onClose}><i className="fas fa-home"></i> Acasa</Link></li>
+                            <li><Link to="/" onClick={onClose}><i className="fas fa-home"></i> Acasă</Link></li>
                             <li><Link to="/tests" onClick={onClose}><i className="fas fa-clipboard-check"></i> Teste</Link></li>
-                            <li><Link to="/appointment" onClick={onClose}><i className="fas fa-user-plus"></i> Inscriere</Link></li>
+                            <li><Link to="/appointment" onClick={onClose}><i className="fas fa-user-plus"></i> Înscriere</Link></li>
                             <li><Link to="/support" onClick={onClose}><i className="fas fa-book-open"></i> Resurse</Link></li>
                         </ul>
                     </div>
