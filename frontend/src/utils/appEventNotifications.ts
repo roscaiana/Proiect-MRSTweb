@@ -56,10 +56,10 @@ export const notifyAdmins = (payload: { title: string; message: string; link?: s
 };
 
 export const appointmentStatusLabelRo = (status: AppointmentStatus): string => {
-    if (status === "approved") return "aprobata";
-    if (status === "rejected") return "respinsa";
-    if (status === "cancelled") return "anulata";
-    return "in asteptare";
+    if (status === "approved") return "aprobată";
+    if (status === "rejected") return "respinsă";
+    if (status === "cancelled") return "anulată";
+    return "în așteptare";
 };
 
 export const notifyAppointmentStatusChanged = (params: {
@@ -85,15 +85,15 @@ export const notifyAppointmentCreated = (params: {
     intervalLabel: string;
 }) => {
     notifyUser(params.userEmail, {
-        title: "Programare inregistrata",
-        message: `Programarea ${params.appointmentCode || ""} pentru ${params.dateLabel}, ${params.intervalLabel} a fost trimisa.`,
+        title: "Programare înregistrată",
+        message: `Programarea ${params.appointmentCode || ""} pentru ${params.dateLabel}, ${params.intervalLabel} a fost trimisă.`,
         link: "/dashboard",
         tag: `appointment-created-${params.appointmentCode || params.userEmail || "anon"}`,
     });
 
     notifyAdmins({
-        title: "Programare noua",
-        message: `Cerere noua ${params.appointmentCode || ""} (${params.dateLabel}, ${params.intervalLabel}).`,
+        title: "Programare nouă",
+        message: `Cerere nouă ${params.appointmentCode || ""} (${params.dateLabel}, ${params.intervalLabel}).`,
         link: "/admin/appointments",
         tag: `admin-appointment-created-${params.appointmentCode || Date.now()}`,
     });

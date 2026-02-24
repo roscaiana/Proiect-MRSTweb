@@ -1,4 +1,4 @@
-import { User, AuthCredentials, RegisterData, AuthError } from '../types/user';
+﻿import { User, AuthCredentials, RegisterData, AuthError } from '../types/user';
 
 // Email validation regex
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -95,17 +95,17 @@ export const mockLogin = async (credentials: AuthCredentials): Promise<User> => 
     const user = userIndex >= 0 ? users[userIndex] : undefined;
 
     if (!user) {
-        throw new Error('Email-ul nu este inregistrat');
+        throw new Error('Email-ul nu este înregistrat');
     }
 
     if (user.isBlocked) {
-        throw new Error('Contul este blocat. Contacteaza administratorul.');
+        throw new Error('Contul este blocat. Contactează administratorul.');
     }
 
     // In a real app, we'd hash and compare passwords
     const storedPassword = localStorage.getItem(`password_${user.email}`);
     if (storedPassword !== credentials.password) {
-        throw new Error('Parola incorecta');
+        throw new Error('Parola incorectă');
     }
 
     const updatedUser: User = {
