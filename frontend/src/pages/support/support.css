@@ -346,8 +346,8 @@
 }
 
 .faq-item.active {
-    border-color: #bfdbfe;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    border-color: #003366;
+    box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.18), 0 20px 25px -5px rgba(0, 0, 0, 0.1);
     transform: scale(1.01);
     z-index: 10;
     position: relative; /* ensure z-index works */
@@ -364,6 +364,12 @@
     border: none;
     cursor: pointer;
     transition: background-color 0.3s;
+}
+
+.faq-question-btn:focus-visible {
+    outline: 2px solid #003366;
+    outline-offset: 4px;
+    border-radius: 1rem;
 }
 
 .faq-question-btn:hover {
