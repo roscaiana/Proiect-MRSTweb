@@ -1,4 +1,4 @@
-import { Link, NavLink, useNavigate } from "react-router-dom";
+﻿import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { PUBLIC_PAGES } from "../navigation/siteNavigation";
 import "./SideBar.css";
@@ -15,24 +15,11 @@ type SidebarLink = {
 };
 
 export default function Sidebar({ open, onClose }: Props) {
-    const { isAuthenticated, isAdmin } = useAuth();
+    const { isAuthenticated, isAdmin, logout } = useAuth();
 
     const primaryLinks: SidebarLink[] = isAdmin
-        ? [
-            { to: '/', icon: 'fas fa-home', label: 'Acasă' },
-            { to: '/news', icon: 'fas fa-newspaper', label: 'Noutăți' },
-            { to: '/support', icon: 'fas fa-life-ring', label: 'Suport' },
-            { to: '/contact', icon: 'fas fa-address-book', label: 'Contacte' },
-            { to: '/admin', icon: 'fas fa-shield-halved', label: 'Admin Panel' },
-        ]
-        : [
-            { to: '/', icon: 'fas fa-home', label: 'Acasă' },
-            { to: '/tests', icon: 'fas fa-clipboard-check', label: 'Teste' },
-            { to: '/appointment', icon: 'fas fa-user-plus', label: 'Înscriere' },
-            { to: '/support', icon: 'fas fa-book-open', label: 'Resurse' },
-            { to: '/news', icon: 'fas fa-newspaper', label: 'Noutăți' },
-            { to: '/contact', icon: 'fas fa-address-book', label: 'Contacte' },
-        ];
+        ? [{ to: "/admin", icon: "fas fa-shield-halved", label: "Admin Panel" }]
+        : [];
 
     const accountLinks: SidebarLink[] = isAuthenticated
         ? isAdmin
@@ -40,11 +27,10 @@ export default function Sidebar({ open, onClose }: Props) {
             : [{ to: '/dashboard', icon: 'fas fa-user', label: 'Dashboard' }]
         : [
             { to: '/login', icon: 'fas fa-sign-in-alt', label: 'Autentificare' },
-            { to: '/register', icon: 'fas fa-user-plus', label: 'Înregistrare' },
+            { to: '/register', icon: 'fas fa-user-plus', label: 'ÃŽnregistrare' },
         ];
 
     const navigate = useNavigate();
-    const { isAuthenticated, logout } = useAuth();
 
     const accountTitle = isAuthenticated ? "Contul Meu" : "Autentificare";
 
@@ -119,21 +105,14 @@ export default function Sidebar({ open, onClose }: Props) {
                                     </Link>
                                 </li>
                             ))}
-                            {!isAuthenticated ? (
-                                <li>
-                                    <NavLink to="/login" onClick={onClose} className={({ isActive }) => (isActive ? "active" : "")}>
-                                        <i className="fas fa-right-to-bracket"></i>
-                                        Autentificare
-                                    </NavLink>
-                                </li>
-                            ) : (
+                            {isAuthenticated ? (
                                 <li>
                                     <button type="button" className="sidebar-logout-btn" onClick={handleLogout}>
                                         <i className="fas fa-right-from-bracket"></i>
                                         Deconectare
                                     </button>
                                 </li>
-                            )}
+                            ) : null}
                         </ul>
                     </div>
                 </div>
@@ -147,3 +126,4 @@ export default function Sidebar({ open, onClose }: Props) {
         </>
     );
 }
+

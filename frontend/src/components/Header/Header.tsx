@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+﻿import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { formatNotificationDate, useNotifications } from "../../hooks/useNotifications";
 import { useAuth } from "../../hooks/useAuth";
@@ -9,6 +9,7 @@ type Props = {
     onOpenSidebar: () => void;
     isSidebarOpen: boolean;
 };
+
 
 function normalizeText(value: string): string {
     return value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -38,13 +39,6 @@ function getFirstSearchMatch(query: string, pages: SitePage[]): string | null {
 }
 
 export default function Header({ onOpenSidebar, isSidebarOpen }: Props) {
-type NavItem = {
-    to: string;
-    label: string;
-    end?: boolean;
-};
-
-export default function Header({ onOpenSidebar }: Props) {
     const navigate = useNavigate();
     const { isAuthenticated, isAdmin, user, logout } = useAuth();
     const [notificationsOpen, setNotificationsOpen] = useState(false);
@@ -60,22 +54,6 @@ export default function Header({ onOpenSidebar }: Props) {
     const accountPath = isAuthenticated ? (isAdmin ? "/admin" : "/dashboard") : "/login";
     const accountLabel = isAuthenticated ? (isAdmin ? "Admin Panel" : "Dashboard") : "Autentificare";
     const accountIcon = isAuthenticated ? "fas fa-gauge-high" : "fas fa-user-lock";
-
-    const navItems: NavItem[] = isAdmin
-        ? [
-            { to: "/", label: "Acasă", end: true },
-            { to: "/news", label: "Noutăți" },
-            { to: "/support", label: "Suport" },
-            { to: "/contact", label: "Contacte" },
-        ]
-        : [
-            { to: "/", label: "Acasă", end: true },
-            { to: "/tests", label: "Teste" },
-            { to: "/appointment", label: "Înscriere" },
-            { to: "/news", label: "Noutăți" },
-            { to: "/support", label: "Suport" },
-            { to: "/contact", label: "Contacte" },
-        ];
 
     const searchablePages = useMemo(
         () => getSearchPages(isAuthenticated, isAdmin),
@@ -156,17 +134,6 @@ export default function Header({ onOpenSidebar }: Props) {
                             <li key={page.path}>
                                 <NavLink to={page.path} end={page.path === "/"} className={({ isActive }) => (isActive ? "active" : "")}>
                                     {page.label}
-                                </NavLink>
-                            </li>
-                        ))}
-                        {navItems.map((item) => (
-                            <li key={item.to}>
-                                <NavLink
-                                    to={item.to}
-                                    end={item.end}
-                                    className={({ isActive }) => (isActive ? "active" : "")}
-                                >
-                                    {item.label}
                                 </NavLink>
                             </li>
                         ))}
@@ -263,3 +230,4 @@ export default function Header({ onOpenSidebar }: Props) {
         </header>
     );
 }
+

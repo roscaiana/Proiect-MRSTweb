@@ -3,7 +3,7 @@ import {
     readSentNotifications,
     writeSentNotifications,
 } from "../features/admin/storage";
-import type { AppointmentStatus } from "../features/admin/types";
+import type { AppointmentStatus, SentNotificationLog } from "../features/admin/types";
 import { appendNotification, buildNotificationStorageKey } from "./notificationUtils";
 
 const createNotificationId = (prefix: string) =>
@@ -43,19 +43,17 @@ const appendAdminHistoryLog = (payload: {
 }) => {
     const sentAt = payload.sentAt || new Date().toISOString();
     const logs = readSentNotifications();
+    const nextLog: SentNotificationLog = {
+        id: createNotificationId("sent-auto"),
+        target: "admins",
+        title: payload.title,
+        message: payload.message,
+        sentAt,
+        recipientCount: payload.recipientCount,
+    };
 
     writeSentNotifications(
-        [
-            {
-                id: createNotificationId("sent-auto"),
-                target: "admins",
-                title: payload.title,
-                message: payload.message,
-                sentAt,
-                recipientCount: payload.recipientCount,
-            },
-            ...logs,
-        ].slice(0, 100)
+        [nextLog, ...logs].slice(0, 100)
     );
 };
 
