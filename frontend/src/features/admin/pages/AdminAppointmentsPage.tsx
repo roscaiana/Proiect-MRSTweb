@@ -512,7 +512,7 @@ const AdminAppointmentsPage: React.FC = () => {
 
             <section className="admin-panel-card">
                 <div className="admin-card-header">
-                    <h3>Coada aprobare (pending)</h3>
+                    <h3><i className="fas fa-clock admin-card-header-icon"></i> Coada aprobare (pending)</h3>
                     <span className="admin-muted-text">{pendingQueue.length} afisate</span>
                 </div>
                 {pendingQueue.length === 0 ? (
@@ -544,7 +544,7 @@ const AdminAppointmentsPage: React.FC = () => {
 
             <section className="admin-panel-card">
                 <div className="admin-card-header">
-                    <h3>Calendar zi (sloturi)</h3>
+                    <h3><i className="fas fa-table-cells admin-card-header-icon"></i> Calendar zi (sloturi)</h3>
                     <span className="admin-muted-text">{configDate}</span>
                 </div>
                 {configDayCalendarRows.length === 0 ? (
@@ -578,7 +578,7 @@ const AdminAppointmentsPage: React.FC = () => {
 
             <section className="admin-panel-card">
                 <div className="admin-card-header">
-                    <h3>Ocupare zile eligibile (preview)</h3>
+                    <h3><i className="fas fa-chart-bar admin-card-header-icon"></i> Ocupare zile eligibile (preview)</h3>
                 </div>
                 <div className="admin-appointment-heatmap">
                     {occupancyPreview.map((day) => {
@@ -620,7 +620,7 @@ const AdminAppointmentsPage: React.FC = () => {
 
             <section className="admin-panel-card">
                 <div className="admin-card-header">
-                    <h3>Configurare zi / reguli programare</h3>
+                    <h3><i className="fas fa-gear admin-card-header-icon"></i> Configurare zi / reguli programare</h3>
                     <button className="admin-btn secondary" type="button" onClick={handleSaveDayConfig}>
                         Salvează
                     </button>
@@ -740,7 +740,7 @@ const AdminAppointmentsPage: React.FC = () => {
 
             <section className="admin-panel-card">
                 <div className="admin-card-header">
-                    <h3>Programări</h3>
+                    <h3><i className="fas fa-list admin-card-header-icon"></i> Programări</h3>
                     <button className="admin-btn secondary" type="button" onClick={handleExportCsv}>
                         Export CSV
                     </button>

@@ -66,7 +66,7 @@ const AdminTestsPage: React.FC = () => {
 
             <section className="admin-panel-card">
                 <div className="admin-card-header">
-                    <h3>Setări globale examen</h3>
+                    <h3><i className="fas fa-sliders admin-card-header-icon"></i> Setări globale examen</h3>
                 </div>
                 <form className="admin-inline-form" onSubmit={handleSaveSettings}>
                     <label className="admin-field">
@@ -202,7 +202,7 @@ const AdminTestsPage: React.FC = () => {
 
             <section className="admin-panel-card">
                 <div className="admin-card-header">
-                    <h3>Teste disponibile</h3>
+                    <h3><i className="fas fa-file-alt admin-card-header-icon"></i> Teste disponibile</h3>
                     <button
                         className="admin-btn secondary"
                         type="button"

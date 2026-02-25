@@ -200,7 +200,7 @@ const AdminNotificationsPage: React.FC = () => {
             {activeView === "compose" && (
                 <section className="admin-panel-card" role="tabpanel" aria-label="Trimite notificare">
                     <div className="admin-card-header">
-                        <h3>Trimite notificare</h3>
+                        <h3><i className="fas fa-paper-plane admin-card-header-icon"></i> Trimite notificare</h3>
                         <span className="admin-muted-text">Destinatari estimati: {estimatedRecipients}</span>
                     </div>
 
@@ -291,7 +291,7 @@ const AdminNotificationsPage: React.FC = () => {
             {activeView === "history" && (
                 <section className="admin-panel-card" role="tabpanel" aria-label="Istoric notificari">
                     <div className="admin-card-header">
-                        <h3>Istoric notificari</h3>
+                        <h3><i className="fas fa-clock-rotate-left admin-card-header-icon"></i> Istoric notificari</h3>
                         <span className="admin-muted-text">Rezultate: {filteredHistory.length}</span>
                     </div>
 
