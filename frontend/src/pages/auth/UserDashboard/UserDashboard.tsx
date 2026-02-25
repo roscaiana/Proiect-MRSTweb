@@ -1,20 +1,34 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
+import type { UpdateUserProfileInput } from '../../../types/user';
 import { readAppointments, readExamSettings, readQuizHistory, STORAGE_KEYS, writeAppointments } from '../../../features/admin/storage';
 import type { AdminAppointmentRecord } from '../../../features/admin/types';
 import { notifyAdmins, notifyUser } from '../../../utils/appEventNotifications';
 import './UserDashboard.css';
 
 const APPOINTMENT_RESCHEDULE_KEY = 'appointmentRescheduleDraft';
+const MAX_AVATAR_FILE_SIZE = 2 * 1024 * 1024;
 
 const UserDashboard: React.FC = () => {
-    const { user } = useAuth();
+    const { user, updateProfile } = useAuth();
     const navigate = useNavigate();
+    const avatarInputRef = useRef<HTMLInputElement | null>(null);
     const [quizHistory, setQuizHistory] = useState(() => readQuizHistory());
     const [examSettings, setExamSettings] = useState(() => readExamSettings());
     const [passThreshold, setPassThreshold] = useState(() => readExamSettings().passingThreshold);
     const [appointments, setAppointments] = useState(() => readAppointments());
+    const [profileDraft, setProfileDraft] = useState<UpdateUserProfileInput>({
+        fullName: '',
+        nickname: '',
+        email: '',
+        phoneNumber: '',
+        avatarDataUrl: '',
+    });
+    const [profileMessage, setProfileMessage] = useState('');
+    const [profileError, setProfileError] = useState('');
+    const [isProfileSaving, setIsProfileSaving] = useState(false);
+    const [isProfileEditorOpen, setIsProfileEditorOpen] = useState(false);
 
     useEffect(() => {
         const refreshDashboardData = () => {
@@ -55,6 +69,23 @@ const UserDashboard: React.FC = () => {
             window.removeEventListener('app-storage-updated', handleAppStorageUpdated as EventListener);
         };
     }, []);
+
+    useEffect(() => {
+        if (!user) {
+            return;
+        }
+
+        setProfileDraft({
+            fullName: user.fullName || '',
+            nickname: user.nickname || '',
+            email: user.email || '',
+            phoneNumber: user.phoneNumber || '',
+            avatarDataUrl: user.avatarDataUrl || '',
+        });
+        setProfileMessage('');
+        setProfileError('');
+        setIsProfileEditorOpen(false);
+    }, [user]);
 
     const userQuizHistory = useMemo(() => {
         if (!user?.email) {
@@ -173,11 +204,110 @@ const UserDashboard: React.FC = () => {
         return lastScore - firstScore;
     }, [trendAttempts]);
 
+    const profileDisplayName = (user?.nickname || user?.fullName || 'Utilizator').trim();
+    const profileAvatarPreview = (profileDraft.avatarDataUrl || user?.avatarDataUrl || '').trim();
+    const profileAvatarInitial = (profileDisplayName || user?.email || 'U').charAt(0).toUpperCase();
+
+    const handleProfileFieldChange = (field: keyof UpdateUserProfileInput, value: string) => {
+        setProfileError('');
+        setProfileMessage('');
+        setProfileDraft((prev) => ({
+            ...prev,
+            [field]: value,
+        }));
+    };
+
+    const resetProfileDraft = () => {
+        if (!user) {
+            return;
+        }
+
+        setProfileDraft({
+            fullName: user.fullName || '',
+            nickname: user.nickname || '',
+            email: user.email || '',
+            phoneNumber: user.phoneNumber || '',
+            avatarDataUrl: user.avatarDataUrl || '',
+        });
+        setProfileError('');
+        setProfileMessage('');
+
+        if (avatarInputRef.current) {
+            avatarInputRef.current.value = '';
+        }
+    };
+
+    const handleProfileAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) {
+            return;
+        }
+
+        if (!file.type.startsWith('image/')) {
+            setProfileError('Selectează un fișier imagine valid');
+            event.target.value = '';
+            return;
+        }
+
+        if (file.size > MAX_AVATAR_FILE_SIZE) {
+            setProfileError('Imaginea este prea mare (maxim 2MB)');
+            event.target.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            const result = typeof reader.result === 'string' ? reader.result : '';
+            handleProfileFieldChange('avatarDataUrl', result);
+        };
+        reader.onerror = () => {
+            setProfileError('Nu am putut încărca imaginea selectată');
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleRemoveProfileAvatar = () => {
+        handleProfileFieldChange('avatarDataUrl', '');
+        if (avatarInputRef.current) {
+            avatarInputRef.current.value = '';
+        }
+    };
+
+    const handleProfileSave = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        if (!user) {
+            return;
+        }
+
+        setProfileError('');
+        setProfileMessage('');
+        setIsProfileSaving(true);
+
+        try {
+            await updateProfile({
+                fullName: profileDraft.fullName,
+                nickname: profileDraft.nickname,
+                email: profileDraft.email,
+                phoneNumber: profileDraft.phoneNumber,
+                avatarDataUrl: profileDraft.avatarDataUrl,
+            });
+            setProfileMessage('Profilul a fost actualizat.');
+            setIsProfileEditorOpen(false);
+            if (avatarInputRef.current) {
+                avatarInputRef.current.value = '';
+            }
+        } catch (error: any) {
+            setProfileError(error?.message || 'Nu am putut actualiza profilul.');
+        } finally {
+            setIsProfileSaving(false);
+        }
+    };
+
     return (
         <div className="dashboard-container">
             <div className="dashboard-header">
                 <h1>Dashboard Utilizator</h1>
-                <p>Bine ați revenit, {user?.fullName}!</p>
+                <p>Bine ați revenit, {profileDisplayName}!</p>
             </div>
 
             <div className="dashboard-grid">
@@ -190,11 +320,15 @@ const UserDashboard: React.FC = () => {
                         </svg>
                     </div>
                     <div className="profile-info">
-                        <div className="profile-avatar">
-                            <span>{user?.fullName.charAt(0).toUpperCase()}</span>
+                        <div className="profile-avatar profile-avatar-editable">
+                            {profileAvatarPreview ? (
+                                <img src={profileAvatarPreview} alt="Poza de profil" className="profile-avatar-image" />
+                            ) : (
+                                <span>{profileAvatarInitial}</span>
+                            )}
                         </div>
                         <div className="profile-details">
-                            <h3>{user?.fullName}</h3>
+                            <h3>{profileDisplayName}</h3>
                             <p className="profile-email">{user?.email}</p>
                             <p className="profile-role">
                                 <span className="role-badge">Candidat</span>
@@ -203,6 +337,115 @@ const UserDashboard: React.FC = () => {
                                 Înregistrat: {user?.createdAt ? formatDate(user.createdAt.toString()) : 'N/A'}
                             </p>
                         </div>
+                        <div className="profile-primary-actions">
+                            <button
+                                type="button"
+                                className="profile-toggle-btn"
+                                onClick={() => {
+                                    if (isProfileEditorOpen) {
+                                        resetProfileDraft();
+                                        setIsProfileEditorOpen(false);
+                                        return;
+                                    }
+
+                                    setProfileError('');
+                                    setProfileMessage('');
+                                    setIsProfileEditorOpen(true);
+                                }}
+                            >
+                                {isProfileEditorOpen ? 'Închide editorul' : 'Editează profilul'}
+                            </button>
+                        </div>
+
+                        {isProfileEditorOpen && (
+                        <form className="profile-form" onSubmit={handleProfileSave}>
+                            <input
+                                ref={avatarInputRef}
+                                type="file"
+                                accept="image/*"
+                                className="profile-avatar-file-input"
+                                onChange={handleProfileAvatarChange}
+                            />
+                            <div className="profile-avatar-actions">
+                                <button
+                                    type="button"
+                                    className="dashboard-mini-btn"
+                                    onClick={() => avatarInputRef.current?.click()}
+                                >
+                                    Schimbă poza
+                                </button>
+                                <button
+                                    type="button"
+                                    className="dashboard-mini-btn"
+                                    onClick={handleRemoveProfileAvatar}
+                                    disabled={!profileDraft.avatarDataUrl && !user?.avatarDataUrl}
+                                >
+                                    Elimină poza
+                                </button>
+                            </div>
+
+                            <div className="profile-form-grid">
+                                <label className="profile-form-field">
+                                    <span>Poreclă / Nickname</span>
+                                    <input
+                                        type="text"
+                                        value={profileDraft.nickname || ''}
+                                        onChange={(event) => handleProfileFieldChange('nickname', event.target.value)}
+                                        placeholder="Ex: Ionel"
+                                    />
+                                </label>
+                                <label className="profile-form-field">
+                                    <span>Nume complet</span>
+                                    <input
+                                        type="text"
+                                        value={profileDraft.fullName}
+                                        onChange={(event) => handleProfileFieldChange('fullName', event.target.value)}
+                                        placeholder="Ex: Ion Popescu"
+                                        required
+                                    />
+                                </label>
+                                <label className="profile-form-field">
+                                    <span>Email</span>
+                                    <input
+                                        type="email"
+                                        value={profileDraft.email}
+                                        onChange={(event) => handleProfileFieldChange('email', event.target.value)}
+                                        placeholder="utilizator@exemplu.com"
+                                        required
+                                    />
+                                </label>
+                                <label className="profile-form-field">
+                                    <span>Telefon</span>
+                                    <input
+                                        type="tel"
+                                        value={profileDraft.phoneNumber || ''}
+                                        onChange={(event) => handleProfileFieldChange('phoneNumber', event.target.value)}
+                                        placeholder="+373 69 000 000"
+                                    />
+                                </label>
+                            </div>
+
+                            {(profileError || profileMessage) && (
+                                <p className={`profile-form-feedback ${profileError ? 'error' : 'success'}`}>
+                                    {profileError || profileMessage}
+                                </p>
+                            )}
+
+                            <div className="profile-form-actions">
+                                <button
+                                    type="button"
+                                    className="dashboard-mini-btn"
+                                    onClick={resetProfileDraft}
+                                    disabled={isProfileSaving}
+                                >
+                                    Resetează
+                                </button>
+                                <button type="submit" className="profile-save-btn" disabled={isProfileSaving}>
+                                    {isProfileSaving ? 'Se salvează...' : 'Salvează profilul'}
+                                </button>
+                            </div>
+                        </form>
+                        )}
                     </div>
                 </div>
 
@@ -235,7 +478,71 @@ const UserDashboard: React.FC = () => {
                             <div className="stat-label">Teste Promovate</div>
                         </div>
                     </div>
+                </div><div className="dashboard-card appointments-card">
+                    <div className="card-header">
+                        <h2>Programările Mele</h2>
+                    </div>
+                    <div className="history-list">
+                        {userAppointments.length > 0 ? (
+                            userAppointments.slice(0, 4).map((appointment) => (
+                                <div key={appointment.id} className="history-item">
+                                    <div className="history-content">
+                                        <h4>{formatDate(appointment.date)}</h4>
+                                        <p>
+                                            Interval: {appointment.slotStart} - {appointment.slotEnd}
+                                        </p>
+                                        {appointment.appointmentCode && <p>Cod: {appointment.appointmentCode}</p>}
+                                        {appointment.statusReason && (
+                                            <p className={`appointment-reason ${appointment.status}`}>
+                                                Motiv: {appointment.statusReason}
+                                            </p>
+                                        )}
+                                        {appointment.adminNote && (
+                                            <p className="appointment-admin-note">
+                                                Notă admin: {appointment.adminNote}
+                                            </p>
+                                        )}
+                                        <div className="appointment-item-actions">
+                                            <button
+                                                type="button"
+                                                className="dashboard-mini-btn"
+                                                disabled={!canRescheduleAppointment(appointment)}
+                                                onClick={() => handleRescheduleAppointment(appointment.id)}
+                                                title={
+                                                    canRescheduleAppointment(appointment)
+                                                        ? 'Reprogramează'
+                                                        : `Limita de ${examSettings.maxReschedulesPerUser} reprogramări a fost atinsă`
+                                                }
+                                            >
+                                                Reprogramează
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="dashboard-mini-btn danger"
+                                                disabled={!canCancelAppointment(appointment.status)}
+                                                onClick={() => handleCancelAppointment(appointment.id)}
+                                            >
+                                                Anulează
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className={`appointment-status ${appointment.status}`}>
+                                        {appointmentStatusLabel(appointment.status)}
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="empty-state">
+                                <p>Nu ai programări înregistrate.</p>
+                                <Link to="/appointment" className="btn-primary">
+                                    Creează programare
+                                </Link>
+                            </div>
+                        )}
+                    </div>
                 </div>
+
+                
 
                 <div className="dashboard-card history-card">
                     <div className="card-header">
@@ -326,70 +633,6 @@ const UserDashboard: React.FC = () => {
                             </div>
                         </div>
                     )}
-                </div>
-
-                <div className="dashboard-card appointments-card">
-                    <div className="card-header">
-                        <h2>Programările Mele</h2>
-                    </div>
-                    <div className="history-list">
-                        {userAppointments.length > 0 ? (
-                            userAppointments.slice(0, 4).map((appointment) => (
-                                <div key={appointment.id} className="history-item">
-                                    <div className="history-content">
-                                        <h4>{formatDate(appointment.date)}</h4>
-                                        <p>
-                                            Interval: {appointment.slotStart} - {appointment.slotEnd}
-                                        </p>
-                                        {appointment.appointmentCode && <p>Cod: {appointment.appointmentCode}</p>}
-                                        {appointment.statusReason && (
-                                            <p className={`appointment-reason ${appointment.status}`}>
-                                                Motiv: {appointment.statusReason}
-                                            </p>
-                                        )}
-                                        {appointment.adminNote && (
-                                            <p className="appointment-admin-note">
-                                                Notă admin: {appointment.adminNote}
-                                            </p>
-                                        )}
-                                        <div className="appointment-item-actions">
-                                            <button
-                                                type="button"
-                                                className="dashboard-mini-btn"
-                                                disabled={!canRescheduleAppointment(appointment)}
-                                                onClick={() => handleRescheduleAppointment(appointment.id)}
-                                                title={
-                                                    canRescheduleAppointment(appointment)
-                                                        ? 'Reprogramează'
-                                                        : `Limita de ${examSettings.maxReschedulesPerUser} reprogramări a fost atinsă`
-                                                }
-                                            >
-                                                Reprogramează
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="dashboard-mini-btn danger"
-                                                disabled={!canCancelAppointment(appointment.status)}
-                                                onClick={() => handleCancelAppointment(appointment.id)}
-                                            >
-                                                Anulează
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div className={`appointment-status ${appointment.status}`}>
-                                        {appointmentStatusLabel(appointment.status)}
-                                    </div>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="empty-state">
-                                <p>Nu ai programări înregistrate.</p>
-                                <Link to="/appointment" className="btn-primary">
-                                    Creează programare
-                                </Link>
-                            </div>
-                        )}
-                    </div>
                 </div>
 
                 <div className="dashboard-card actions-card">
