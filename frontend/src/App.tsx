@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { useEffect, type ReactElement, type ReactNode } from "react";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import Layout from "./layouts/Layout";
 import HomePage from "./pages/HomePage/HomePage";
 import Support from "./pages/support/support";
@@ -35,7 +35,7 @@ function ScrollToTop() {
 }
 
 type ProtectedRouteProps = {
-    children: JSX.Element;
+    children: ReactElement;
     requireAdmin?: boolean;
 };
 
