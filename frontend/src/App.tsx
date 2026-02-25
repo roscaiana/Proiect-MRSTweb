@@ -70,6 +70,14 @@ export default function App() {
                 <ScrollToTop />
                 <ErrorBoundaryShell>
                     <Routes>
+                        <Route
+                            path={APP_ROUTES.admin}
+                            element={
+                                <ProtectedRoute requireAdmin={true}>
+                                    <AdminDashboard />
+                                </ProtectedRoute>
+                            }
+                        />
                         <Route element={<Layout />}>
                             <Route path={APP_ROUTES.home} element={<HomePage />} />
                             <Route path={APP_ROUTES.news} element={<News />} />
@@ -102,14 +110,6 @@ export default function App() {
                                 element={
                                     <ProtectedRoute>
                                         <UserDashboard />
-                                    </ProtectedRoute>
-                                }
-                            />
-                            <Route
-                                path={APP_ROUTES.admin}
-                                element={
-                                    <ProtectedRoute requireAdmin={true}>
-                                        <AdminDashboard />
                                     </ProtectedRoute>
                                 }
                             />

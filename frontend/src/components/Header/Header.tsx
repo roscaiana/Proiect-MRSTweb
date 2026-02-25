@@ -100,7 +100,14 @@ export default function Header({ onOpenSidebar, isSidebarOpen }: Props) {
         <header className={`main-header ${isSidebarOpen ? "is-blurred" : ""}`}>
             <div className="container flex-between">
                 <div className="header-left">
-                    <button className="sidebar-trigger" onClick={onOpenSidebar} aria-label="Open sidebar">
+                    <button
+                        type="button"
+                        className="sidebar-trigger"
+                        onClick={onOpenSidebar}
+                        aria-label="Open sidebar"
+                        aria-controls="main-sidebar"
+                        aria-expanded={isSidebarOpen}
+                    >
                         <i className="fas fa-bars"></i>
                     </button>
 
