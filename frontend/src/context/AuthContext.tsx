@@ -6,6 +6,7 @@ interface AuthContextType {
     user: User | null;
     isAuthenticated: boolean;
     isAdmin: boolean;
+    isAuthReady: boolean;
     login: (user: User, token: string) => void;
     logout: () => void;
 }
@@ -18,6 +19,7 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
+    const [isAuthReady, setIsAuthReady] = useState(false);
 
     // Load auth state from localStorage on mount
     useEffect(() => {
@@ -25,6 +27,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (authState) {
             setUser(authState.user);
         }
+        setIsAuthReady(true);
     }, []);
 
     useEffect(() => {
@@ -101,6 +104,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         user,
         isAuthenticated: !!user,
         isAdmin: user?.role === 'admin',
+        isAuthReady,
         login,
         logout,
     };
