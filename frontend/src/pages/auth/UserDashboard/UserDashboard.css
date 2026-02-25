@@ -710,16 +710,35 @@ body {
     margin-bottom: 16px;
 }
 
-.history-card .empty-state .btn-primary {
+.dashboard-card .empty-state .btn-primary {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     padding: 12px 20px;
     border-radius: 10px;
-    background: linear-gradient(135deg, var(--accent-gold) 0%, var(--accent-gold-hover) 100%);
-    color: var(--primary-navy);
+    background: var(--primary-navy);
+    border: 1px solid var(--primary-navy-dark);
+    color: var(--white);
     font-weight: 700;
-    box-shadow: 0 8px 18px rgba(255, 204, 0, 0.3);
+    letter-spacing: 0.2px;
+    text-decoration: none;
+    box-shadow: 0 8px 18px rgba(0, 33, 71, 0.25);
+    outline: none;
+}
+
+.dashboard-card .empty-state .btn-primary:hover {
+    background: var(--primary-navy-light);
+    transform: translateY(-1px);
+}
+
+.dashboard-card .empty-state .btn-primary:focus {
+    outline: none;
+}
+
+.dashboard-card .empty-state .btn-primary:focus-visible {
+    box-shadow:
+        0 0 0 3px rgba(0, 51, 102, 0.25),
+        0 8px 18px rgba(0, 33, 71, 0.25);
 }
 
 /* Data Table */
