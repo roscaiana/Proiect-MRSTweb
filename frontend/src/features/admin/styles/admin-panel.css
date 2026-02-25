@@ -903,6 +903,16 @@
     gap: 8px;
 }
 
+.admin-notifications-switch-btn {
+    min-width: 220px;
+    min-height: 52px;
+    padding: 12px 20px;
+    font-size: 1rem;
+    font-weight: 800;
+    justify-content: center;
+    border-radius: 14px;
+}
+
 .admin-sidebar-quick {
     margin-top: 14px;
     padding-top: 14px;
@@ -1493,4 +1503,185 @@
         justify-content: flex-end;
     }
 
+}
+
+/* Admin dashboard enhancements */
+.admin-link-btn {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-quick-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.admin-quick-actions-grid .admin-btn {
+    justify-content: center;
+}
+
+/* Notifications page enhancements */
+.admin-notifications-compose-toolbar {
+    grid-template-columns: 2fr 1fr;
+    margin-bottom: 12px;
+}
+
+.admin-notifications-history-toolbar {
+    grid-template-columns: 2fr 1fr 1fr 1fr;
+    margin-bottom: 12px;
+}
+
+.admin-notifications-template-actions {
+    justify-content: flex-end;
+}
+
+.admin-notifications-template-actions .admin-btn {
+    width: 100%;
+    justify-content: center;
+}
+
+/* Appointments page enhancements */
+.admin-toolbar-appointments {
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+}
+
+.admin-bulk-toolbar {
+    margin-top: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    border: 1px solid #e3ebf4;
+    border-radius: 14px;
+    background: #fbfdff;
+    padding: 10px 12px;
+}
+
+.admin-bulk-toolbar-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.admin-bulk-toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.admin-bulk-select-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: #334155;
+    font-weight: 600;
+}
+
+.admin-bulk-select-toggle input {
+    width: 16px;
+    height: 16px;
+}
+
+.admin-table-checkbox-col {
+    width: 38px;
+    text-align: center;
+}
+
+.admin-table-checkbox-col input {
+    width: 16px;
+    height: 16px;
+}
+
+.admin-day-calendar-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+}
+
+.admin-day-calendar-item {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 14px;
+    align-items: start;
+    border: 1px solid #e3ebf4;
+    border-radius: 12px;
+    padding: 12px;
+    background: #ffffff;
+}
+
+.admin-day-calendar-item.occupied {
+    border-color: #cfe0f7;
+    background: linear-gradient(180deg, #ffffff 0%, #f7fbff 100%);
+}
+
+.admin-day-calendar-item.free {
+    background: linear-gradient(180deg, #ffffff 0%, #fcfdff 100%);
+}
+
+.admin-day-calendar-slot {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.admin-day-calendar-slot strong {
+    color: #0f172a;
+}
+
+.admin-day-calendar-slot span {
+    color: #64748b;
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+}
+
+.admin-day-calendar-content strong {
+    display: block;
+    color: #0f172a;
+}
+
+.admin-day-calendar-content p {
+    margin: 3px 0 0;
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+@media (max-width: 1100px) {
+    .admin-quick-actions-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-notifications-compose-toolbar,
+    .admin-notifications-history-toolbar,
+    .admin-toolbar-appointments {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-day-calendar-item {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 900px) {
+    .admin-bulk-toolbar {
+        align-items: stretch;
+    }
+
+    .admin-bulk-toolbar-left,
+    .admin-bulk-toolbar-actions {
+        width: 100%;
+    }
+
+    .admin-bulk-toolbar-actions .admin-btn {
+        width: 100%;
+        justify-content: center;
+    }
 }
