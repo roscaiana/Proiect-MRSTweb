@@ -2,6 +2,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { RegisterData, AuthError } from '../../../types/user';
 import { validateRegistration, mockRegister } from '../../../utils/authUtils';
+import { notifyAdmins } from '../../../utils/appEventNotifications';
 import './RegisterPage.css';
 
 const RegisterPage: React.FC = () => {
@@ -34,7 +35,14 @@ const RegisterPage: React.FC = () => {
 
         try {
             // Mock register
-            await mockRegister(formData);
+            const createdUser = await mockRegister(formData);
+
+            notifyAdmins({
+                title: 'Cont nou creat',
+                message: `${createdUser.fullName} (${createdUser.email}) și-a creat un cont nou.`,
+                link: '/admin/users',
+                tag: `admin-user-registered-${createdUser.email.trim().toLowerCase()}`,
+            });
 
             // Redirect to login with success message
             navigate('/login?registered=true');

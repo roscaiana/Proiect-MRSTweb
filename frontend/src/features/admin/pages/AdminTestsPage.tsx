@@ -22,6 +22,18 @@ const AdminTestsPage: React.FC = () => {
         return state.tests.find((test) => test.id === editingTestId);
     }, [editingTestId, state.tests]);
 
+    const handleDeleteTest = (test: AdminTest) => {
+        const confirmed = window.confirm(
+            `Sigur vrei să ștergi testul "${test.title}"? Această acțiune nu poate fi anulată.`
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        deleteTest(test.id);
+    };
+
     const handleSaveSettings = (event: React.FormEvent) => {
         event.preventDefault();
         if (
@@ -262,7 +274,7 @@ const AdminTestsPage: React.FC = () => {
                                             <button
                                                 className="admin-text-btn danger"
                                                 type="button"
-                                                onClick={() => deleteTest(test.id)}
+                                                onClick={() => handleDeleteTest(test)}
                                             >
                                                 Șterge
                                             </button>
