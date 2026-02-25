@@ -65,6 +65,9 @@ export interface AdminUserRecord {
     id: string;
     email: string;
     fullName: string;
+    nickname?: string;
+    phoneNumber?: string;
+    avatarDataUrl?: string;
     role: "admin" | "user";
     createdAt: string;
     isBlocked: boolean;

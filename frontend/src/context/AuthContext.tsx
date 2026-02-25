@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
-import { User } from '../types/user';
-import { getAuthState, storeAuthState, clearAuthState } from '../utils/authUtils';
+import { User, UpdateUserProfileInput } from '../types/user';
+import { getAuthState, storeAuthState, clearAuthState, updateMockUserProfile } from '../utils/authUtils';
 
 interface AuthContextType {
     user: User | null;
@@ -9,6 +9,7 @@ interface AuthContextType {
     isAuthReady: boolean;
     login: (user: User, token: string) => void;
     logout: () => void;
+    updateProfile: (data: UpdateUserProfileInput) => Promise<User>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -100,6 +101,22 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         clearAuthState();
     };
 
+    const updateProfile = async (data: UpdateUserProfileInput) => {
+        if (!user) {
+            throw new Error('Nu există utilizator autentificat');
+        }
+
+        const updatedUser = await updateMockUserProfile(user.email, data);
+        setUser(updatedUser);
+
+        const { token } = getAuthState();
+        if (token) {
+            storeAuthState(updatedUser, token);
+        }
+
+        return updatedUser;
+    };
+
     const value: AuthContextType = {
         user,
         isAuthenticated: !!user,
@@ -107,6 +124,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isAuthReady,
         login,
         logout,
+        updateProfile,
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

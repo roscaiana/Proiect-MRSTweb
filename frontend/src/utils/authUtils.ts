@@ -1,4 +1,11 @@
-﻿import { User, AuthCredentials, RegisterData, AuthError } from '../types/user';
+import {
+    User,
+    AuthCredentials,
+    RegisterData,
+    AuthError,
+    UpdateUserProfileInput,
+} from '../types/user';
+import { buildNotificationStorageKey, readNotifications, saveNotifications } from './notificationUtils';
 
 // Email validation regex
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -8,6 +15,7 @@ const ADMIN_EMAIL = 'admin@electoral.md';
 const ADMIN_PASSWORD = 'admin123';
 const USERS_STORAGE_KEY = 'users';
 const SESSION_FORM_KEYS = ['appointmentFormDraft', 'appointmentRescheduleDraft'];
+const PHONE_REGEX = /^[0-9+\s()-]{6,20}$/;
 
 type AuthStorageUser = {
     email?: string;
@@ -18,6 +26,87 @@ const emitStorageUpdate = (key: string): void => {
     if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('app-storage-updated', { detail: { key } }));
     }
+};
+
+const emitNotificationsUpdated = (storageKey: string): void => {
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('notifications-updated', { detail: { storageKey } }));
+    }
+};
+
+const normalizeComparableEmail = (value: string): string => value.trim().toLowerCase();
+
+const migrateArrayUserEmail = (storageKey: string, oldEmail: string, newEmail: string): void => {
+    if (oldEmail === newEmail) {
+        return;
+    }
+
+    const raw = localStorage.getItem(storageKey);
+    if (!raw) {
+        return;
+    }
+
+    try {
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) {
+            return;
+        }
+
+        let changed = false;
+        const next = parsed.map((item) => {
+            if (!item || typeof item !== 'object' || item.userEmail !== oldEmail) {
+                return item;
+            }
+
+            changed = true;
+            return { ...item, userEmail: newEmail };
+        });
+
+        if (changed) {
+            localStorage.setItem(storageKey, JSON.stringify(next));
+            emitStorageUpdate(storageKey);
+        }
+    } catch {
+        // Ignore malformed storage payloads.
+    }
+};
+
+const migrateNotificationStorage = (role: 'user' | 'admin', oldEmail: string, newEmail: string): void => {
+    if (oldEmail === newEmail) {
+        return;
+    }
+
+    const oldKey = buildNotificationStorageKey(role, oldEmail);
+    const newKey = buildNotificationStorageKey(role, newEmail);
+
+    if (oldKey === newKey) {
+        return;
+    }
+
+    const oldNotifications = readNotifications(oldKey);
+    const existingNotifications = readNotifications(newKey);
+
+    if (oldNotifications.length === 0 && existingNotifications.length === 0) {
+        localStorage.removeItem(oldKey);
+        return;
+    }
+
+    const seen = new Set<string>();
+    const merged = [...oldNotifications, ...existingNotifications].filter((notification) => {
+        const dedupeKey = notification.tag?.trim() || notification.id;
+
+        if (seen.has(dedupeKey)) {
+            return false;
+        }
+
+        seen.add(dedupeKey);
+        return true;
+    });
+
+    saveNotifications(newKey, merged.slice(0, 100));
+    localStorage.removeItem(oldKey);
+    emitNotificationsUpdated(newKey);
+    emitNotificationsUpdated(oldKey);
 };
 
 // Validate email format
@@ -153,6 +242,101 @@ export const mockRegister = async (data: RegisterData): Promise<User> => {
     localStorage.setItem(`password_${data.email}`, data.password);
 
     return newUser;
+};
+
+export const updateMockUserProfile = async (
+    currentEmail: string,
+    data: UpdateUserProfileInput
+): Promise<User> => {
+    await new Promise((resolve) => setTimeout(resolve, 400));
+
+    const trimmedFullName = data.fullName.trim();
+    const trimmedNickname = data.nickname?.trim() || '';
+    const trimmedEmail = data.email.trim();
+    const trimmedPhoneNumber = data.phoneNumber?.trim() || '';
+    const trimmedAvatar = data.avatarDataUrl?.trim() || '';
+
+    if (!trimmedFullName) {
+        throw new Error('Numele este obligatoriu');
+    }
+
+    if (trimmedFullName.length < 3) {
+        throw new Error('Numele trebuie să conțină cel puțin 3 caractere');
+    }
+
+    if (!trimmedEmail) {
+        throw new Error('Email-ul este obligatoriu');
+    }
+
+    if (!validateEmail(trimmedEmail)) {
+        throw new Error('Format de email invalid');
+    }
+
+    if (trimmedPhoneNumber && !PHONE_REGEX.test(trimmedPhoneNumber)) {
+        throw new Error('Număr de telefon invalid');
+    }
+
+    if (
+        normalizeComparableEmail(trimmedEmail) === normalizeComparableEmail(ADMIN_EMAIL) &&
+        normalizeComparableEmail(currentEmail) !== normalizeComparableEmail(ADMIN_EMAIL)
+    ) {
+        throw new Error('Acest email este rezervat');
+    }
+
+    const users = getStoredUsers();
+    const userIndex = users.findIndex(
+        (candidate) => normalizeComparableEmail(candidate.email) === normalizeComparableEmail(currentEmail)
+    );
+
+    if (userIndex < 0) {
+        throw new Error('Utilizatorul nu a fost găsit');
+    }
+
+    const duplicate = users.find(
+        (candidate, index) =>
+            index !== userIndex &&
+            normalizeComparableEmail(candidate.email) === normalizeComparableEmail(trimmedEmail)
+    );
+
+    if (duplicate) {
+        throw new Error('Acest email este deja utilizat de alt cont');
+    }
+
+    const previousUser = users[userIndex];
+    const previousEmail = previousUser.email;
+
+    const updatedUser: User = {
+        ...previousUser,
+        fullName: trimmedFullName,
+        nickname: trimmedNickname || undefined,
+        email: trimmedEmail,
+        phoneNumber: trimmedPhoneNumber || undefined,
+        avatarDataUrl: trimmedAvatar || undefined,
+    };
+
+    users[userIndex] = updatedUser;
+    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
+    emitStorageUpdate(USERS_STORAGE_KEY);
+
+    if (previousEmail !== trimmedEmail) {
+        const previousPasswordKey = `password_${previousEmail}`;
+        const nextPasswordKey = `password_${trimmedEmail}`;
+        const storedPassword = localStorage.getItem(previousPasswordKey);
+
+        if (storedPassword !== null) {
+            localStorage.setItem(nextPasswordKey, storedPassword);
+
+            if (previousPasswordKey !== nextPasswordKey) {
+                localStorage.removeItem(previousPasswordKey);
+            }
+        }
+
+        migrateArrayUserEmail('appointments', previousEmail, trimmedEmail);
+        migrateArrayUserEmail('quizHistory', previousEmail, trimmedEmail);
+        migrateNotificationStorage('user', previousEmail, trimmedEmail);
+    }
+
+    return updatedUser;
 };
 
 // Get stored users from localStorage
