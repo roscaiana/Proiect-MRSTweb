@@ -121,12 +121,15 @@ const AdminOverviewPage: React.FC = () => {
         <div className="admin-page-content">
             <section className="admin-page-header">
                 <h2>Statistici generale</h2>
-                <p>Monitorizeaza activitatea platformei si indicatorii principali.</p>
+                <p>Monitorizarea activitatii platformei si a indicatorilor principali.</p>
             </section>
 
             <section className="admin-panel-card">
                 <div className="admin-card-header">
-                    <h3>KPI pe interval</h3>
+                    <h3>
+                        <i className="fas fa-chart-pie admin-card-header-icon"></i>
+                        KPI pe interval
+                    </h3>
                     <div className="admin-topbar-actions" role="tablist" aria-label="Filtru interval KPI">
                         {[1, 7, 30].map((days) => (
                             <button
@@ -149,36 +152,42 @@ const AdminOverviewPage: React.FC = () => {
                         value={String(activeUsersInPeriod)}
                         hint={`${state.users.length} utilizatori total`}
                         iconClass="fas fa-user-check"
+                        color="blue"
                     />
                     <AdminStatCard
                         title={`Conturi noi (${periodLabel(periodDays)})`}
                         value={String(newUsersInPeriod)}
                         hint="Conturi noi de tip user"
                         iconClass="fas fa-user-plus"
+                        color="green"
                     />
                     <AdminStatCard
                         title={`Programari noi (${periodLabel(periodDays)})`}
                         value={String(appointmentsInPeriod.length)}
                         hint={`Pending acum: ${pendingAppointments.length}`}
                         iconClass="fas fa-calendar-plus"
+                        color="purple"
                     />
                     <AdminStatCard
                         title={`Rata promovare (${periodLabel(periodDays)})`}
                         value={`${passRateInPeriod}%`}
                         hint={`Prag curent: ${state.settings.passingThreshold}%`}
                         iconClass="fas fa-award"
+                        color="gold"
                     />
                     <AdminStatCard
                         title={`Anulari user (${periodLabel(periodDays)})`}
                         value={String(userCancelledInPeriod)}
                         hint="Anulari facute din dashboard user"
                         iconClass="fas fa-user-xmark"
+                        color="red"
                     />
                     <AdminStatCard
                         title="Notificari admin necitite"
                         value={String(unreadCount)}
                         hint="Clopotelul din header admin"
                         iconClass="fas fa-bell"
+                        color="teal"
                     />
                 </div>
             </section>
@@ -186,7 +195,7 @@ const AdminOverviewPage: React.FC = () => {
             <section className="admin-grid-two">
                 <article className="admin-panel-card">
                     <div className="admin-card-header">
-                        <h3>Inbox de lucru</h3>
+                        <h3><i className="fas fa-inbox admin-card-header-icon"></i> Inbox de lucru</h3>
                         <Link to="/admin/appointments" className="admin-btn ghost admin-link-btn">
                             Vezi coada
                         </Link>
@@ -234,7 +243,7 @@ const AdminOverviewPage: React.FC = () => {
 
                 <article className="admin-panel-card">
                     <div className="admin-card-header">
-                        <h3>Actiuni rapide</h3>
+                        <h3><i className="fas fa-bolt admin-card-header-icon"></i> Actiuni rapide</h3>
                     </div>
                     <div className="admin-quick-actions-grid">
                         <Link to="/admin/tests" className="admin-btn secondary admin-link-btn">
@@ -256,7 +265,7 @@ const AdminOverviewPage: React.FC = () => {
             <section className="admin-grid-two">
                 <article className="admin-panel-card">
                     <div className="admin-card-header">
-                        <h3>Coada aprobare (pending)</h3>
+                        <h3><i className="fas fa-clock admin-card-header-icon"></i> Coada aprobare (pending)</h3>
                         <Link to="/admin/appointments" className="admin-btn ghost admin-link-btn">
                             Deschide programari
                         </Link>
@@ -270,7 +279,7 @@ const AdminOverviewPage: React.FC = () => {
                                     <div>
                                         <strong>{appointment.fullName}</strong>
                                         <p>
-                                            {formatShortDate(appointment.date)} · {appointment.slotStart}-{appointment.slotEnd}
+                                            {formatShortDate(appointment.date)} ï¿½ {appointment.slotStart}-{appointment.slotEnd}
                                         </p>
                                         <p>{appointment.appointmentCode || "Fara cod"}</p>
                                     </div>
@@ -283,7 +292,7 @@ const AdminOverviewPage: React.FC = () => {
 
                 <article className="admin-panel-card">
                     <div className="admin-card-header">
-                        <h3>Notificari trimise recent</h3>
+                        <h3><i className="fas fa-paper-plane admin-card-header-icon"></i> Notificari trimise recent</h3>
                         <Link to="/admin/notifications" className="admin-btn ghost admin-link-btn">
                             Vezi istoric
                         </Link>
@@ -296,7 +305,7 @@ const AdminOverviewPage: React.FC = () => {
                                 <div className="admin-simple-item" key={log.id}>
                                     <div>
                                         <strong>{log.title}</strong>
-                                        <p>{formatShortDate(log.sentAt)} · {log.recipientCount} destinatari</p>
+                                        <p>{formatShortDate(log.sentAt)} ï¿½ {log.recipientCount} destinatari</p>
                                     </div>
                                     <span className="admin-pill neutral">{log.target}</span>
                                 </div>
@@ -308,7 +317,7 @@ const AdminOverviewPage: React.FC = () => {
 
             <section className="admin-panel-card">
                 <div className="admin-card-header">
-                    <h3>Programari recente</h3>
+                        <h3><i className="fas fa-calendar-days admin-card-header-icon"></i> Programari recente</h3>
                 </div>
                 {recentAppointments.length === 0 ? (
                     <p className="admin-muted-text">Nu exista programari inregistrate.</p>
@@ -318,7 +327,7 @@ const AdminOverviewPage: React.FC = () => {
                             <div className="admin-simple-item" key={appointment.id}>
                                 <div>
                                     <strong>{appointment.fullName}</strong>
-                                    <p>{formatShortDate(appointment.date)} · {appointment.slotStart}-{appointment.slotEnd}</p>
+                                    <p>{formatShortDate(appointment.date)} ï¿½ {appointment.slotStart}-{appointment.slotEnd}</p>
                                 </div>
                                 <span className={`admin-pill ${appointment.status}`}>{appointment.status}</span>
                             </div>
