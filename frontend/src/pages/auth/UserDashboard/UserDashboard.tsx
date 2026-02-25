@@ -291,8 +291,8 @@ const UserDashboard: React.FC = () => {
                         <div className="dashboard-history-trend">
                             <div className="dashboard-history-trend-header">
                                 <div>
-                                    <h3>Evolutie in timp</h3>
-                                    <p className="dashboard-history-trend-subtitle">Ultimele {trendAttempts.length} incercari</p>
+                                    <h3>Evoluție în timp</h3>
+                                    <p className="dashboard-history-trend-subtitle">Ultimele {trendAttempts.length} încercări</p>
                                 </div>
                                 <div className="dashboard-trend-summary">
                                     <span className="dashboard-trend-chip">Medie {trendAverageScore}%</span>

@@ -13,5 +13,9 @@ export const APP_ROUTES = {
     register: "/register",
     dashboard: "/dashboard",
     admin: "/admin/*",
+    unauthorized: "/401",
+    forbidden: "/403",
+    notFound: "/404",
+    serverError: "/500",
 } as const;
 

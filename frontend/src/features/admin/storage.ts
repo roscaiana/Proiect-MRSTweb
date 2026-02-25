@@ -1,4 +1,5 @@
 import { quizCategories, questionBanks } from "../../data/quizData";
+import { assertNoSimulatedServerError } from "../../utils/serverErrorSimulation";
 import type {
     AdminAppointmentRecord,
     AdminState,
@@ -17,6 +18,10 @@ export const STORAGE_KEYS = {
     quizHistory: "quizHistory",
     sentNotifications: "adminSentNotifications",
 } as const;
+
+const ensureNoSimulatedServerError = (): void => {
+    assertNoSimulatedServerError();
+};
 
 const emitStorageUpdate = (key: string): void => {
     if (typeof window !== "undefined") {
@@ -101,6 +106,7 @@ const normalizeTest = (test: Partial<AdminTest>, index: number): AdminTest => {
 };
 
 export const readAdminTests = (): AdminTest[] => {
+    ensureNoSimulatedServerError();
     const tests = readArray<Partial<AdminTest>>(localStorage.getItem(STORAGE_KEYS.tests)).map(
         normalizeTest
     );
@@ -115,11 +121,13 @@ export const readAdminTests = (): AdminTest[] => {
 };
 
 export const writeAdminTests = (tests: AdminTest[]): void => {
+    ensureNoSimulatedServerError();
     localStorage.setItem(STORAGE_KEYS.tests, JSON.stringify(tests));
     emitStorageUpdate(STORAGE_KEYS.tests);
 };
 
 export const readExamSettings = (): ExamSettings => {
+    ensureNoSimulatedServerError();
     const raw = localStorage.getItem(STORAGE_KEYS.settings);
     if (!raw) {
         return DEFAULT_SETTINGS;
@@ -207,11 +215,13 @@ export const readExamSettings = (): ExamSettings => {
 };
 
 export const writeExamSettings = (settings: ExamSettings): void => {
+    ensureNoSimulatedServerError();
     localStorage.setItem(STORAGE_KEYS.settings, JSON.stringify(settings));
     emitStorageUpdate(STORAGE_KEYS.settings);
 };
 
 export const readAdminUsers = (): AdminUserRecord[] => {
+    ensureNoSimulatedServerError();
     const rawUsers = readArray<any>(localStorage.getItem(STORAGE_KEYS.users));
 
     return rawUsers.map((user, index) => ({
@@ -226,11 +236,13 @@ export const readAdminUsers = (): AdminUserRecord[] => {
 };
 
 export const writeAdminUsers = (users: AdminUserRecord[]): void => {
+    ensureNoSimulatedServerError();
     localStorage.setItem(STORAGE_KEYS.users, JSON.stringify(users));
     emitStorageUpdate(STORAGE_KEYS.users);
 };
 
 export const readAppointments = (): AdminAppointmentRecord[] => {
+    ensureNoSimulatedServerError();
     const rawAppointments = readArray<any>(localStorage.getItem(STORAGE_KEYS.appointments));
 
     return rawAppointments.map((appointment, index) => ({
@@ -282,11 +294,13 @@ export const readAppointments = (): AdminAppointmentRecord[] => {
 };
 
 export const writeAppointments = (appointments: AdminAppointmentRecord[]): void => {
+    ensureNoSimulatedServerError();
     localStorage.setItem(STORAGE_KEYS.appointments, JSON.stringify(appointments));
     emitStorageUpdate(STORAGE_KEYS.appointments);
 };
 
 export const readQuizHistory = (): QuizHistoryRecord[] => {
+    ensureNoSimulatedServerError();
     const rawHistory = readArray<any>(localStorage.getItem(STORAGE_KEYS.quizHistory));
 
     return rawHistory.map((entry) => ({
@@ -328,11 +342,13 @@ export const readQuizHistory = (): QuizHistoryRecord[] => {
 };
 
 export const writeQuizHistory = (history: QuizHistoryRecord[]): void => {
+    ensureNoSimulatedServerError();
     localStorage.setItem(STORAGE_KEYS.quizHistory, JSON.stringify(history));
     emitStorageUpdate(STORAGE_KEYS.quizHistory);
 };
 
 export const readSentNotifications = (): SentNotificationLog[] => {
+    ensureNoSimulatedServerError();
     const rawLogs = readArray<any>(localStorage.getItem(STORAGE_KEYS.sentNotifications));
 
     return rawLogs.map((log, index) => ({
@@ -353,11 +369,13 @@ export const readSentNotifications = (): SentNotificationLog[] => {
 };
 
 export const writeSentNotifications = (logs: SentNotificationLog[]): void => {
+    ensureNoSimulatedServerError();
     localStorage.setItem(STORAGE_KEYS.sentNotifications, JSON.stringify(logs));
     emitStorageUpdate(STORAGE_KEYS.sentNotifications);
 };
 
 export const loadAdminState = (): AdminState => {
+    ensureNoSimulatedServerError();
     return {
         tests: readAdminTests(),
         settings: readExamSettings(),

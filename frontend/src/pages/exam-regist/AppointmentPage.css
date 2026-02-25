@@ -29,6 +29,7 @@
     min-height: calc(100vh - 180px);
     padding: 0 0 56px;
     background: #f8fafc;
+    font-family: 'Inter', sans-serif;
 }
 
 .appointment-page-form .container {
@@ -38,8 +39,8 @@
 .appointment-page-form .appointment-hero-simple {
     position: relative;
     overflow: hidden;
-    background: linear-gradient(135deg, #003366 0%, #0a457a 58%, #0f4e87 100%);
-    padding: 56px 0 112px;
+    background: linear-gradient(135deg, #003366 0%, #0a457a 45%, #0f4e87 75%, #0f5a9b 100%);
+    padding: 6rem 1rem;
     box-shadow: 0 24px 48px rgba(0, 0, 0, 0.12);
 }
 
@@ -53,8 +54,8 @@
 .appointment-page-form .appointment-hero-overlay-right {
     top: -48px;
     right: -70px;
-    width: 300px;
-    height: 300px;
+    width: 360px;
+    height: 360px;
     background: rgba(255, 255, 255, 0.08);
     filter: blur(24px);
 }
@@ -62,8 +63,8 @@
 .appointment-page-form .appointment-hero-overlay-left {
     bottom: -70px;
     left: -70px;
-    width: 240px;
-    height: 240px;
+    width: 300px;
+    height: 300px;
     background: rgba(255, 204, 0, 0.12);
     filter: blur(28px);
 }
@@ -72,6 +73,22 @@
     position: relative;
     z-index: 1;
     text-align: center;
+}
+
+.appointment-page-form .appointment-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1.4rem;
+    background-color: rgba(255, 255, 255, 0.12);
+    border-radius: 9999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    color: #e6f0ff;
+    backdrop-filter: blur(12px);
 }
 
 .appointment-page-form .appointment-hero-simple-content h1 {
@@ -83,8 +100,24 @@
     text-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
 }
 
+.appointment-page-form .appointment-hero-title-highlight {
+    background: linear-gradient(to right, #bfdbfe, #ffffff);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.appointment-page-form .appointment-hero-subtitle {
+    margin-top: 1rem;
+    color: #dbeafe;
+    font-size: 1.1rem;
+    max-width: 720px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .appointment-page-form .appointment-content-shell {
-    margin-top: -58px;
+    margin-top: -3rem;
     position: relative;
     z-index: 2;
 }
@@ -915,14 +948,6 @@
         padding-bottom: 34px;
     }
 
-    .appointment-page-form .appointment-hero-simple {
-        padding: 38px 0 86px;
-    }
-
-    .appointment-page-form .appointment-content-shell {
-        margin-top: -40px;
-    }
-
     .appointment-page-form .appointment-content-panel {
         border-radius: 16px;
         padding: 10px;
@@ -930,16 +955,8 @@
 }
 
 @media (max-width: 560px) {
-    .appointment-page-form .appointment-hero-simple {
-        padding: 30px 0 70px;
-    }
-
     .appointment-page-form .appointment-hero-simple-content h1 {
         font-size: clamp(26px, 9vw, 36px);
-    }
-
-    .appointment-page-form .appointment-content-shell {
-        margin-top: -28px;
     }
 
     .appointment-page .appointment-stepper {

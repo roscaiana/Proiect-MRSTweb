@@ -135,7 +135,7 @@ const TERMS_SECTIONS: TermsSection[] = [
 ];
 
 export default function TermsAndConditions() {
-    const [openSectionId, setOpenSectionId] = useState<string | null>(TERMS_SECTIONS[0]?.id ?? null);
+    const [openSectionId, setOpenSectionId] = useState<string | null>(null);
 
     const toggleSection = (sectionId: string) => {
         setOpenSectionId((current) => (current === sectionId ? null : sectionId));

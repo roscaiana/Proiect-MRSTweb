@@ -1,0 +1,66 @@
+.error-page {
+    padding: 4.5rem 0 6rem;
+    background:
+        radial-gradient(circle at top left, rgba(241, 196, 15, 0.18), transparent 55%),
+        radial-gradient(circle at bottom right, rgba(0, 51, 102, 0.15), transparent 45%),
+        var(--light-bg);
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+}
+
+.error-card {
+    background: var(--white);
+    border-radius: 20px;
+    padding: 3rem 2.5rem;
+    box-shadow: var(--shadow-card);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+
+.error-code {
+    font-size: clamp(2.6rem, 6vw, 4.5rem);
+    font-weight: 800;
+    color: var(--primary-color);
+    letter-spacing: 6px;
+}
+
+.error-title {
+    font-size: clamp(1.4rem, 3vw, 2.3rem);
+    margin: 0.6rem 0 0.8rem;
+}
+
+.error-description {
+    color: #4b5563;
+    max-width: 520px;
+    margin: 0 auto 1.2rem;
+}
+
+.error-hint {
+    color: #6b7280;
+    margin-bottom: 1.6rem;
+}
+
+.error-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.error-actions .btn {
+    min-width: 180px;
+    justify-content: center;
+}
+
+@media (max-width: 640px) {
+    .error-card {
+        padding: 2.5rem 1.8rem;
+    }
+
+    .error-actions .btn {
+        width: 100%;
+    }
+}
