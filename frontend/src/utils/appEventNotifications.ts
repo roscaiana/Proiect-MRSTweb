@@ -1,4 +1,8 @@
-import { readAdminUsers } from "../features/admin/storage";
+import {
+    readAdminUsers,
+    readSentNotifications,
+    writeSentNotifications,
+} from "../features/admin/storage";
 import type { AppointmentStatus } from "../features/admin/types";
 import { appendNotification, buildNotificationStorageKey } from "./notificationUtils";
 
@@ -31,6 +35,30 @@ const pushNotification = ({
     });
 };
 
+const appendAdminHistoryLog = (payload: {
+    title: string;
+    message: string;
+    recipientCount: number;
+    sentAt?: string;
+}) => {
+    const sentAt = payload.sentAt || new Date().toISOString();
+    const logs = readSentNotifications();
+
+    writeSentNotifications(
+        [
+            {
+                id: createNotificationId("sent-auto"),
+                target: "admins",
+                title: payload.title,
+                message: payload.message,
+                sentAt,
+                recipientCount: payload.recipientCount,
+            },
+            ...logs,
+        ].slice(0, 100)
+    );
+};
+
 export const notifyUser = (
     email: string | undefined,
     payload: { title: string; message: string; link?: string; tag?: string }
@@ -45,13 +73,24 @@ export const notifyAdmins = (payload: { title: string; message: string; link?: s
         .filter((user) => user.role === "admin")
         .forEach((user) => adminEmails.add(user.email));
 
+    const sentAt = new Date().toISOString();
+
     adminEmails.forEach((email) => {
         pushNotification({
             role: "admin",
             email,
-            ...payload,
+            title: payload.title,
+            message: payload.message,
+            link: payload.link,
             tag: payload.tag ? `${payload.tag}-${email}` : undefined,
         });
+    });
+
+    appendAdminHistoryLog({
+        title: payload.title,
+        message: payload.message,
+        recipientCount: adminEmails.size,
+        sentAt,
     });
 };
 
