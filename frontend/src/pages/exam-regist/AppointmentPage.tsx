@@ -1,4 +1,5 @@
 ﻿import React, { useEffect, useState, useMemo } from 'react';
+import { CalendarCheck } from 'lucide-react';
 import { AppointmentFormData, FormErrors, TIME_SLOTS } from '../../types/appointment';
 import { useLocation } from 'react-router-dom';
 import {
@@ -652,7 +653,16 @@ const AppointmentPage: React.FC = () => {
                 <div className="appointment-hero-overlay appointment-hero-overlay-left" />
                 <div className="container">
                     <div className="appointment-hero-simple-content">
-                        <h1 id="appointment-page-title">Înscriere la Examen</h1>
+                        <div className="appointment-hero-badge">
+                            <CalendarCheck className="w-4 h-4 text-blue-200" />
+                            <span className="uppercase">Înscriere examen</span>
+                        </div>
+                        <h1 id="appointment-page-title">
+                            Înscriere <span className="appointment-hero-title-highlight">Examen</span>
+                        </h1>
+                        <p className="appointment-hero-subtitle">
+                            Completează formularul pentru a rezerva intervalul dorit și a finaliza înscrierea la evaluare.
+                        </p>
                     </div>
                 </div>
             </section>
@@ -969,4 +979,3 @@ const AppointmentPage: React.FC = () => {
 };
 
 export default AppointmentPage;
-
