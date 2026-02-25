@@ -335,7 +335,7 @@ const AdminAppointmentsPage: React.FC = () => {
 
     const applyBulkStatusAction = (action: "approve" | "reject" | "cancel") => {
         if (selectedAppointments.length === 0) {
-            setFeedback("Selecteaza cel putin o programare.");
+            setFeedback("Selectează cel puțin o programare.");
             return;
         }
 
@@ -347,13 +347,13 @@ const AdminAppointmentsPage: React.FC = () => {
         });
 
         if (eligibleAppointments.length === 0) {
-            setFeedback("Nicio programare selectata nu este eligibila pentru actiunea aleasa.");
+            setFeedback("Nicio programare selectată nu este eligibilă pentru acțiunea aleasă.");
             return;
         }
 
         const actionLabel =
             action === "approve" ? "aprobarea" : action === "reject" ? "respingerea" : "anularea";
-        if (!window.confirm(`Confirmi ${actionLabel} pentru ${eligibleAppointments.length} programari?`)) {
+        if (!window.confirm(`Confirmi ${actionLabel} pentru ${eligibleAppointments.length} programări?`)) {
             return;
         }
 
@@ -393,12 +393,12 @@ const AdminAppointmentsPage: React.FC = () => {
 
         setSelectedAppointmentIds([]);
         setFeedback(
-            `${eligibleAppointments.length} programari au fost ${action === "approve" ? "aprobate" : action === "reject" ? "respinse" : "anulate"}.`
+            `${eligibleAppointments.length} programări au fost ${action === "approve" ? "aprobate" : action === "reject" ? "respinse" : "anulate"}.`
         );
     };
 
     const handleApprove = (appointmentId: string) => {
-        if (!window.confirm("Confirmi aprobarea acestei programari?")) return;
+        if (!window.confirm("Confirmi aprobarea acestei programări?")) return;
         const adminNote = window.prompt("Nota admin (optional):", "") || "";
         updateAppointmentStatus(appointmentId, "approved", {
             reason: null,
@@ -408,7 +408,7 @@ const AdminAppointmentsPage: React.FC = () => {
     };
 
     const handleReject = (appointmentId: string) => {
-        if (!window.confirm("Confirmi respingerea acestei programari?")) return;
+        if (!window.confirm("Confirmi respingerea acestei programări?")) return;
         const reason = window.prompt("Motivul respingerii (vizibil utilizatorului):", "");
         if (!reason || !reason.trim()) {
             setFeedback("Respingerea necesită un motiv.");
@@ -424,7 +424,7 @@ const AdminAppointmentsPage: React.FC = () => {
     };
 
     const handleCancelByAdmin = (appointmentId: string) => {
-        if (!window.confirm("Confirmi anularea acestei programari de catre admin?")) return;
+        if (!window.confirm("Confirmi anularea acestei programări de către admin?")) return;
         const reason = window.prompt("Motiv anulare (vizibil utilizatorului):", "") || "";
         updateAppointmentStatus(appointmentId, "cancelled", {
             reason: reason.trim() || null,
@@ -512,11 +512,11 @@ const AdminAppointmentsPage: React.FC = () => {
 
             <section className="admin-panel-card">
                 <div className="admin-card-header">
-                    <h3><i className="fas fa-clock admin-card-header-icon"></i> Coada aprobare (pending)</h3>
-                    <span className="admin-muted-text">{pendingQueue.length} afisate</span>
+                    <h3><i className="fas fa-clock admin-card-header-icon"></i> Coadă aprobare (pending)</h3>
+                    <span className="admin-muted-text">{pendingQueue.length} afișate</span>
                 </div>
                 {pendingQueue.length === 0 ? (
-                    <p className="admin-muted-text">Nu exista cereri pending.</p>
+                    <p className="admin-muted-text">Nu există cereri pending.</p>
                 ) : (
                     <div className="admin-simple-list">
                         {pendingQueue.map((appointment) => (
@@ -526,11 +526,11 @@ const AdminAppointmentsPage: React.FC = () => {
                                     <p>
                                         {formatDateLabel(appointment.date)} · {appointment.slotStart}-{appointment.slotEnd}
                                     </p>
-                                    <p>{appointment.appointmentCode || "Fara cod"}</p>
+                                    <p>{appointment.appointmentCode || "Fără cod"}</p>
                                 </div>
                                 <div className="admin-actions-row admin-actions-row-wrap">
                                     <button className="admin-text-btn" type="button" onClick={() => handleApprove(appointment.id)}>
-                                        Aproba
+                                        Aprobă
                                     </button>
                                     <button className="admin-text-btn danger" type="button" onClick={() => handleReject(appointment.id)}>
                                         Respinge
@@ -548,7 +548,7 @@ const AdminAppointmentsPage: React.FC = () => {
                     <span className="admin-muted-text">{configDate}</span>
                 </div>
                 {configDayCalendarRows.length === 0 ? (
-                    <p className="admin-muted-text">Nu exista sloturi configurate pentru ziua selectata.</p>
+                    <p className="admin-muted-text">Nu există sloturi configurate pentru ziua selectată.</p>
                 ) : (
                     <div className="admin-day-calendar-list">
                         {configDayCalendarRows.map(({ key, slot, occupiedAppointment }) => (
@@ -563,7 +563,7 @@ const AdminAppointmentsPage: React.FC = () => {
                                             <strong>{occupiedAppointment.fullName}</strong>
                                             <p>{occupiedAppointment.userEmail || occupiedAppointment.idOrPhone}</p>
                                             <p>
-                                                {occupiedAppointment.appointmentCode || "Fara cod"} · {statusLabel(occupiedAppointment.status)}
+                                                {occupiedAppointment.appointmentCode || "Fără cod"} · {statusLabel(occupiedAppointment.status)}
                                             </p>
                                         </>
                                     ) : (
@@ -791,8 +791,8 @@ const AdminAppointmentsPage: React.FC = () => {
                         <span>Sortare</span>
                         <select value={sortBy} onChange={(event) => setSortBy(event.target.value as typeof sortBy)}>
                             <option value="updated_desc">Actualizate recent</option>
-                            <option value="exam_asc">Data examen (crescator)</option>
-                            <option value="exam_desc">Data examen (descrescator)</option>
+                            <option value="exam_asc">Data examen (crescător)</option>
+                            <option value="exam_desc">Data examen (descrescător)</option>
                             <option value="name_asc">Nume candidat (A-Z)</option>
                         </select>
                     </label>
@@ -832,7 +832,7 @@ const AdminAppointmentsPage: React.FC = () => {
                                 onChange={toggleSelectAllFiltered}
                                 disabled={filteredAppointments.length === 0}
                             />
-                            <span>Selecteaza toate rezultatele filtrate</span>
+                            <span>Selectează toate rezultatele filtrate</span>
                         </label>
                         <span className="admin-muted-text">{selectedAppointmentIds.length} selectate</span>
                     </div>
@@ -843,7 +843,7 @@ const AdminAppointmentsPage: React.FC = () => {
                             onClick={() => applyBulkStatusAction("approve")}
                             disabled={selectedAppointmentIds.length === 0}
                         >
-                            Aproba selectate
+                            Aprobă selectate
                         </button>
                         <button
                             type="button"
@@ -859,7 +859,7 @@ const AdminAppointmentsPage: React.FC = () => {
                             onClick={() => applyBulkStatusAction("cancel")}
                             disabled={selectedAppointmentIds.length === 0}
                         >
-                            Anuleaza selectate
+                            Anulează selectate
                         </button>
                         <button
                             type="button"
@@ -867,7 +867,7 @@ const AdminAppointmentsPage: React.FC = () => {
                             onClick={() => setSelectedAppointmentIds([])}
                             disabled={selectedAppointmentIds.length === 0}
                         >
-                            Goleste selectie
+                            Golește selecție
                         </button>
                     </div>
                 </div>
@@ -884,7 +884,7 @@ const AdminAppointmentsPage: React.FC = () => {
                                             type="checkbox"
                                             checked={allFilteredSelected}
                                             onChange={toggleSelectAllFiltered}
-                                            aria-label="Selecteaza toate programarile filtrate"
+                                            aria-label="Selectează toate programările filtrate"
                                         />
                                     </th>
                                     <th>Candidat</th>
@@ -903,7 +903,7 @@ const AdminAppointmentsPage: React.FC = () => {
                                                 type="checkbox"
                                                 checked={selectedAppointmentIds.includes(appointment.id)}
                                                 onChange={() => toggleAppointmentSelection(appointment.id)}
-                                                aria-label={`Selecteaza programarea ${appointment.fullName}`}
+                                                aria-label={`Selectează programarea ${appointment.fullName}`}
                                             />
                                         </td>
                                         <td>

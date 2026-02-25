@@ -15,31 +15,31 @@ type NotificationTemplate = {
 const NOTIFICATION_TEMPLATES: NotificationTemplate[] = [
     {
         key: "maintenance",
-        label: "Mentenanta platforma",
+        label: "Mentenanță platformă",
         target: "all",
-        title: "Mentenanta programata",
-        message: "Platforma va avea o scurta mentenanta. Unele functii pot fi temporar indisponibile.",
+        title: "Mentenanță programată",
+        message: "Platforma va avea o scurtă mentenanță. Unele funcții pot fi temporar indisponibile.",
     },
     {
         key: "new-test",
         label: "Test nou disponibil",
         target: "users",
         title: "Test nou disponibil",
-        message: "A fost adaugat un test nou in platforma. Intra in sectiunea Teste pentru a-l parcurge.",
+        message: "A fost adăugat un test nou în platformă. Intră în secțiunea Teste pentru a-l parcurge.",
     },
     {
         key: "appointments-reminder",
-        label: "Reminder programari",
+        label: "Reminder programări",
         target: "users",
-        title: "Verifica programarile tale",
-        message: "Consulta dashboard-ul pentru statusul programarii si eventuale actualizari.",
+        title: "Verifică programările tale",
+        message: "Consultă dashboard-ul pentru statusul programării și eventuale actualizări.",
     },
     {
         key: "admin-alert",
-        label: "Alerta interna admin",
+        label: "Alertă internă admin",
         target: "admins",
         title: "Alerta pentru administratori",
-        message: "Verificati panoul admin pentru cereri pending si notificari noi.",
+        message: "Verificați panoul admin pentru cereri pending și notificări noi.",
     },
 ];
 
@@ -137,12 +137,12 @@ const AdminNotificationsPage: React.FC = () => {
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
         if (!title.trim() || !message.trim()) {
-            setFeedback("Completeaza titlul si mesajul notificarii.");
+            setFeedback("Completează titlul și mesajul notificării.");
             return;
         }
 
         if (target === "email" && !targetEmail.trim()) {
-            setFeedback("Adauga emailul destinatarului.");
+            setFeedback("Adaugă emailul destinatarului.");
             return;
         }
 
@@ -153,7 +153,7 @@ const AdminNotificationsPage: React.FC = () => {
             targetEmail: target === "email" ? targetEmail.trim() : undefined,
         });
 
-        setFeedback(`Notificare trimisa catre ${sentCount} destinatar(i).`);
+        setFeedback(`Notificare trimisă către ${sentCount} destinatar(i).`);
         setTitle("");
         setMessage("");
         setSelectedTemplateKey("");
@@ -167,14 +167,14 @@ const AdminNotificationsPage: React.FC = () => {
     return (
         <div className="admin-page-content">
             <section className="admin-page-header">
-                <h2>Notificari</h2>
-                <p>Trimite anunturi catre utilizatori si monitorizeaza istoricul mesajelor.</p>
+                <h2>Notificări</h2>
+                <p>Trimite anunțuri către utilizatori și monitorizează istoricul mesajelor.</p>
             </section>
 
             <div
                 className="admin-topbar-actions"
                 role="tablist"
-                aria-label="Vizualizare notificari admin"
+                aria-label="Vizualizare notificări admin"
                 style={{ justifyContent: "center", marginBottom: 4 }}
             >
                 <button
@@ -193,7 +193,7 @@ const AdminNotificationsPage: React.FC = () => {
                     className={`admin-btn admin-notifications-switch-btn ${activeView === "history" ? "primary" : "ghost"}`}
                     onClick={() => setActiveView("history")}
                 >
-                    Istoric notificari
+                    Istoric notificări
                 </button>
             </div>
 
@@ -201,7 +201,7 @@ const AdminNotificationsPage: React.FC = () => {
                 <section className="admin-panel-card" role="tabpanel" aria-label="Trimite notificare">
                     <div className="admin-card-header">
                         <h3><i className="fas fa-paper-plane admin-card-header-icon"></i> Trimite notificare</h3>
-                        <span className="admin-muted-text">Destinatari estimati: {estimatedRecipients}</span>
+                        <span className="admin-muted-text">Destinatari estimați: {estimatedRecipients}</span>
                     </div>
 
                     <div className="admin-toolbar admin-notifications-compose-toolbar">
@@ -211,7 +211,7 @@ const AdminNotificationsPage: React.FC = () => {
                                 value={selectedTemplateKey}
                                 onChange={(event) => setSelectedTemplateKey(event.target.value)}
                             >
-                                <option value="">Fara template</option>
+                                <option value="">Fără template</option>
                                 {NOTIFICATION_TEMPLATES.map((template) => (
                                     <option key={template.key} value={template.key}>
                                         {template.label}
@@ -220,14 +220,14 @@ const AdminNotificationsPage: React.FC = () => {
                             </select>
                         </label>
                         <div className="admin-field admin-notifications-template-actions">
-                            <span>Actiune</span>
+                            <span>Acțiune</span>
                             <button
                                 type="button"
                                 className="admin-btn ghost"
                                 onClick={applySelectedTemplate}
                                 disabled={!selectedTemplateKey}
                             >
-                                Aplica template
+                                Aplică template
                             </button>
                         </div>
                     </div>
@@ -239,7 +239,7 @@ const AdminNotificationsPage: React.FC = () => {
                                 value={target}
                                 onChange={(event) => setTarget(event.target.value as NotificationTarget)}
                             >
-                                <option value="all">Toata platforma</option>
+                                <option value="all">Toată platforma</option>
                                 <option value="users">Doar utilizatori</option>
                                 <option value="admins">Doar administratori</option>
                                 <option value="email">Email specific</option>
@@ -289,15 +289,15 @@ const AdminNotificationsPage: React.FC = () => {
             )}
 
             {activeView === "history" && (
-                <section className="admin-panel-card" role="tabpanel" aria-label="Istoric notificari">
+                <section className="admin-panel-card" role="tabpanel" aria-label="Istoric notificări">
                     <div className="admin-card-header">
-                        <h3><i className="fas fa-clock-rotate-left admin-card-header-icon"></i> Istoric notificari</h3>
+                        <h3><i className="fas fa-clock-rotate-left admin-card-header-icon"></i> Istoric notificări</h3>
                         <span className="admin-muted-text">Rezultate: {filteredHistory.length}</span>
                     </div>
 
                     <div className="admin-toolbar admin-notifications-history-toolbar">
                         <label className="admin-field">
-                            <span>Cautare</span>
+                            <span>Căutare</span>
                             <input
                                 type="text"
                                 value={historySearch}
@@ -322,13 +322,13 @@ const AdminNotificationsPage: React.FC = () => {
                             <input type="date" value={historyFrom} onChange={(event) => setHistoryFrom(event.target.value)} />
                         </label>
                         <label className="admin-field">
-                            <span>Pana la</span>
+                            <span>Până la</span>
                             <input type="date" value={historyTo} onChange={(event) => setHistoryTo(event.target.value)} />
                         </label>
                     </div>
 
                     {filteredHistory.length === 0 ? (
-                        <p className="admin-muted-text">Nu exista notificari trimise pentru filtrul selectat.</p>
+                        <p className="admin-muted-text">Nu există notificări trimise pentru filtrul selectat.</p>
                     ) : (
                         <div className="admin-table-wrapper">
                             <table className="admin-table">
@@ -337,7 +337,7 @@ const AdminNotificationsPage: React.FC = () => {
                                         <th>Titlu</th>
                                         <th>Target</th>
                                         <th>Destinatari</th>
-                                        <th>Trimisa la</th>
+                                        <th>Trimisă la</th>
                                     </tr>
                                 </thead>
                                 <tbody>

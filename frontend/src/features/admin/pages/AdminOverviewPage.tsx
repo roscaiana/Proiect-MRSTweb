@@ -121,7 +121,7 @@ const AdminOverviewPage: React.FC = () => {
         <div className="admin-page-content">
             <section className="admin-page-header">
                 <h2>Statistici generale</h2>
-                <p>Monitorizarea activitatii platformei si a indicatorilor principali.</p>
+                <p>Monitorizarea activității platformei și a indicatorilor principali.</p>
             </section>
 
             <section className="admin-panel-card">
@@ -162,7 +162,7 @@ const AdminOverviewPage: React.FC = () => {
                         color="green"
                     />
                     <AdminStatCard
-                        title={`Programari noi (${periodLabel(periodDays)})`}
+                        title={`Programări noi (${periodLabel(periodDays)})`}
                         value={String(appointmentsInPeriod.length)}
                         hint={`Pending acum: ${pendingAppointments.length}`}
                         iconClass="fas fa-calendar-plus"
@@ -176,16 +176,16 @@ const AdminOverviewPage: React.FC = () => {
                         color="gold"
                     />
                     <AdminStatCard
-                        title={`Anulari user (${periodLabel(periodDays)})`}
+                        title={`Anulări user (${periodLabel(periodDays)})`}
                         value={String(userCancelledInPeriod)}
-                        hint="Anulari facute din dashboard user"
+                        hint="Anulări făcute din dashboard user"
                         iconClass="fas fa-user-xmark"
                         color="red"
                     />
                     <AdminStatCard
-                        title="Notificari admin necitite"
+                        title="Notificări admin necitite"
                         value={String(unreadCount)}
-                        hint="Clopotelul din header admin"
+                        hint="Clopoțelul din header admin"
                         iconClass="fas fa-bell"
                         color="teal"
                     />
@@ -203,22 +203,22 @@ const AdminOverviewPage: React.FC = () => {
                     <div className="admin-simple-list">
                         <div className="admin-simple-item">
                             <div>
-                                <strong>Programari pending</strong>
-                                <p>Cereri care asteapta aprobare/respingere</p>
+                                <strong>Programări pending</strong>
+                                <p>Cereri care așteaptă aprobare/respingere</p>
                             </div>
                             <span className="admin-pill pending">{pendingAppointments.length}</span>
                         </div>
                         <div className="admin-simple-item">
                             <div>
                                 <strong>Pending pentru azi</strong>
-                                <p>Programari din ziua curenta aflate in asteptare</p>
+                                <p>Programări din ziua curentă aflate în așteptare</p>
                             </div>
                             <span className="admin-pill pending">{pendingToday}</span>
                         </div>
                         <div className="admin-simple-item">
                             <div>
-                                <strong>Anulari de utilizator (7 zile)</strong>
-                                <p>Necesita verificare si eventuale sloturi realocate</p>
+                                <strong>Anulări de utilizator (7 zile)</strong>
+                                <p>Necesită verificare și eventuale sloturi realocate</p>
                             </div>
                             <span className="admin-pill cancelled">{
                                 state.appointments.filter((a) => a.status === "cancelled" && a.cancelledBy === "user" && new Date(a.updatedAt || a.createdAt) >= new Date(now.getTime() - 7 * DAY_MS)).length
@@ -227,14 +227,14 @@ const AdminOverviewPage: React.FC = () => {
                         <div className="admin-simple-item">
                             <div>
                                 <strong>Conturi noi (24h)</strong>
-                                <p>Verifica activitatea si nevoile de suport</p>
+                                <p>Verifică activitatea și nevoile de suport</p>
                             </div>
                             <span className="admin-pill neutral">{newUsersLast24h}</span>
                         </div>
                         <div className="admin-simple-item">
                             <div>
-                                <strong>Notificari admin necitite</strong>
-                                <p>Actualizari generate de actiuni user/admin</p>
+                                <strong>Notificări admin necitite</strong>
+                                <p>Actualizări generate de acțiuni user/admin</p>
                             </div>
                             <span className="admin-pill neutral">{unreadCount}</span>
                         </div>
@@ -243,14 +243,14 @@ const AdminOverviewPage: React.FC = () => {
 
                 <article className="admin-panel-card">
                     <div className="admin-card-header">
-                        <h3><i className="fas fa-bolt admin-card-header-icon"></i> Actiuni rapide</h3>
+                        <h3><i className="fas fa-bolt admin-card-header-icon"></i> Acțiuni rapide</h3>
                     </div>
                     <div className="admin-quick-actions-grid">
                         <Link to="/admin/tests" className="admin-btn secondary admin-link-btn">
-                            <i className="fas fa-file-circle-plus"></i> Creeaza test
+                            <i className="fas fa-file-circle-plus"></i> Creează test
                         </Link>
                         <Link to="/admin/appointments" className="admin-btn secondary admin-link-btn">
-                            <i className="fas fa-calendar-check"></i> Gestioneaza programari
+                            <i className="fas fa-calendar-check"></i> Gestionează programări
                         </Link>
                         <Link to="/admin/notifications" className="admin-btn secondary admin-link-btn">
                             <i className="fas fa-bell"></i> Trimite notificare
@@ -267,11 +267,11 @@ const AdminOverviewPage: React.FC = () => {
                     <div className="admin-card-header">
                         <h3><i className="fas fa-clock admin-card-header-icon"></i> Coada aprobare (pending)</h3>
                         <Link to="/admin/appointments" className="admin-btn ghost admin-link-btn">
-                            Deschide programari
+                            Deschide programări
                         </Link>
                     </div>
                     {pendingQueue.length === 0 ? (
-                        <p className="admin-muted-text">Nu exista programari pending.</p>
+                        <p className="admin-muted-text">Nu există programări pending.</p>
                     ) : (
                         <div className="admin-simple-list">
                             {pendingQueue.map((appointment) => (
@@ -279,9 +279,9 @@ const AdminOverviewPage: React.FC = () => {
                                     <div>
                                         <strong>{appointment.fullName}</strong>
                                         <p>
-                                            {formatShortDate(appointment.date)} � {appointment.slotStart}-{appointment.slotEnd}
+                                            {formatShortDate(appointment.date)} | {appointment.slotStart}-{appointment.slotEnd}
                                         </p>
-                                        <p>{appointment.appointmentCode || "Fara cod"}</p>
+                                        <p>{appointment.appointmentCode || "Fără cod"}</p>
                                     </div>
                                     <span className="admin-pill pending">pending</span>
                                 </div>
@@ -292,20 +292,20 @@ const AdminOverviewPage: React.FC = () => {
 
                 <article className="admin-panel-card">
                     <div className="admin-card-header">
-                        <h3><i className="fas fa-paper-plane admin-card-header-icon"></i> Notificari trimise recent</h3>
+                        <h3><i className="fas fa-paper-plane admin-card-header-icon"></i> Notificări trimise recent</h3>
                         <Link to="/admin/notifications" className="admin-btn ghost admin-link-btn">
                             Vezi istoric
                         </Link>
                     </div>
                     {recentSentNotifications.length === 0 ? (
-                        <p className="admin-muted-text">Nu ai trimis notificari inca.</p>
+                        <p className="admin-muted-text">Nu ai trimis notificări încă.</p>
                     ) : (
                         <div className="admin-simple-list">
                             {recentSentNotifications.map((log) => (
                                 <div className="admin-simple-item" key={log.id}>
                                     <div>
                                         <strong>{log.title}</strong>
-                                        <p>{formatShortDate(log.sentAt)} � {log.recipientCount} destinatari</p>
+                                        <p>{formatShortDate(log.sentAt)} | {log.recipientCount} destinatari</p>
                                     </div>
                                     <span className="admin-pill neutral">{log.target}</span>
                                 </div>
@@ -317,17 +317,17 @@ const AdminOverviewPage: React.FC = () => {
 
             <section className="admin-panel-card">
                 <div className="admin-card-header">
-                        <h3><i className="fas fa-calendar-days admin-card-header-icon"></i> Programari recente</h3>
+                        <h3><i className="fas fa-calendar-days admin-card-header-icon"></i> Programări recente</h3>
                 </div>
                 {recentAppointments.length === 0 ? (
-                    <p className="admin-muted-text">Nu exista programari inregistrate.</p>
+                    <p className="admin-muted-text">Nu există programări înregistrate.</p>
                 ) : (
                     <div className="admin-simple-list">
                         {recentAppointments.map((appointment) => (
                             <div className="admin-simple-item" key={appointment.id}>
                                 <div>
                                     <strong>{appointment.fullName}</strong>
-                                    <p>{formatShortDate(appointment.date)} � {appointment.slotStart}-{appointment.slotEnd}</p>
+                                    <p>{formatShortDate(appointment.date)} | {appointment.slotStart}-{appointment.slotEnd}</p>
                                 </div>
                                 <span className={`admin-pill ${appointment.status}`}>{appointment.status}</span>
                             </div>
@@ -340,3 +340,4 @@ const AdminOverviewPage: React.FC = () => {
 };
 
 export default AdminOverviewPage;
+
