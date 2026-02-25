@@ -1,4 +1,4 @@
-import { Link, NavLink, useNavigate } from "react-router-dom";
+﻿import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { PUBLIC_PAGES } from "../navigation/siteNavigation";
 import "./SideBar.css";
@@ -8,9 +8,29 @@ type Props = {
     onClose: () => void;
 };
 
+type SidebarLink = {
+    to: string;
+    icon: string;
+    label: string;
+};
+
 export default function Sidebar({ open, onClose }: Props) {
+    const { isAuthenticated, isAdmin, logout } = useAuth();
+
+    const primaryLinks: SidebarLink[] = isAdmin
+        ? [{ to: "/admin", icon: "fas fa-shield-halved", label: "Admin Panel" }]
+        : [];
+
+    const accountLinks: SidebarLink[] = isAuthenticated
+        ? isAdmin
+            ? [{ to: '/admin', icon: 'fas fa-gauge-high', label: 'Panou Admin' }]
+            : [{ to: '/dashboard', icon: 'fas fa-user', label: 'Dashboard' }]
+        : [
+            { to: '/login', icon: 'fas fa-sign-in-alt', label: 'Autentificare' },
+            { to: '/register', icon: 'fas fa-user-plus', label: 'ÃŽnregistrare' },
+        ];
+
     const navigate = useNavigate();
-    const { isAuthenticated, logout } = useAuth();
 
     const accountTitle = isAuthenticated ? "Contul Meu" : "Autentificare";
 
@@ -29,8 +49,8 @@ export default function Sidebar({ open, onClose }: Props) {
                             <svg viewBox="0 0 100 100" className="svg-logo">
                                 <defs>
                                     <linearGradient id="goldGradientSidebarFix" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" style={{ stopColor: "#f1c40f", stopOpacity: 1 }} />
-                                        <stop offset="100%" style={{ stopColor: "#b7950b", stopOpacity: 1 }} />
+                                        <stop offset="0%" style={{ stopColor: '#f1c40f', stopOpacity: 1 }} />
+                                        <stop offset="100%" style={{ stopColor: '#b7950b', stopOpacity: 1 }} />
                                     </linearGradient>
                                 </defs>
                                 <path d="M50 5 L90 25 V75 L50 95 L10 75 V25 L50 5 Z" fill="#003366" stroke="white" strokeWidth="2" />
@@ -65,27 +85,34 @@ export default function Sidebar({ open, onClose }: Props) {
                                     </NavLink>
                                 </li>
                             ))}
+                            {primaryLinks.map((link) => (
+                                <li key={`${link.to}-${link.label}`}>
+                                    <Link to={link.to} onClick={onClose}>
+                                        <i className={link.icon}></i> {link.label}
+                                    </Link>
+                                </li>
+                            ))}
                         </ul>
                     </div>
 
                     <div className="sidebar-section">
                         <h4>{accountTitle}</h4>
                         <ul>
-                            {!isAuthenticated ? (
-                                <li>
-                                    <NavLink to="/login" onClick={onClose} className={({ isActive }) => (isActive ? "active" : "")}>
-                                        <i className="fas fa-right-to-bracket"></i>
-                                        Autentificare
-                                    </NavLink>
+                            {accountLinks.map((link) => (
+                                <li key={`${link.to}-${link.label}`}>
+                                    <Link to={link.to} onClick={onClose}>
+                                        <i className={link.icon}></i> {link.label}
+                                    </Link>
                                 </li>
-                            ) : (
+                            ))}
+                            {isAuthenticated ? (
                                 <li>
                                     <button type="button" className="sidebar-logout-btn" onClick={handleLogout}>
                                         <i className="fas fa-right-from-bracket"></i>
                                         Deconectare
                                     </button>
                                 </li>
-                            )}
+                            ) : null}
                         </ul>
                     </div>
                 </div>
@@ -95,7 +122,8 @@ export default function Sidebar({ open, onClose }: Props) {
                 </div>
             </nav>
 
-            <div className={`sidebar-overlay ${open ? "active" : ""}`} onClick={onClose}></div>
+            <div className={`sidebar-overlay ${open ? 'active' : ''}`} onClick={onClose}></div>
         </>
     );
 }
+

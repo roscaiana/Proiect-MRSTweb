@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
 import { readAppointments, readExamSettings, readQuizHistory, STORAGE_KEYS, writeAppointments } from '../../../features/admin/storage';
 import type { AdminAppointmentRecord } from '../../../features/admin/types';
-import { notifyUser } from '../../../utils/appEventNotifications';
+import { notifyAdmins, notifyUser } from '../../../utils/appEventNotifications';
 import './UserDashboard.css';
 
 const APPOINTMENT_RESCHEDULE_KEY = 'appointmentRescheduleDraft';
@@ -119,6 +119,12 @@ const UserDashboard: React.FC = () => {
             message: `Programarea ${target.appointmentCode || ''} a fost anulată din dashboard.`,
             link: '/dashboard',
             tag: `appointment-cancelled-user-${appointmentId}-${updatedAt}`,
+        });
+        notifyAdmins({
+            title: 'Programare anulată de utilizator',
+            message: `Cererea ${target.appointmentCode || ''} (${target.fullName}) a fost anulată din dashboard.`,
+            link: '/admin/appointments',
+            tag: `admin-appointment-cancelled-user-${appointmentId}-${updatedAt}`,
         });
     };
 
