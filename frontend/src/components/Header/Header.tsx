@@ -6,6 +6,12 @@ import "./Header.css";
 
 type Props = { onOpenSidebar: () => void };
 
+type NavItem = {
+    to: string;
+    label: string;
+    end?: boolean;
+};
+
 export default function Header({ onOpenSidebar }: Props) {
     const navigate = useNavigate();
     const { isAuthenticated, isAdmin, user, logout } = useAuth();
@@ -19,8 +25,24 @@ export default function Header({ onOpenSidebar }: Props) {
     });
 
     const accountPath = isAuthenticated ? (isAdmin ? "/admin" : "/dashboard") : "/login";
-    const accountLabel = isAuthenticated ? "Dashboard" : "Autentificare";
+    const accountLabel = isAuthenticated ? (isAdmin ? "Admin Panel" : "Dashboard") : "Autentificare";
     const accountIcon = isAuthenticated ? "fas fa-gauge-high" : "fas fa-user-lock";
+
+    const navItems: NavItem[] = isAdmin
+        ? [
+            { to: "/", label: "Acasă", end: true },
+            { to: "/news", label: "Noutăți" },
+            { to: "/support", label: "Suport" },
+            { to: "/contact", label: "Contacte" },
+        ]
+        : [
+            { to: "/", label: "Acasă", end: true },
+            { to: "/tests", label: "Teste" },
+            { to: "/appointment", label: "Înscriere" },
+            { to: "/news", label: "Noutăți" },
+            { to: "/support", label: "Suport" },
+            { to: "/contact", label: "Contacte" },
+        ];
 
     const handleLogout = () => {
         logout();
@@ -80,36 +102,17 @@ export default function Header({ onOpenSidebar }: Props) {
 
                 <nav className="main-nav">
                     <ul>
-                        <li>
-                            <NavLink to="/" end className={({ isActive }) => (isActive ? "active" : "")}>
-                                Acasă
-                            </NavLink>
-                        </li>
-                        <li>
-                            <NavLink to="/tests" className={({ isActive }) => (isActive ? "active" : "")}>
-                                Teste
-                            </NavLink>
-                        </li>
-                        <li>
-                            <NavLink to="/appointment" className={({ isActive }) => (isActive ? "active" : "")}>
-                                Înscriere
-                            </NavLink>
-                        </li>
-                        <li>
-                            <NavLink to="/news" className={({ isActive }) => (isActive ? "active" : "")}>
-                                Noutăți
-                            </NavLink>
-                        </li>
-                        <li>
-                            <NavLink to="/support" className={({ isActive }) => (isActive ? "active" : "")}>
-                                Suport
-                            </NavLink>
-                        </li>
-                        <li>
-                            <NavLink to="/contact" className={({ isActive }) => (isActive ? "active" : "")}>
-                                Contacte
-                            </NavLink>
-                        </li>
+                        {navItems.map((item) => (
+                            <li key={item.to}>
+                                <NavLink
+                                    to={item.to}
+                                    end={item.end}
+                                    className={({ isActive }) => (isActive ? "active" : "")}
+                                >
+                                    {item.label}
+                                </NavLink>
+                            </li>
+                        ))}
                     </ul>
                 </nav>
 
