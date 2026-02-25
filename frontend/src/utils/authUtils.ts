@@ -7,6 +7,12 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const ADMIN_EMAIL = 'admin@electoral.md';
 const ADMIN_PASSWORD = 'admin123';
 const USERS_STORAGE_KEY = 'users';
+const SESSION_FORM_KEYS = ['appointmentFormDraft', 'appointmentRescheduleDraft'];
+
+type AuthStorageUser = {
+    email?: string;
+    role?: 'admin' | 'user';
+};
 
 const emitStorageUpdate = (key: string): void => {
     if (typeof window !== 'undefined') {
@@ -189,6 +195,23 @@ export const getAuthState = (): { user: User | null; token: string | null } => {
 
 // Clear auth state
 export const clearAuthState = (): void => {
+    const rawAuthUser = localStorage.getItem('authUser');
+
+    if (rawAuthUser) {
+        try {
+            const parsed = JSON.parse(rawAuthUser) as AuthStorageUser;
+            const normalizedEmail = typeof parsed.email === 'string' ? parsed.email.trim().toLowerCase() : '';
+            const normalizedRole = parsed.role === 'admin' ? 'admin' : parsed.role === 'user' ? 'user' : '';
+
+            if (normalizedEmail && normalizedRole) {
+                localStorage.removeItem(`notifications_${normalizedRole}_${normalizedEmail}`);
+            }
+        } catch {
+            // ignore malformed auth payload
+        }
+    }
+
     localStorage.removeItem('authUser');
     localStorage.removeItem('authToken');
+    SESSION_FORM_KEYS.forEach((key) => localStorage.removeItem(key));
 };

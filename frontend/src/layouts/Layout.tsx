@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 
 import TopBar from "../components/TopBar/TopBar";
@@ -18,7 +18,7 @@ export default function Layout() {
         <>
             <TopBar />
 
-            <Header onOpenSidebar={() => setSidebarOpen(true)} />
+            <Header onOpenSidebar={() => setSidebarOpen(true)} isSidebarOpen={sidebarOpen} />
 
             <Sidebar
                 open={sidebarOpen}

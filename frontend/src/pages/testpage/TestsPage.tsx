@@ -1,4 +1,5 @@
 ﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { ClipboardList } from 'lucide-react';
 import { getQuizCategories, getQuestionsByCategory, getCategoryById } from '../../data/quizData';
 import { useAuth } from '../../hooks/useAuth';
 import type { QuizMode, QuizResult, QuizSession } from '../../types/quiz';
@@ -24,6 +25,11 @@ const TestsPage: React.FC = () => {
     const mobileQuestionGridRef = React.useRef<HTMLDivElement | null>(null);
     const sidebarQuestionGridRef = React.useRef<HTMLDivElement | null>(null);
     const questionGridRefs = useMemo(() => [mobileQuestionGridRef, sidebarQuestionGridRef], []);
+    const testsView = quizResult ? 'result' : quizSession ? 'session' : 'home';
+
+    useEffect(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    }, [testsView]);
 
     useEffect(() => {
         const refresh = () => {
@@ -417,59 +423,108 @@ const TestsPage: React.FC = () => {
         );
     }
     return (
-        <div className="tests-page">
-            <div className="container">
-                <div className="page-header">
-                    <h1>Teste de pregătire</h1>
-                    <p className="page-subtitle">Alege modul de lucru, pornește un test și urmărește evoluția ta în timp.</p>
+        <div className="tests-page tests-page-home">
+            <section className="tests-hero">
+                <div className="tests-hero-overlay tests-hero-overlay-right" />
+                <div className="tests-hero-overlay tests-hero-overlay-left" />
+                <div className="container">
+                    <div className="tests-hero-content">
+                        <div className="tests-hero-badge">
+                            <span className="tests-hero-badge-icon" aria-hidden="true">
+                                <ClipboardList size={16} />
+                            </span>
+                            <span className="uppercase">Simulare examen</span>
+                        </div>
+                        <h1 className="tests-hero-title">
+                            Teste de <span>pregătire</span>
+                        </h1>
+                        <p className="tests-hero-subtitle">
+                            Alege modul de lucru, pornește un test și primește feedback clar despre progresul tău pe capitole.
+                        </p>
+                        <div className="tests-hero-stats" aria-label="Sumar setări test">
+                            <div className="tests-hero-stat">
+                                <strong>{examSettings.passingThreshold}%</strong>
+                                <span>Prag promovare</span>
+                            </div>
+                            <div className="tests-hero-stat">
+                                <strong>{examSettings.testDurationMinutes} min</strong>
+                                <span>Durată implicită</span>
+                            </div>
+                            <div className="tests-hero-stat">
+                                <strong>2 moduri</strong>
+                                <span>Antrenament / Examen</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            </section>
 
-                <div className="quiz-mode-switch" role="tablist" aria-label="Selecție mod test">
-                    <button type="button" className={`mode-switch-btn ${quizMode === 'training' ? 'active' : ''}`} onClick={() => setQuizMode('training')}>
-                        Antrenament
-                        <small>Feedback imediat după fiecare răspuns</small>
-                    </button>
-                    <button type="button" className={`mode-switch-btn ${quizMode === 'exam' ? 'active' : ''}`} onClick={() => setQuizMode('exam')}>
-                        Examen
-                        <small>Fără feedback până la finalul testului</small>
-                    </button>
-                </div>
-
-                <div className="quiz-categories">
-                    {categories.map((category) => (
-                        <article key={category.id} className="quiz-category-card">
-                            <div className="category-icon" aria-hidden="true">{renderCategoryIcon(category.id)}</div>
-                            <h3>{normalizeText(category.title)}</h3>
-                            <p className="category-description">{normalizeText(category.description)}</p>
-
-                            <div className="category-meta">
-                                <div className="meta-item"><span>Durata test: {durationByCategoryId[category.id] ?? category.estimatedTime} min</span></div>
-                                <div className="meta-item"><span>{category.questionCount} întrebări</span></div>
-                                <div className="meta-item"><span className={`difficulty-badge ${category.difficulty}`}>{difficultyLabel(category.difficulty)}</span></div>
+            <div className="container tests-home-content">
+                <div className="tests-home-panel">
+                    <div className="tests-prep-grid">
+                        <section className="tests-prep-card" aria-labelledby="tests-mode-title">
+                            <div className="page-header">
+                                <h2 id="tests-mode-title">Alege modul de lucru</h2>
+                                <p className="page-subtitle">Poți exersa cu feedback instant sau simula un examen complet cu cronometru.</p>
                             </div>
 
-                            <button className="btn-start-quiz" onClick={() => startQuiz(category.id)}>Începe în modul {modeLabel(quizMode)}</button>
-                        </article>
-                    ))}
-                </div>
+                            <div className="quiz-mode-switch" role="tablist" aria-label="Selecție mod test">
+                                <button type="button" className={`mode-switch-btn ${quizMode === 'training' ? 'active' : ''}`} onClick={() => setQuizMode('training')}>
+                                    Antrenament
+                                    <small>Feedback imediat după fiecare răspuns</small>
+                                </button>
+                                <button type="button" className={`mode-switch-btn ${quizMode === 'exam' ? 'active' : ''}`} onClick={() => setQuizMode('exam')}>
+                                    Examen
+                                    <small>Fără feedback până la finalul testului</small>
+                                </button>
+                            </div>
+                        </section>
 
-                <section className="tests-info-box">
-                    <div className="tests-info-content">
-                        <h4>Reguli rapide</h4>
-                        <ul>
-                            <li>Scor minim de promovare: {examSettings.passingThreshold}%.</li>
-                            <li>Durata fiecărui test vine din setarea testului din Admin (fallback global: {examSettings.testDurationMinutes} minute).</li>
-                            <li>Înainte de submit primești validare pentru răspunsurile lipsă.</li>
-                            <li>După finalizare primești analiza pe capitole și istoric.</li>
-                        </ul>
+                        <section className="tests-info-box tests-rules-card" aria-labelledby="tests-rules-title">
+                            <div className="tests-info-content">
+                                <h4 id="tests-rules-title">Reguli rapide</h4>
+                                <ul>
+                                    <li>Scor minim de promovare: {examSettings.passingThreshold}%.</li>
+                                    <li>Durata fiecărui test vine din setarea testului din Admin (fallback global: {examSettings.testDurationMinutes} minute).</li>
+                                    <li>Înainte de submit primești validare pentru răspunsurile lipsă.</li>
+                                    <li>După finalizare primești analiza pe capitole și istoric.</li>
+                                </ul>
+                            </div>
+                        </section>
                     </div>
-                </section>
 
+                    <section className="tests-categories-section" aria-labelledby="tests-categories-title">
+                        <div className="tests-section-header">
+                            <h2 id="tests-categories-title">Categorii de test</h2>
+                            <p>Alege testul care corespunde zonei în care vrei să exersezi mai mult.</p>
+                        </div>
+
+                        <div className="quiz-categories">
+                            {categories.map((category) => (
+                                <article key={category.id} className="quiz-category-card">
+                                    <div className="category-icon" aria-hidden="true">{renderCategoryIcon(category.id)}</div>
+                                    <h3>{normalizeText(category.title)}</h3>
+                                    <p className="category-description">{normalizeText(category.description)}</p>
+
+                                    <div className="category-meta">
+                                        <div className="meta-item"><span>Durata test: {durationByCategoryId[category.id] ?? category.estimatedTime} min</span></div>
+                                        <div className="meta-item"><span>{category.questionCount} întrebări</span></div>
+                                        <div className="meta-item"><span className={`difficulty-badge ${category.difficulty}`}>{difficultyLabel(category.difficulty)}</span></div>
+                                    </div>
+
+                                    <button className="btn-start-quiz" onClick={() => startQuiz(category.id)}>Începe în modul {modeLabel(quizMode)}</button>
+                                </article>
+                            ))}
+                        </div>
+                    </section>
+                </div>
             </div>
         </div>
     );
 };
 
 export default TestsPage;
+
+
 
 

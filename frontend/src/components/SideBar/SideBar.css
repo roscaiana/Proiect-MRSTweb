@@ -141,17 +141,46 @@
     transition: all 0.3s ease;
 }
 
+.sidebar-logout-btn {
+    width: 100%;
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px 15px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    text-align: left;
+}
+
 .sidebar-section ul li a i {
     width: 20px;
     text-align: center;
     font-size: 1.2rem;
 }
+
+.sidebar-logout-btn i {
+    width: 20px;
+    text-align: center;
+    font-size: 1.2rem;
+}
+
 .sidebar-section ul li a.active {
     background: rgba(255, 255, 255, 0.15);
     color: #FFFFFF;
 }
 
 .sidebar-section ul li a:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #FFFFFF;
+    transform: translateX(10px);
+}
+
+.sidebar-logout-btn:hover {
     background: rgba(255, 255, 255, 0.1);
     color: #FFFFFF;
     transform: translateX(10px);

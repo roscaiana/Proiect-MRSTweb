@@ -1,5 +1,6 @@
-import { Link } from 'react-router-dom';
-import { useAuth } from '../../hooks/useAuth';
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
+import { PUBLIC_PAGES } from "../navigation/siteNavigation";
 import "./SideBar.css";
 
 type Props = {
@@ -42,11 +43,22 @@ export default function Sidebar({ open, onClose }: Props) {
             { to: '/register', icon: 'fas fa-user-plus', label: 'Înregistrare' },
         ];
 
+    const navigate = useNavigate();
+    const { isAuthenticated, logout } = useAuth();
+
+    const accountTitle = isAuthenticated ? "Contul Meu" : "Autentificare";
+
+    const handleLogout = () => {
+        logout();
+        onClose();
+        navigate("/");
+    };
+
     return (
         <>
-            <nav className={`sidebar ${open ? 'active' : ''}`} id="main-sidebar">
+            <nav className={`sidebar ${open ? "active" : ""}`} id="main-sidebar" aria-hidden={!open}>
                 <div className="sidebar-header">
-                    <Link to="/" className="logo-area white-text" onClick={onClose} aria-label="Acasă">
+                    <Link to="/" className="logo-area white-text" onClick={onClose} aria-label={"Acas\u0103"}>
                         <div className="logo-emblem" style={{ width: 40, height: 40 }}>
                             <svg viewBox="0 0 100 100" className="svg-logo">
                                 <defs>
@@ -72,8 +84,21 @@ export default function Sidebar({ open, onClose }: Props) {
 
                 <div className="sidebar-content">
                     <div className="sidebar-section">
-                        <h4>Navigație</h4>
+                        <h4>{"Naviga\u021Bie"}</h4>
                         <ul>
+                            {PUBLIC_PAGES.map((page) => (
+                                <li key={page.path}>
+                                    <NavLink
+                                        to={page.path}
+                                        end={page.path === "/"}
+                                        onClick={onClose}
+                                        className={({ isActive }) => (isActive ? "active" : "")}
+                                    >
+                                        <i className={page.icon}></i>
+                                        {page.label}
+                                    </NavLink>
+                                </li>
+                            ))}
                             {primaryLinks.map((link) => (
                                 <li key={`${link.to}-${link.label}`}>
                                     <Link to={link.to} onClick={onClose}>
@@ -85,7 +110,7 @@ export default function Sidebar({ open, onClose }: Props) {
                     </div>
 
                     <div className="sidebar-section">
-                        <h4>Contul Meu</h4>
+                        <h4>{accountTitle}</h4>
                         <ul>
                             {accountLinks.map((link) => (
                                 <li key={`${link.to}-${link.label}`}>
@@ -94,12 +119,27 @@ export default function Sidebar({ open, onClose }: Props) {
                                     </Link>
                                 </li>
                             ))}
+                            {!isAuthenticated ? (
+                                <li>
+                                    <NavLink to="/login" onClick={onClose} className={({ isActive }) => (isActive ? "active" : "")}>
+                                        <i className="fas fa-right-to-bracket"></i>
+                                        Autentificare
+                                    </NavLink>
+                                </li>
+                            ) : (
+                                <li>
+                                    <button type="button" className="sidebar-logout-btn" onClick={handleLogout}>
+                                        <i className="fas fa-right-from-bracket"></i>
+                                        Deconectare
+                                    </button>
+                                </li>
+                            )}
                         </ul>
                     </div>
                 </div>
 
                 <div className="sidebar-footer">
-                    <p>© 2026 e-Electoral</p>
+                    <p>{"\u00A9 2026 e-Electoral"}</p>
                 </div>
             </nav>
 
