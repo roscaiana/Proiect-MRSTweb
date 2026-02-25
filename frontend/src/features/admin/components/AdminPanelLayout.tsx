@@ -17,9 +17,6 @@ const AdminPanelLayout: React.FC = () => {
     const location = useLocation();
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-    const currentSection =
-        navItems.find((item) => location.pathname.startsWith(item.to))?.label || "Admin";
-
     const handleLogout = () => {
         logout();
         navigate("/login");
@@ -162,15 +159,6 @@ const AdminPanelLayout: React.FC = () => {
                     </aside>
 
                     <main className="admin-main-content">
-                        <div className="admin-topbar">
-                            <div className="admin-topbar-left">
-                                <p className="admin-topbar-eyebrow">Mod Administrare</p>
-                                <h2>{currentSection}</h2>
-                                <p className="admin-topbar-subtitle">
-                                    {user?.fullName || "Administrator"} • {user?.email || "cont admin"}
-                                </p>
-                            </div>
-                        </div>
                         <Outlet />
                     </main>
                 </div>
@@ -180,3 +168,4 @@ const AdminPanelLayout: React.FC = () => {
 };
 
 export default AdminPanelLayout;
+

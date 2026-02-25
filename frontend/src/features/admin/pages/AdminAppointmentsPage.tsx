@@ -45,6 +45,8 @@ const AdminAppointmentsPage: React.FC = () => {
     const [search, setSearch] = useState("");
     const [dateFilter, setDateFilter] = useState("");
     const [slotFilter, setSlotFilter] = useState("all");
+    const [sortBy, setSortBy] = useState<"updated_desc" | "exam_asc" | "exam_desc" | "name_asc">("updated_desc");
+    const [selectedAppointmentIds, setSelectedAppointmentIds] = useState<string[]>([]);
     const [feedback, setFeedback] = useState("");
 
     const [configDate, setConfigDate] = useState(() => toDateKey(new Date()));
@@ -115,6 +117,35 @@ const AdminAppointmentsPage: React.FC = () => {
         [configDate, state.appointments, state.settings]
     );
 
+    const pendingQueue = useMemo(
+        () =>
+            state.appointments
+                .filter((appointment) => appointment.status === "pending")
+                .sort((a, b) => {
+                    const examDateCompare = new Date(a.date).getTime() - new Date(b.date).getTime();
+                    if (examDateCompare !== 0) return examDateCompare;
+                    return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+                })
+                .slice(0, 8),
+        [state.appointments]
+    );
+
+    const configDayCalendarRows = useMemo(() => {
+        const activeBySlot = new Map(
+            configDayAppointments.map((appointment) => [`${appointment.slotStart}-${appointment.slotEnd}`, appointment])
+        );
+
+        return configDaySlots.map((slot) => {
+            const key = `${slot.startTime}-${slot.endTime}`;
+            const occupiedAppointment = activeBySlot.get(key);
+            return {
+                key,
+                slot,
+                occupiedAppointment,
+            };
+        });
+    }, [configDayAppointments, configDaySlots]);
+
     const filteredAppointments = useMemo(() => {
         return [...state.appointments]
             .filter((appointment) => {
@@ -133,11 +164,37 @@ const AdminAppointmentsPage: React.FC = () => {
                 return matchesStatus && matchesSearch && matchesDate && matchesSlot;
             })
             .sort((a, b) => {
+                if (sortBy === "exam_asc") {
+                    return new Date(a.date).getTime() - new Date(b.date).getTime();
+                }
+
+                if (sortBy === "exam_desc") {
+                    return new Date(b.date).getTime() - new Date(a.date).getTime();
+                }
+
+                if (sortBy === "name_asc") {
+                    return a.fullName.localeCompare(b.fullName, "ro");
+                }
+
                 const aTime = new Date(a.updatedAt || a.createdAt).getTime();
                 const bTime = new Date(b.updatedAt || b.createdAt).getTime();
                 return bTime - aTime;
             });
-    }, [dateFilter, search, slotFilter, state.appointments, statusFilter]);
+    }, [dateFilter, search, slotFilter, sortBy, state.appointments, statusFilter]);
+
+    useEffect(() => {
+        const availableIds = new Set(filteredAppointments.map((appointment) => appointment.id));
+        setSelectedAppointmentIds((prev) => prev.filter((id) => availableIds.has(id)));
+    }, [filteredAppointments]);
+
+    const selectedAppointments = useMemo(
+        () => filteredAppointments.filter((appointment) => selectedAppointmentIds.includes(appointment.id)),
+        [filteredAppointments, selectedAppointmentIds]
+    );
+
+    const allFilteredSelected =
+        filteredAppointments.length > 0 &&
+        filteredAppointments.every((appointment) => selectedAppointmentIds.includes(appointment.id));
 
     const handleSaveDayConfig = () => {
         if (!configDate) {
@@ -261,7 +318,87 @@ const AdminAppointmentsPage: React.FC = () => {
         setFeedback("Export CSV generat.");
     };
 
+    const toggleSelectAllFiltered = () => {
+        if (allFilteredSelected) {
+            setSelectedAppointmentIds([]);
+            return;
+        }
+
+        setSelectedAppointmentIds(filteredAppointments.map((appointment) => appointment.id));
+    };
+
+    const toggleAppointmentSelection = (appointmentId: string) => {
+        setSelectedAppointmentIds((prev) =>
+            prev.includes(appointmentId) ? prev.filter((id) => id !== appointmentId) : [...prev, appointmentId]
+        );
+    };
+
+    const applyBulkStatusAction = (action: "approve" | "reject" | "cancel") => {
+        if (selectedAppointments.length === 0) {
+            setFeedback("Selecteaza cel putin o programare.");
+            return;
+        }
+
+        const eligibleAppointments = selectedAppointments.filter((appointment) => {
+            if (action === "approve") {
+                return appointment.status !== "approved" && appointment.status !== "cancelled";
+            }
+            return appointment.status !== "cancelled";
+        });
+
+        if (eligibleAppointments.length === 0) {
+            setFeedback("Nicio programare selectata nu este eligibila pentru actiunea aleasa.");
+            return;
+        }
+
+        const actionLabel =
+            action === "approve" ? "aprobarea" : action === "reject" ? "respingerea" : "anularea";
+        if (!window.confirm(`Confirmi ${actionLabel} pentru ${eligibleAppointments.length} programari?`)) {
+            return;
+        }
+
+        let reason: string | null = null;
+        let adminNote: string | null = null;
+
+        if (action === "reject") {
+            reason = (window.prompt("Motivul respingerii (vizibil utilizatorului):", "") || "").trim() || null;
+            if (!reason) {
+                setFeedback("Respingerea bulk necesita un motiv.");
+                return;
+            }
+            adminNote = (window.prompt("Nota interna admin (optional):", "") || "").trim() || null;
+        }
+
+        if (action === "cancel") {
+            reason = (window.prompt("Motiv anulare (vizibil utilizatorului, optional):", "") || "").trim() || null;
+        }
+
+        if (action === "approve") {
+            adminNote = (window.prompt("Nota admin (optional, aplicata tuturor):", "") || "").trim() || null;
+        }
+
+        eligibleAppointments.forEach((appointment) => {
+            if (action === "approve") {
+                updateAppointmentStatus(appointment.id, "approved", { reason: null, adminNote });
+                return;
+            }
+
+            if (action === "reject") {
+                updateAppointmentStatus(appointment.id, "rejected", { reason, adminNote });
+                return;
+            }
+
+            updateAppointmentStatus(appointment.id, "cancelled", { reason, cancelledBy: "admin" });
+        });
+
+        setSelectedAppointmentIds([]);
+        setFeedback(
+            `${eligibleAppointments.length} programari au fost ${action === "approve" ? "aprobate" : action === "reject" ? "respinse" : "anulate"}.`
+        );
+    };
+
     const handleApprove = (appointmentId: string) => {
+        if (!window.confirm("Confirmi aprobarea acestei programari?")) return;
         const adminNote = window.prompt("Nota admin (optional):", "") || "";
         updateAppointmentStatus(appointmentId, "approved", {
             reason: null,
@@ -271,6 +408,7 @@ const AdminAppointmentsPage: React.FC = () => {
     };
 
     const handleReject = (appointmentId: string) => {
+        if (!window.confirm("Confirmi respingerea acestei programari?")) return;
         const reason = window.prompt("Motivul respingerii (vizibil utilizatorului):", "");
         if (!reason || !reason.trim()) {
             setFeedback("Respingerea necesită un motiv.");
@@ -286,6 +424,7 @@ const AdminAppointmentsPage: React.FC = () => {
     };
 
     const handleCancelByAdmin = (appointmentId: string) => {
+        if (!window.confirm("Confirmi anularea acestei programari de catre admin?")) return;
         const reason = window.prompt("Motiv anulare (vizibil utilizatorului):", "") || "";
         updateAppointmentStatus(appointmentId, "cancelled", {
             reason: reason.trim() || null,
@@ -297,6 +436,7 @@ const AdminAppointmentsPage: React.FC = () => {
     const handleReschedule = (appointmentId: string) => {
         const appointment = state.appointments.find((item) => item.id === appointmentId);
         if (!appointment) return;
+        if (!window.confirm("Confirmi reprogramarea acestei cereri?")) return;
 
         const nextDateValue = window.prompt("Data nouă (YYYY-MM-DD):", toDateKey(appointment.date)) || "";
         if (!nextDateValue) return;
@@ -372,7 +512,73 @@ const AdminAppointmentsPage: React.FC = () => {
 
             <section className="admin-panel-card">
                 <div className="admin-card-header">
-                    <h3>Ocupare zile eligibile (preview)</h3>
+                    <h3><i className="fas fa-clock admin-card-header-icon"></i> Coada aprobare (pending)</h3>
+                    <span className="admin-muted-text">{pendingQueue.length} afisate</span>
+                </div>
+                {pendingQueue.length === 0 ? (
+                    <p className="admin-muted-text">Nu exista cereri pending.</p>
+                ) : (
+                    <div className="admin-simple-list">
+                        {pendingQueue.map((appointment) => (
+                            <div className="admin-simple-item" key={`pending-queue-${appointment.id}`}>
+                                <div>
+                                    <strong>{appointment.fullName}</strong>
+                                    <p>
+                                        {formatDateLabel(appointment.date)} · {appointment.slotStart}-{appointment.slotEnd}
+                                    </p>
+                                    <p>{appointment.appointmentCode || "Fara cod"}</p>
+                                </div>
+                                <div className="admin-actions-row admin-actions-row-wrap">
+                                    <button className="admin-text-btn" type="button" onClick={() => handleApprove(appointment.id)}>
+                                        Aproba
+                                    </button>
+                                    <button className="admin-text-btn danger" type="button" onClick={() => handleReject(appointment.id)}>
+                                        Respinge
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </section>
+
+            <section className="admin-panel-card">
+                <div className="admin-card-header">
+                    <h3><i className="fas fa-table-cells admin-card-header-icon"></i> Calendar zi (sloturi)</h3>
+                    <span className="admin-muted-text">{configDate}</span>
+                </div>
+                {configDayCalendarRows.length === 0 ? (
+                    <p className="admin-muted-text">Nu exista sloturi configurate pentru ziua selectata.</p>
+                ) : (
+                    <div className="admin-day-calendar-list">
+                        {configDayCalendarRows.map(({ key, slot, occupiedAppointment }) => (
+                            <div key={key} className={`admin-day-calendar-item ${occupiedAppointment ? "occupied" : "free"}`}>
+                                <div className="admin-day-calendar-slot">
+                                    <strong>{slot.startTime} - {slot.endTime}</strong>
+                                    <span>{occupiedAppointment ? "ocupat" : "liber"}</span>
+                                </div>
+                                <div className="admin-day-calendar-content">
+                                    {occupiedAppointment ? (
+                                        <>
+                                            <strong>{occupiedAppointment.fullName}</strong>
+                                            <p>{occupiedAppointment.userEmail || occupiedAppointment.idOrPhone}</p>
+                                            <p>
+                                                {occupiedAppointment.appointmentCode || "Fara cod"} · {statusLabel(occupiedAppointment.status)}
+                                            </p>
+                                        </>
+                                    ) : (
+                                        <p className="admin-muted-text">Slot disponibil</p>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </section>
+
+            <section className="admin-panel-card">
+                <div className="admin-card-header">
+                    <h3><i className="fas fa-chart-bar admin-card-header-icon"></i> Ocupare zile eligibile (preview)</h3>
                 </div>
                 <div className="admin-appointment-heatmap">
                     {occupancyPreview.map((day) => {
@@ -414,7 +620,7 @@ const AdminAppointmentsPage: React.FC = () => {
 
             <section className="admin-panel-card">
                 <div className="admin-card-header">
-                    <h3>Configurare zi / reguli programare</h3>
+                    <h3><i className="fas fa-gear admin-card-header-icon"></i> Configurare zi / reguli programare</h3>
                     <button className="admin-btn secondary" type="button" onClick={handleSaveDayConfig}>
                         Salvează
                     </button>
@@ -534,7 +740,7 @@ const AdminAppointmentsPage: React.FC = () => {
 
             <section className="admin-panel-card">
                 <div className="admin-card-header">
-                    <h3>Programări</h3>
+                    <h3><i className="fas fa-list admin-card-header-icon"></i> Programări</h3>
                     <button className="admin-btn secondary" type="button" onClick={handleExportCsv}>
                         Export CSV
                     </button>
@@ -580,6 +786,16 @@ const AdminAppointmentsPage: React.FC = () => {
                             ))}
                         </select>
                     </label>
+
+                    <label className="admin-field">
+                        <span>Sortare</span>
+                        <select value={sortBy} onChange={(event) => setSortBy(event.target.value as typeof sortBy)}>
+                            <option value="updated_desc">Actualizate recent</option>
+                            <option value="exam_asc">Data examen (crescator)</option>
+                            <option value="exam_desc">Data examen (descrescator)</option>
+                            <option value="name_asc">Nume candidat (A-Z)</option>
+                        </select>
+                    </label>
                 </div>
 
                 <div className="admin-appointments-stats">
@@ -607,6 +823,55 @@ const AdminAppointmentsPage: React.FC = () => {
                     </div>
                 </div>
 
+                <div className="admin-bulk-toolbar">
+                    <div className="admin-bulk-toolbar-left">
+                        <label className="admin-bulk-select-toggle">
+                            <input
+                                type="checkbox"
+                                checked={allFilteredSelected}
+                                onChange={toggleSelectAllFiltered}
+                                disabled={filteredAppointments.length === 0}
+                            />
+                            <span>Selecteaza toate rezultatele filtrate</span>
+                        </label>
+                        <span className="admin-muted-text">{selectedAppointmentIds.length} selectate</span>
+                    </div>
+                    <div className="admin-bulk-toolbar-actions">
+                        <button
+                            type="button"
+                            className="admin-btn secondary"
+                            onClick={() => applyBulkStatusAction("approve")}
+                            disabled={selectedAppointmentIds.length === 0}
+                        >
+                            Aproba selectate
+                        </button>
+                        <button
+                            type="button"
+                            className="admin-btn ghost"
+                            onClick={() => applyBulkStatusAction("reject")}
+                            disabled={selectedAppointmentIds.length === 0}
+                        >
+                            Respinge selectate
+                        </button>
+                        <button
+                            type="button"
+                            className="admin-btn ghost"
+                            onClick={() => applyBulkStatusAction("cancel")}
+                            disabled={selectedAppointmentIds.length === 0}
+                        >
+                            Anuleaza selectate
+                        </button>
+                        <button
+                            type="button"
+                            className="admin-btn ghost"
+                            onClick={() => setSelectedAppointmentIds([])}
+                            disabled={selectedAppointmentIds.length === 0}
+                        >
+                            Goleste selectie
+                        </button>
+                    </div>
+                </div>
+
                 {filteredAppointments.length === 0 ? (
                     <p className="admin-muted-text">Nu există programări pentru filtrul selectat.</p>
                 ) : (
@@ -614,6 +879,14 @@ const AdminAppointmentsPage: React.FC = () => {
                         <table className="admin-table">
                             <thead>
                                 <tr>
+                                    <th className="admin-table-checkbox-col">
+                                        <input
+                                            type="checkbox"
+                                            checked={allFilteredSelected}
+                                            onChange={toggleSelectAllFiltered}
+                                            aria-label="Selecteaza toate programarile filtrate"
+                                        />
+                                    </th>
                                     <th>Candidat</th>
                                     <th>Cod / Meta</th>
                                     <th>Data examen</th>
@@ -625,6 +898,14 @@ const AdminAppointmentsPage: React.FC = () => {
                             <tbody>
                                 {filteredAppointments.map((appointment) => (
                                     <tr key={appointment.id}>
+                                        <td className="admin-table-checkbox-col">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedAppointmentIds.includes(appointment.id)}
+                                                onChange={() => toggleAppointmentSelection(appointment.id)}
+                                                aria-label={`Selecteaza programarea ${appointment.fullName}`}
+                                            />
+                                        </td>
                                         <td>
                                             <strong>{appointment.fullName}</strong>
                                             <p>{appointment.userEmail || appointment.idOrPhone}</p>

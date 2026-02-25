@@ -22,6 +22,18 @@ const AdminTestsPage: React.FC = () => {
         return state.tests.find((test) => test.id === editingTestId);
     }, [editingTestId, state.tests]);
 
+    const handleDeleteTest = (test: AdminTest) => {
+        const confirmed = window.confirm(
+            `Sigur vrei să ștergi testul "${test.title}"? Această acțiune nu poate fi anulată.`
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        deleteTest(test.id);
+    };
+
     const handleSaveSettings = (event: React.FormEvent) => {
         event.preventDefault();
         if (
@@ -54,7 +66,7 @@ const AdminTestsPage: React.FC = () => {
 
             <section className="admin-panel-card">
                 <div className="admin-card-header">
-                    <h3>Setări globale examen</h3>
+                    <h3><i className="fas fa-sliders admin-card-header-icon"></i> Setări globale examen</h3>
                 </div>
                 <form className="admin-inline-form" onSubmit={handleSaveSettings}>
                     <label className="admin-field">
@@ -190,7 +202,7 @@ const AdminTestsPage: React.FC = () => {
 
             <section className="admin-panel-card">
                 <div className="admin-card-header">
-                    <h3>Teste disponibile</h3>
+                    <h3><i className="fas fa-file-alt admin-card-header-icon"></i> Teste disponibile</h3>
                     <button
                         className="admin-btn secondary"
                         type="button"
@@ -262,7 +274,7 @@ const AdminTestsPage: React.FC = () => {
                                             <button
                                                 className="admin-text-btn danger"
                                                 type="button"
-                                                onClick={() => deleteTest(test.id)}
+                                                onClick={() => handleDeleteTest(test)}
                                             >
                                                 Șterge
                                             </button>
