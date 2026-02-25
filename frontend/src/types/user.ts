@@ -4,10 +4,21 @@ export interface User {
     id: string;
     email: string;
     fullName: string;
+    nickname?: string;
+    phoneNumber?: string;
+    avatarDataUrl?: string;
     role: UserRole;
     createdAt: Date;
     isBlocked?: boolean;
     lastLoginAt?: Date | string;
+}
+
+export interface UpdateUserProfileInput {
+    fullName: string;
+    nickname?: string;
+    email: string;
+    phoneNumber?: string;
+    avatarDataUrl?: string;
 }
 
 export interface AuthCredentials {

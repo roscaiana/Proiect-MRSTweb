@@ -228,6 +228,18 @@ export const readAdminUsers = (): AdminUserRecord[] => {
         id: user.id || `user-${index + 1}`,
         email: user.email || "",
         fullName: user.fullName || user.name || "Utilizator",
+        nickname:
+            typeof user.nickname === "string" && user.nickname.trim()
+                ? user.nickname.trim()
+                : undefined,
+        phoneNumber:
+            typeof user.phoneNumber === "string" && user.phoneNumber.trim()
+                ? user.phoneNumber.trim()
+                : undefined,
+        avatarDataUrl:
+            typeof user.avatarDataUrl === "string" && user.avatarDataUrl.trim()
+                ? user.avatarDataUrl
+                : undefined,
         role: user.role === "admin" ? "admin" : "user",
         createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : new Date().toISOString(),
         isBlocked: Boolean(user.isBlocked),
