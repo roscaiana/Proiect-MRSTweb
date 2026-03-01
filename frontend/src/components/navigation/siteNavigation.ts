@@ -20,7 +20,7 @@ export const GUEST_PAGES: SitePage[] = [
 ];
 
 export const USER_PAGES: SitePage[] = [
-    { label: "Dashboard", path: "/dashboard", icon: "fas fa-gauge-high", keywords: ["dashboard", "profil", "cont"] },
+    { label: "Profilul meu", path: "/dashboard", icon: "fas fa-gauge-high", keywords: ["dashboard", "profil", "cont"] },
 ];
 
 export const ADMIN_PANEL_PAGES: SitePage[] = [

@@ -68,7 +68,7 @@ export const ForbiddenPage: React.FC = () => (
         title="Acces interzis"
         description="Nu ai permisiuni suficiente pentru această acțiune."
         actions={[
-            { label: "Dashboard", to: "/dashboard", variant: "primary" },
+            { label: "Profilul meu", to: "/dashboard", variant: "primary" },
             { label: "Acasă", to: "/", variant: "outline" },
         ]}
     />
