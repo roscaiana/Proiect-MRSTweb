@@ -1,0 +1,169 @@
+.test-history-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 24px 48px;
+}
+
+.test-history-page__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.test-history-page__header h1 {
+    margin: 0 0 6px;
+    font-size: 32px;
+    color: #002147;
+}
+
+.test-history-page__header p {
+    margin: 0;
+    color: #4b5563;
+}
+
+.test-history-page__back-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 14px;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #0f172a;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.test-history-page__stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.test-history-page__stat-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    background: #ffffff;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.test-history-page__stat-card span {
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.test-history-page__stat-card strong {
+    color: #002147;
+    font-size: 24px;
+}
+
+.test-history-page__empty {
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    background: #ffffff;
+    padding: 24px;
+}
+
+.test-history-page__empty p {
+    margin: 0 0 12px;
+    color: #4b5563;
+}
+
+.test-history-page__empty a {
+    color: #002147;
+    font-weight: 700;
+}
+
+.test-history-page__list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.test-history-page__item {
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    background: #ffffff;
+    padding: 14px;
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) auto;
+    gap: 12px 16px;
+}
+
+.test-history-page__item-main h3 {
+    margin: 0 0 4px;
+    font-size: 18px;
+    color: #002147;
+}
+
+.test-history-page__item-main p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.test-history-page__item-badges {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.test-history-page__badge {
+    border-radius: 999px;
+    padding: 5px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    border: 1px solid transparent;
+}
+
+.test-history-page__badge.passed {
+    color: #047857;
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.25);
+}
+
+.test-history-page__badge.failed {
+    color: #be123c;
+    background: rgba(244, 63, 94, 0.12);
+    border-color: rgba(244, 63, 94, 0.25);
+}
+
+.test-history-page__score {
+    font-size: 18px;
+    font-weight: 800;
+    color: #002147;
+}
+
+.test-history-page__item-meta {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    color: #4b5563;
+    font-size: 13px;
+}
+
+@media (max-width: 768px) {
+    .test-history-page {
+        padding: 24px 16px 32px;
+    }
+
+    .test-history-page__header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .test-history-page__item {
+        grid-template-columns: 1fr;
+    }
+
+    .test-history-page__item-badges {
+        justify-content: flex-start;
+    }
+}
