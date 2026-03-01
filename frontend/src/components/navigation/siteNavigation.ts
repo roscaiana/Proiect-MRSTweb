@@ -21,6 +21,7 @@ export const GUEST_PAGES: SitePage[] = [
 
 export const USER_PAGES: SitePage[] = [
     { label: "Profilul meu", path: "/dashboard", icon: "fas fa-gauge-high", keywords: ["dashboard", "profil", "cont"] },
+    { label: "Istoric teste", path: "/test-history", icon: "fas fa-chart-column", keywords: ["istoric", "teste", "rezultate"] },
 ];
 
 export const ADMIN_PANEL_PAGES: SitePage[] = [
