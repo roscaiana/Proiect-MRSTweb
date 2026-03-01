@@ -24,10 +24,10 @@ export default function Sidebar({ open, onClose }: Props) {
     const accountLinks: SidebarLink[] = isAuthenticated
         ? isAdmin
             ? [{ to: '/admin', icon: 'fas fa-gauge-high', label: 'Panou Admin' }]
-            : [{ to: '/dashboard', icon: 'fas fa-user', label: 'Dashboard' }]
+            : [{ to: '/dashboard', icon: 'fas fa-user', label: 'Profilul meu' }]
         : [
             { to: '/login', icon: 'fas fa-sign-in-alt', label: 'Autentificare' },
-            { to: '/register', icon: 'fas fa-user-plus', label: 'ÃŽnregistrare' },
+            { to: '/register', icon: 'fas fa-user-plus', label: 'Înregistrare' },
         ];
 
     const navigate = useNavigate();

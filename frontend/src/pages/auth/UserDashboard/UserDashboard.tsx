@@ -99,9 +99,6 @@ const UserDashboard: React.FC = () => {
         return [...userQuizHistory].sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime());
     }, [userQuizHistory]);
 
-    const recentAttempts = useMemo(() => sortedUserQuizHistory.slice(0, 5), [sortedUserQuizHistory]);
-    const trendAttempts = useMemo(() => [...sortedUserQuizHistory].slice(0, 8).reverse(), [sortedUserQuizHistory]);
-
     const userAppointments = useMemo(() => {
         if (!user?.email) {
             return [];
@@ -178,31 +175,50 @@ const UserDashboard: React.FC = () => {
         });
     };
 
-    const formatTrendDate = (dateString: string) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('ro-RO', {
-            day: '2-digit',
-            month: '2-digit'
-        });
-    };
+    const packagePerformance = useMemo(() => {
+        const grouped = new Map<string, { name: string; attempts: number; totalScore: number; passed: number }>();
 
-    const trendAverageScore = useMemo(() => {
-        if (trendAttempts.length === 0) {
+        sortedUserQuizHistory.forEach((attempt: any) => {
+            const name = (attempt.categoryTitle || 'Test general').trim();
+            const current = grouped.get(name) || { name, attempts: 0, totalScore: 0, passed: 0 };
+            current.attempts += 1;
+            current.totalScore += attempt.score;
+            if (attempt.score >= passThreshold) {
+                current.passed += 1;
+            }
+            grouped.set(name, current);
+        });
+
+        return Array.from(grouped.values())
+            .map((item) => {
+                const averageScore = Math.round(item.totalScore / item.attempts);
+                const passRate = Math.round((item.passed / item.attempts) * 100);
+                return {
+                    name: item.name,
+                    shortName: item.name.length > 14 ? `${item.name.slice(0, 12)}...` : item.name,
+                    attempts: item.attempts,
+                    averageScore,
+                    passRate,
+                    isGood: averageScore >= passThreshold,
+                };
+            })
+            .sort((a, b) => b.averageScore - a.averageScore);
+    }, [sortedUserQuizHistory, passThreshold]);
+
+    const overallPassRate = useMemo(() => {
+        if (sortedUserQuizHistory.length === 0) {
             return 0;
         }
+        const passedAttempts = sortedUserQuizHistory.filter((attempt: any) => attempt.score >= passThreshold).length;
+        return Math.round((passedAttempts / sortedUserQuizHistory.length) * 100);
+    }, [sortedUserQuizHistory, passThreshold]);
 
-        return Math.round(trendAttempts.reduce((acc, attempt) => acc + attempt.score, 0) / trendAttempts.length);
-    }, [trendAttempts]);
-
-    const trendDelta = useMemo(() => {
-        if (trendAttempts.length < 2) {
+    const bestPackage = useMemo(() => {
+        if (packagePerformance.length === 0) {
             return null;
         }
-
-        const firstScore = trendAttempts[0].score;
-        const lastScore = trendAttempts[trendAttempts.length - 1].score;
-        return lastScore - firstScore;
-    }, [trendAttempts]);
+        return packagePerformance[packagePerformance.length - 1];
+    }, [packagePerformance]);
 
     const profileDisplayName = (user?.nickname || user?.fullName || 'Utilizator').trim();
     const profileAvatarPreview = (profileDraft.avatarDataUrl || user?.avatarDataUrl || '').trim();
@@ -306,8 +322,8 @@ const UserDashboard: React.FC = () => {
     return (
         <div className="dashboard-container">
             <div className="dashboard-header">
-                <h1>Dashboard Utilizator</h1>
-                <p>Bine ați revenit, {profileDisplayName}!</p>
+                <h1>Profilul meu</h1>
+                <p>Bine ai revenit, {profileDisplayName}!</p>
             </div>
 
             <div className="dashboard-grid">
@@ -546,91 +562,59 @@ const UserDashboard: React.FC = () => {
 
                 <div className="dashboard-card history-card">
                     <div className="card-header">
-                        <h2>Istoricul Testelor</h2>
-                        <Link to="/tests" className="card-action">
-                            Vezi toate →
+                        <h2>Statistică pe pachete</h2>
+                        <Link to="/test-history" className="card-action">
+                            Vezi toate -&gt;
                         </Link>
                     </div>
-                    <div className="history-list">
-                        {recentAttempts.length > 0 ? (
-                            recentAttempts.map((quiz: any, index: number) => (
-                                <div key={index} className="history-item">
-                                    <div className="history-icon">
-                                        {quiz.score >= passThreshold ? (
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                                                <polyline points="22 4 12 14.01 9 11.01" />
-                                            </svg>
-                                        ) : (
-                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                <circle cx="12" cy="12" r="10" />
-                                                <line x1="15" y1="9" x2="9" y2="15" />
-                                                <line x1="9" y1="9" x2="15" y2="15" />
-                                            </svg>
-                                        )}
-                                    </div>
-                                    <div className="history-content">
-                                        <h4>{quiz.categoryTitle || 'Test'}</h4>
-                                        <p>{formatDate(quiz.completedAt)}</p>
-                                    </div>
-                                    <div className={`history-score ${quiz.score >= passThreshold ? 'passed' : 'failed'}`}>
-                                        {quiz.score}%
-                                    </div>
-                                </div>
-                            ))
-                        ) : (
-                            <div className="empty-state">
-                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                                    <polyline points="14 2 14 8 20 8" />
-                                    <line x1="16" y1="13" x2="8" y2="13" />
-                                    <line x1="16" y1="17" x2="8" y2="17" />
-                                    <polyline points="10 9 9 9 8 9" />
-                                </svg>
-                                <p>Nu ați completat încă niciun test</p>
-                                <Link to="/tests" className="btn-primary">
-                                    Începe un Test
-                                </Link>
-                            </div>
-                        )}
-                    </div>
-                    {trendAttempts.length > 0 && (
+                    {packagePerformance.length > 0 ? (
                         <div className="dashboard-history-trend">
                             <div className="dashboard-history-trend-header">
                                 <div>
-                                    <h3>Evoluție în timp</h3>
-                                    <p className="dashboard-history-trend-subtitle">Ultimele {trendAttempts.length} încercări</p>
+                                    <h3>Performanță pe pachete</h3>
+                                    <p className="dashboard-history-trend-subtitle">Media scorurilor pe fiecare pachet de întrebări</p>
                                 </div>
                                 <div className="dashboard-trend-summary">
-                                    <span className="dashboard-trend-chip">Medie {trendAverageScore}%</span>
-                                    {trendDelta !== null && (
-                                        <span className={`dashboard-trend-chip delta ${trendDelta >= 0 ? 'up' : 'down'}`}>
-                                            {trendDelta >= 0 ? '+' : ''}{trendDelta}%
+                                    <span className="dashboard-trend-chip">Pachete {packagePerformance.length}</span>
+                                    <span className="dashboard-trend-chip">Promovare {overallPassRate}%</span>
+                                    {bestPackage && (
+                                        <span className="dashboard-trend-chip package-best">
+                                            Top: {bestPackage.shortName} ({bestPackage.averageScore}%)
                                         </span>
                                     )}
                                 </div>
                             </div>
-                            <div className="dashboard-trend-chart">
-                                {trendAttempts.map((attempt, index) => (
-                                    <div
-                                        key={`${attempt.completedAt}-trend-${index}`}
-                                        className="dashboard-trend-column"
-                                        title={`${attempt.categoryTitle || 'Test'} • ${attempt.score}% • ${formatDate(attempt.completedAt)}`}
-                                    >
-                                        <span className={`dashboard-trend-score ${attempt.score >= passThreshold ? 'passed' : 'failed'}`}>
-                                            {attempt.score}%
-                                        </span>
-                                        <div className="dashboard-trend-bar-rail" aria-hidden="true">
-                                            <div
-                                                className={`dashboard-trend-fill ${attempt.score >= passThreshold ? 'passed' : 'failed'}`}
-                                                style={{ height: `${Math.max(6, Math.min(100, attempt.score))}%` }}
-                                            />
+                            <div className="dashboard-package-chart" role="img" aria-label="Performanță pe pachete de întrebări">
+                                <div className="dashboard-package-grid">
+                                    {packagePerformance.map((pack) => (
+                                        <div
+                                            key={pack.name}
+                                            className="dashboard-package-column"
+                                            title={`${pack.name}: medie ${pack.averageScore}%, promovare ${pack.passRate}% (${pack.attempts} încercări)`}
+                                            style={{ '--package-bar-color': '#f1c40f' } as React.CSSProperties}
+                                        >
+                                            <span className={`dashboard-package-value ${pack.isGood ? 'good' : 'needs-work'}`}>
+                                                {pack.averageScore}%
+                                            </span>
+                                            <div className="dashboard-package-rail" aria-hidden="true">
+                                                <div
+                                                    className={`dashboard-package-fill ${pack.isGood ? 'good' : 'needs-work'}`}
+                                                    style={{ height: `${Math.max(8, Math.min(100, pack.averageScore))}%` }}
+                                                />
+                                            </div>
+                                            <span className="dashboard-package-name">{pack.shortName}</span>
+                                            <span className="dashboard-package-meta">{pack.passRate}% | {pack.attempts} înc.</span>
                                         </div>
-                                        <span className="dashboard-trend-date">{formatTrendDate(attempt.completedAt)}</span>
-                                        <span className="dashboard-trend-label">{attempt.categoryTitle || 'Test'}</span>
-                                    </div>
-                                ))}
+                                    ))}
+                                </div>
                             </div>
+                        </div>
+                    ) : (
+                        <div className="empty-state">
+                            <p>Nu ai încă rezultate pentru statistică.</p>
+                            <Link to="/tests" className="btn-primary">
+                                Începe un test
+                            </Link>
                         </div>
                     )}
                 </div>

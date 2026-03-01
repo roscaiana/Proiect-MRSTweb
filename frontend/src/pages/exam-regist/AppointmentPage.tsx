@@ -6,7 +6,6 @@ import {
     isAllowedDay,
     //getNextAvailableDate,
     formatDate,
-    formatDateForInput,
     getDayName,
     getMonthName
 } from '../../utils/dateUtils';
@@ -30,6 +29,45 @@ import './AppointmentPage.css';
 const APPOINTMENT_DRAFT_KEY = 'appointmentFormDraft';
 const APPOINTMENT_RESCHEDULE_KEY = 'appointmentRescheduleDraft';
 type SlotFilter = 'all' | 'midday' | 'afternoon';
+
+type CalendarDayCell = {
+    date: Date;
+    dateKey: string;
+    inCurrentMonth: boolean;
+    isToday: boolean;
+    isSelected: boolean;
+    isAllowedWeekday: boolean;
+    isWithinRange: boolean;
+    isLeadTimeMet: boolean;
+    isBlocked: boolean;
+    isFull: boolean;
+    remaining: number;
+    capacity: number;
+    selectable: boolean;
+};
+
+const CALENDAR_WEEK_DAYS = ['Lu', 'Ma', 'Mi', 'Jo', 'Vi', 'Sa', 'Du'];
+
+const startOfMonth = (date: Date): Date => new Date(date.getFullYear(), date.getMonth(), 1);
+
+const getMonthKey = (date: Date): number => date.getFullYear() * 12 + date.getMonth();
+
+const clampMonthToRange = (monthDate: Date, minDate: Date, maxDate: Date): Date => {
+    const monthStart = startOfMonth(monthDate);
+    const minMonth = startOfMonth(minDate);
+    const maxMonth = startOfMonth(maxDate);
+    const monthKey = getMonthKey(monthStart);
+
+    if (monthKey < getMonthKey(minMonth)) return minMonth;
+    if (monthKey > getMonthKey(maxMonth)) return maxMonth;
+    return monthStart;
+};
+
+const isSameCalendarDate = (left: Date, right: Date): boolean => (
+    left.getFullYear() === right.getFullYear()
+    && left.getMonth() === right.getMonth()
+    && left.getDate() === right.getDate()
+);
 
 const AppointmentPage: React.FC = () => {
     const { user } = useAuth();
@@ -148,6 +186,41 @@ const AppointmentPage: React.FC = () => {
         const date = new Date(2050, 11, 31); // December 31st, 2050
         return date;
     }, []);
+    const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+    const [calendarMonth, setCalendarMonth] = useState<Date>(() => {
+        return clampMonthToRange(startOfMonth(new Date()), new Date(2026, 0, 1), new Date(2050, 11, 31));
+    });
+    const calendarPickerRef = React.useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        if (!formData.selectedDate) return;
+        setCalendarMonth(clampMonthToRange(startOfMonth(formData.selectedDate), minDate, maxDate));
+    }, [formData.selectedDate, minDate, maxDate]);
+
+    useEffect(() => {
+        if (!isCalendarOpen) return;
+
+        const handleOutsideClick = (event: MouseEvent) => {
+            if (!calendarPickerRef.current) return;
+            if (event.target instanceof Node && !calendarPickerRef.current.contains(event.target)) {
+                setIsCalendarOpen(false);
+            }
+        };
+
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setIsCalendarOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleOutsideClick);
+        document.addEventListener('keydown', handleEscape);
+
+        return () => {
+            document.removeEventListener('mousedown', handleOutsideClick);
+            document.removeEventListener('keydown', handleEscape);
+        };
+    }, [isCalendarOpen]);
 
     const userAppointments = useMemo(() => {
         if (!user?.email) return [];
@@ -169,6 +242,62 @@ const AppointmentPage: React.FC = () => {
         () => (selectedDateKey ? getBlockedDateEntry(examSettings, selectedDateKey) : undefined),
         [examSettings, selectedDateKey]
     );
+    const minMonth = useMemo(() => startOfMonth(minDate), [minDate]);
+    const maxMonth = useMemo(() => startOfMonth(maxDate), [maxDate]);
+    const canNavigatePrevMonth = getMonthKey(calendarMonth) > getMonthKey(minMonth);
+    const canNavigateNextMonth = getMonthKey(calendarMonth) < getMonthKey(maxMonth);
+
+    const selectedDateLabel = useMemo(() => {
+        if (!formData.selectedDate) return 'Selectați data programării';
+        return `${getDayName(formData.selectedDate)}, ${formData.selectedDate.getDate()} ${getMonthName(formData.selectedDate)} ${formData.selectedDate.getFullYear()}`;
+    }, [formData.selectedDate]);
+
+    const calendarDays = useMemo<CalendarDayCell[]>(() => {
+        const firstDayOfMonth = startOfMonth(calendarMonth);
+        const monthStartWeekDay = (firstDayOfMonth.getDay() + 6) % 7; // Monday first
+        const gridStart = new Date(firstDayOfMonth);
+        gridStart.setDate(firstDayOfMonth.getDate() - monthStartWeekDay);
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        return Array.from({ length: 42 }, (_, index) => {
+            const dayDate = new Date(gridStart);
+            dayDate.setDate(gridStart.getDate() + index);
+            dayDate.setHours(0, 0, 0, 0);
+
+            const dateKey = toDateKey(dayDate);
+            const dayAppointments = getAppointmentsForDate(appointments, dateKey, {
+                activeOnly: true,
+                excludeId: rescheduleSourceId || undefined,
+            });
+            const capacity = getDailyCapacity(examSettings, dateKey);
+            const blockedEntry = getBlockedDateEntry(examSettings, dateKey);
+            const remaining = Math.max(0, capacity - dayAppointments.length);
+            const isAllowedWeekday = isAllowedDay(dayDate);
+            const isWithinRange = dayDate >= minDate && dayDate <= maxDate;
+            const isLeadTimeMet = isLeadTimeSatisfied(examSettings, dayDate);
+            const isBlocked = Boolean(blockedEntry);
+            const isFull = remaining === 0;
+            const selectable = isWithinRange && isAllowedWeekday && isLeadTimeMet && !isBlocked && !isFull;
+
+            return {
+                date: dayDate,
+                dateKey,
+                inCurrentMonth: dayDate.getMonth() === calendarMonth.getMonth() && dayDate.getFullYear() === calendarMonth.getFullYear(),
+                isToday: isSameCalendarDate(dayDate, today),
+                isSelected: selectedDateKey === dateKey,
+                isAllowedWeekday,
+                isWithinRange,
+                isLeadTimeMet,
+                isBlocked,
+                isFull,
+                remaining,
+                capacity,
+                selectable,
+            };
+        });
+    }, [appointments, calendarMonth, examSettings, maxDate, minDate, rescheduleSourceId, selectedDateKey]);
 
     const selectedDayAppointments = useMemo(() => {
         if (!selectedDateKey) return [];
@@ -229,8 +358,7 @@ const AppointmentPage: React.FC = () => {
         }
     }, [allAvailableSlots, formData.selectedSlot]);
 
-    const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const dateString = e.target.value;
+    const handleDateValueChange = (dateString: string) => {
         if (!dateString) {
             setFormData({ ...formData, selectedDate: null, selectedSlot: null });
             setErrors((prev) => ({ ...prev, date: undefined, slot: undefined }));
@@ -270,6 +398,31 @@ const AppointmentPage: React.FC = () => {
             date: dateError,
             slot: slotError,
         });
+    };
+
+    const toggleCalendar = () => {
+        if (!isCalendarOpen) {
+            const monthSeed = formData.selectedDate || new Date();
+            setCalendarMonth(clampMonthToRange(startOfMonth(monthSeed), minDate, maxDate));
+        }
+        setIsCalendarOpen((prev) => !prev);
+    };
+
+    const goToPreviousMonth = () => {
+        if (!canNavigatePrevMonth) return;
+        const previous = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1);
+        setCalendarMonth(clampMonthToRange(previous, minDate, maxDate));
+    };
+
+    const goToNextMonth = () => {
+        if (!canNavigateNextMonth) return;
+        const next = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1);
+        setCalendarMonth(clampMonthToRange(next, minDate, maxDate));
+    };
+
+    const handleCalendarDaySelect = (dateKey: string) => {
+        handleDateValueChange(dateKey);
+        setIsCalendarOpen(false);
     };
 
     const handleSlotSelect = (slotId: string) => {
@@ -737,15 +890,117 @@ const AppointmentPage: React.FC = () => {
                                     <label htmlFor="examDate">
                                         Alege Data <span className="required">*</span>
                                     </label>
-                                    <input
-                                        type="date"
-                                        id="examDate"
-                                        className={`date-input ${errors.date ? 'error' : ''}`}
-                                        min={formatDateForInput(minDate)}
-                                        max={formatDateForInput(maxDate)}
-                                        onChange={handleDateChange}
-                                        value={formData.selectedDate ? formatDateForInput(formData.selectedDate) : ''}
-                                    />
+                                    <div className={`custom-date-picker ${errors.date ? 'error' : ''}`} ref={calendarPickerRef}>
+                                        <button
+                                            type="button"
+                                            id="examDate"
+                                            className={`date-trigger ${isCalendarOpen ? 'open' : ''}`}
+                                            onClick={toggleCalendar}
+                                            aria-haspopup="dialog"
+                                            aria-expanded={isCalendarOpen}
+                                            aria-controls="appointment-calendar-popover"
+                                        >
+                                            <span className={formData.selectedDate ? 'date-trigger-value' : 'date-trigger-placeholder'}>
+                                                {formData.selectedDate ? selectedDateLabel : 'Selectați data programării'}
+                                            </span>
+                                            <svg className={`calendar-chevron ${isCalendarOpen ? 'open' : ''}`} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                <polyline points="6 9 12 15 18 9" />
+                                            </svg>
+                                        </button>
+
+                                        {isCalendarOpen && (
+                                            <div
+                                                className="calendar-popover"
+                                                id="appointment-calendar-popover"
+                                                role="dialog"
+                                                aria-label="Calendar selecție dată"
+                                            >
+                                                <div className="calendar-popover-header">
+                                                    <button
+                                                        type="button"
+                                                        className="calendar-nav-btn"
+                                                        onClick={goToPreviousMonth}
+                                                        disabled={!canNavigatePrevMonth}
+                                                        aria-label="Luna anterioară"
+                                                    >
+                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                                            <polyline points="15 18 9 12 15 6" />
+                                                        </svg>
+                                                    </button>
+
+                                                    <strong className="calendar-month-label">
+                                                        {getMonthName(calendarMonth)} {calendarMonth.getFullYear()}
+                                                    </strong>
+
+                                                    <button
+                                                        type="button"
+                                                        className="calendar-nav-btn"
+                                                        onClick={goToNextMonth}
+                                                        disabled={!canNavigateNextMonth}
+                                                        aria-label="Luna următoare"
+                                                    >
+                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                                                            <polyline points="9 18 15 12 9 6" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+
+                                                <div className="calendar-week-row" aria-hidden="true">
+                                                    {CALENDAR_WEEK_DAYS.map((dayLabel) => (
+                                                        <span key={dayLabel}>{dayLabel}</span>
+                                                    ))}
+                                                </div>
+
+                                                <div className="calendar-grid" role="grid">
+                                                    {calendarDays.map((day) => {
+                                                        const occupancyRatio = day.capacity > 0
+                                                            ? (day.capacity - day.remaining) / day.capacity
+                                                            : 1;
+                                                        let statusClass = 'status-open';
+
+                                                        if (day.isBlocked) statusClass = 'status-blocked';
+                                                        else if (day.isFull) statusClass = 'status-full';
+                                                        else if (!day.isAllowedWeekday || !day.isLeadTimeMet || !day.isWithinRange) statusClass = 'status-muted';
+                                                        else if (occupancyRatio >= 0.8) statusClass = 'status-tight';
+
+                                                        const tooltip = day.isBlocked
+                                                            ? 'Zi blocată pentru programări.'
+                                                            : !day.isWithinRange
+                                                                ? `Alegeți între ${formatDate(minDate)} și ${formatDate(maxDate)}.`
+                                                                : !day.isAllowedWeekday
+                                                                    ? 'Programările sunt doar luni, miercuri și vineri.'
+                                                                    : !day.isLeadTimeMet
+                                                                        ? `Este necesar un lead time de ${examSettings.appointmentLeadTimeHours} ore.`
+                                                                        : day.isFull
+                                                                            ? `Zi complet rezervată (${day.capacity}/${day.capacity}).`
+                                                                            : `${day.remaining}/${day.capacity} locuri libere.`;
+
+                                                        return (
+                                                            <button
+                                                                key={day.dateKey}
+                                                                type="button"
+                                                                className={`calendar-day-cell ${day.inCurrentMonth ? '' : 'outside'} ${day.isToday ? 'today' : ''} ${day.isSelected ? 'selected' : ''} ${statusClass}`}
+                                                                onClick={() => handleCalendarDaySelect(day.dateKey)}
+                                                                disabled={!day.selectable}
+                                                                title={tooltip}
+                                                                aria-label={`Selectează ${getDayName(day.date)} ${day.date.getDate()} ${getMonthName(day.date)} ${day.date.getFullYear()}`}
+                                                                aria-selected={day.isSelected}
+                                                            >
+                                                                <span>{day.date.getDate()}</span>
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+
+                                                <div className="calendar-legend" aria-hidden="true">
+                                                    <span><i className="legend-dot legend-open" />Disponibilă</span>
+                                                    <span><i className="legend-dot legend-tight" />Aproape plină</span>
+                                                    <span><i className="legend-dot legend-full" />Completă</span>
+                                                    <span><i className="legend-dot legend-blocked" />Blocată</span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
                                     {errors.date && <span className="error-message">{errors.date}</span>}
                                     {formData.selectedDate && (
                                         <div className="selected-date-display">
@@ -782,7 +1037,7 @@ const AppointmentPage: React.FC = () => {
                                                     key={day.dateKey}
                                                     type="button"
                                                     className={`availability-day ${statusClass} ${selectedDateKey === day.dateKey ? 'selected' : ''}`}
-                                                    onClick={() => handleDateChange({ target: { value: day.dateKey } } as React.ChangeEvent<HTMLInputElement>)}
+                                                    onClick={() => handleDateValueChange(day.dateKey)}
                                                     title={
                                                         day.blocked
                                                             ? `Blocată${day.blockedNote ? `: ${day.blockedNote}` : ''}`
