@@ -112,7 +112,7 @@
 }
 
 .main-nav a.active::after {
-    width: 100%;
+    width: 0;
 }
 
 .header-actions {
