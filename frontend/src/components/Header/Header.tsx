@@ -1,8 +1,8 @@
-﻿import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+﻿﻿import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { formatNotificationDate, useNotifications } from "../../hooks/useNotifications";
 import { useAuth } from "../../hooks/useAuth";
-import { PUBLIC_PAGES, getSearchPages, type SitePage } from "../navigation/siteNavigation";
+import { HEADER_AUTH_PAGES, PUBLIC_PAGES, getSearchPages, type SitePage } from "../navigation/siteNavigation";
 import "./Header.css";
 
 type Props = {
@@ -96,6 +96,8 @@ export default function Header({ onOpenSidebar, isSidebarOpen }: Props) {
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [notificationsOpen]);
 
+    const navPages = isAuthenticated ? HEADER_AUTH_PAGES : PUBLIC_PAGES;
+
     return (
         <header className={`main-header ${isSidebarOpen ? "is-blurred" : ""}`}>
             <div className="container flex-between">
@@ -137,9 +139,20 @@ export default function Header({ onOpenSidebar, isSidebarOpen }: Props) {
 
                 <nav className="main-nav">
                     <ul>
-                        {PUBLIC_PAGES.map((page) => (
+                        {navPages.map((page) => (
                             <li key={page.path}>
-                                <NavLink to={page.path} end={page.path === "/"} className={({ isActive }) => (isActive ? "active" : "")}>
+                                <NavLink
+                                    to={page.path}
+                                    end={page.path === "/"}
+                                    className={({ isActive }) =>
+                                        [
+                                            isActive ? "active" : "",
+                                            page.path === "/" ? "home-link" : "",
+                                        ]
+                                            .filter(Boolean)
+                                            .join(" ")
+                                    }
+                                >
                                     {page.label}
                                 </NavLink>
                             </li>
