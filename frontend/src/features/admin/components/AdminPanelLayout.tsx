@@ -4,7 +4,7 @@ import { useAuth } from "../../../hooks/useAuth";
 import "../styles/admin-panel.css";
 
 const navItems = [
-    { to: "/admin/overview", label: "Dashboard", iconClass: "fas fa-chart-line" },
+    { to: "/admin/overview", label: "Cont Admin", iconClass: "fas fa-chart-line" },
     { to: "/admin/tests", label: "Teste", iconClass: "fas fa-file-alt" },
     { to: "/admin/users", label: "Utilizatori", iconClass: "fas fa-users" },
     { to: "/admin/appointments", label: "Programări", iconClass: "fas fa-calendar-check" },
@@ -119,7 +119,7 @@ const AdminPanelLayout: React.FC = () => {
                         <div className="admin-sidebar-top">
                             <div className="admin-sidebar-top-row">
                                 <div>
-                                    <h1>Admin Panel</h1>
+                                    <h1>Cont Admin</h1>
                                     <p>{user?.fullName || "Administrator"}</p>
                                 </div>
                                 <button
