@@ -85,19 +85,19 @@
 
 .main-nav ul {
     display: flex;
-    gap: clamp(0.9rem, 1.1vw, 1.15rem);
+    gap: clamp(0.85rem, 1.05vw, 1.1rem);
     white-space: nowrap;
 }
 
 .main-nav {
     margin-left: 1.25rem;
-    margin-right: clamp(1.1rem, 2.5vw, 2rem);
+    margin-right: clamp(5rem, 7vw, 7.5rem);
     flex: 1 1 auto;
     min-width: 0;
 }
 
 .main-nav a {
-    font-size: 1.05rem;
+    font-size: 0.98rem;
     font-weight: 600;
     color: #003366;
     position: relative;
@@ -153,7 +153,7 @@
     width: clamp(170px, 18vw, 230px);
     height: 40px;
     padding: 0 6px 0 10px;
-    margin-left: 0.25rem;
+    margin-left: 0.8rem;
     border: 1px solid #003366;
     border-radius: 4px;
     background: #ffffff;
@@ -382,7 +382,7 @@
     }
 
     .header-search-form {
-        width: clamp(140px, 15vw, 180px);
+        width: clamp(180px, 18vw, 240px);
     }
 }
 
@@ -410,15 +410,15 @@
 
     .main-nav a {
         font-size: 1rem;
-        padding: 6px 0;
+        padding: 7px 0;
     }
 
     .header-actions {
-        gap: 0.35rem;
+        gap: 0.45rem;
     }
 
     .header-main-actions {
-        gap: 0.35rem;
+        gap: 0.45rem;
         flex-wrap: wrap;
         justify-content: flex-end;
     }
