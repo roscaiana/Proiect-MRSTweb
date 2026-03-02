@@ -194,9 +194,9 @@
     border-radius: 4px;
     background: #003366;
     color: #ffffff;
-    width: 28px;
-    min-width: 28px;
-    height: 28px;
+    width: 26px;
+    min-width: 26px;
+    height: 26px;
     padding: 0 6px;
     cursor: pointer;
     display: inline-flex;
@@ -373,6 +373,54 @@
 
     .header-search-form {
         width: clamp(140px, 14vw, 190px);
+    }
+}
+
+@media (max-width: 1100px) {
+    .main-header {
+        padding: 0.8rem 0;
+    }
+
+    .header-left {
+        gap: 0.75rem;
+    }
+
+    .logo-text h1 {
+        font-size: 1.6rem;
+    }
+
+    .logo-text .tagline {
+        font-size: 0.78rem;
+        letter-spacing: 1.2px;
+    }
+
+    .main-nav ul {
+        gap: 0.95rem;
+    }
+
+    .main-nav a {
+        font-size: 1rem;
+        padding: 6px 0;
+    }
+
+    .header-actions {
+        gap: 0.35rem;
+    }
+
+    .header-main-actions {
+        gap: 0.35rem;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .header-search-form {
+        display: none;
+    }
+
+    .header-actions .btn-primary,
+    .header-auth-btn {
+        min-width: 112px;
+        padding: 0 0.55rem;
     }
 }
 
