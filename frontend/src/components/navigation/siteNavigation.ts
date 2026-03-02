@@ -1,4 +1,4 @@
-export type SitePage = {
+﻿export type SitePage = {
     label: string;
     path: string;
     icon: string;
@@ -6,17 +6,21 @@ export type SitePage = {
 };
 
 export const PUBLIC_PAGES: SitePage[] = [
-    { label: "Acas\u0103", path: "/", icon: "fas fa-home", keywords: ["acas\u0103", "home", "\u00EEnceput"] },
-    { label: "Teste", path: "/tests", icon: "fas fa-clipboard-check", keywords: ["teste", "quiz", "gril\u0103"] },
-    { label: "\u00CEnscriere", path: "/appointment", icon: "fas fa-user-plus", keywords: ["\u00EEnscriere", "programare", "appointment"] },
-    { label: "Nout\u0103\u021Bi", path: "/news", icon: "fas fa-newspaper", keywords: ["nout\u0103\u021Bi", "\u0219tiri", "news"] },
+    { label: "Acasă", path: "/", icon: "fas fa-home", keywords: ["acasă", "home", "început"] },
+    { label: "Teste", path: "/tests", icon: "fas fa-clipboard-check", keywords: ["teste", "quiz", "grilă"] },
+    { label: "Înscriere", path: "/appointment", icon: "fas fa-user-plus", keywords: ["înscriere", "programare", "appointment"] },
+    { label: "Noutăți", path: "/news", icon: "fas fa-newspaper", keywords: ["noutăți", "știri", "news"] },
     { label: "Suport", path: "/support", icon: "fas fa-life-ring", keywords: ["suport", "ajutor", "help"] },
     { label: "Contact", path: "/contact", icon: "fas fa-address-book", keywords: ["contact", "telefon", "email"] },
 ];
 
+export const HEADER_AUTH_PAGES: SitePage[] = PUBLIC_PAGES.filter(
+    (page) => page.path === "/" || page.path === "/tests" || page.path === "/appointment" || page.path === "/news",
+);
+
 export const GUEST_PAGES: SitePage[] = [
     { label: "Autentificare", path: "/login", icon: "fas fa-right-to-bracket", keywords: ["login", "autentificare", "cont"] },
-    { label: "\u00CEnregistrare", path: "/register", icon: "fas fa-user-plus", keywords: ["\u00EEnregistrare", "register", "cont nou"] },
+    { label: "Înregistrare", path: "/register", icon: "fas fa-user-plus", keywords: ["înregistrare", "register", "cont nou"] },
 ];
 
 export const USER_PAGES: SitePage[] = [
@@ -28,8 +32,8 @@ export const ADMIN_PANEL_PAGES: SitePage[] = [
     { label: "Admin Overview", path: "/admin/overview", icon: "fas fa-chart-line", keywords: ["admin", "overview", "rezumat"] },
     { label: "Admin Teste", path: "/admin/tests", icon: "fas fa-vial", keywords: ["admin", "teste", "gestionare"] },
     { label: "Admin Utilizatori", path: "/admin/users", icon: "fas fa-users-cog", keywords: ["admin", "utilizatori", "users"] },
-    { label: "Admin Program\u0103ri", path: "/admin/appointments", icon: "fas fa-calendar-days", keywords: ["admin", "program\u0103ri", "appointments"] },
-    { label: "Admin Notific\u0103ri", path: "/admin/notifications", icon: "fas fa-bell", keywords: ["admin", "notific\u0103ri", "alerts"] },
+    { label: "Admin Programări", path: "/admin/appointments", icon: "fas fa-calendar-days", keywords: ["admin", "programări", "appointments"] },
+    { label: "Admin Notificări", path: "/admin/notifications", icon: "fas fa-bell", keywords: ["admin", "notificări", "alerts"] },
 ];
 
 export function getSearchPages(isAuthenticated: boolean, isAdmin: boolean): SitePage[] {
