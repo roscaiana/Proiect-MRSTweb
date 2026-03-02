@@ -16,23 +16,18 @@ type SidebarLink = {
 
 export default function Sidebar({ open, onClose }: Props) {
     const { isAuthenticated, isAdmin, logout } = useAuth();
-
-    const primaryLinks: SidebarLink[] = isAdmin
-        ? [{ to: "/admin", icon: "fas fa-shield-halved", label: "Admin Panel" }]
-        : [];
+    const accountLabel = isAdmin ? "Cont Admin" : "Contul Meu";
 
     const accountLinks: SidebarLink[] = isAuthenticated
-        ? isAdmin
-            ? [{ to: '/admin', icon: 'fas fa-gauge-high', label: 'Panou Admin' }]
-            : [{ to: '/dashboard', icon: 'fas fa-user', label: 'Dashboard' }]
+        ? [{ to: isAdmin ? "/admin" : "/dashboard", icon: "fas fa-user", label: accountLabel }]
         : [
-            { to: '/login', icon: 'fas fa-sign-in-alt', label: 'Autentificare' },
-            { to: '/register', icon: 'fas fa-user-plus', label: 'ÃŽnregistrare' },
+            { to: "/login", icon: "fas fa-sign-in-alt", label: "Autentificare" },
+            { to: "/register", icon: "fas fa-user-plus", label: "Înregistrare" },
         ];
 
     const navigate = useNavigate();
 
-    const accountTitle = isAuthenticated ? "Contul Meu" : "Autentificare";
+    const accountTitle = isAuthenticated ? accountLabel : "Autentificare";
 
     const handleLogout = () => {
         logout();
@@ -83,13 +78,6 @@ export default function Sidebar({ open, onClose }: Props) {
                                         <i className={page.icon}></i>
                                         {page.label}
                                     </NavLink>
-                                </li>
-                            ))}
-                            {primaryLinks.map((link) => (
-                                <li key={`${link.to}-${link.label}`}>
-                                    <Link to={link.to} onClick={onClose}>
-                                        <i className={link.icon}></i> {link.label}
-                                    </Link>
                                 </li>
                             ))}
                         </ul>

@@ -12,6 +12,7 @@ export const ROUTES = {
 
     // User protected routes
     USER_DASHBOARD: '/dashboard',
+    TEST_HISTORY: '/test-history',
     APPOINTMENT: '/appointment',
     TESTS: '/tests',
 

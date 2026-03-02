@@ -9,6 +9,7 @@ import LoginPage from "../pages/auth/LoginPage/LoginPage";
 import RegisterPage from "../pages/auth/RegisterPage/RegisterPage";
 import UserDashboard from "../pages/auth/UserDashboard/UserDashboard";
 import AdminDashboard from "../pages/auth/AdminDashboard/AdminDashboard";
+import TestHistoryPage from "../pages/auth/TestHistoryPage/TestHistoryPage";
 import AppointmentPage from "../pages/exam-regist/AppointmentPage";
 import TestsPage from "../pages/testpage/TestsPage";
 
@@ -56,6 +57,14 @@ export default function AppRouter() {
         element={
           <ProtectedRoute>
             <UserDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path={ROUTES.TEST_HISTORY}
+        element={
+          <ProtectedRoute>
+            <TestHistoryPage />
           </ProtectedRoute>
         }
       />

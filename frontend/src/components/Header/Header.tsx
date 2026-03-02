@@ -52,7 +52,7 @@ export default function Header({ onOpenSidebar, isSidebarOpen }: Props) {
     });
 
     const accountPath = isAuthenticated ? (isAdmin ? "/admin" : "/dashboard") : "/login";
-    const accountLabel = isAuthenticated ? (isAdmin ? "Admin Panel" : "Dashboard") : "Autentificare";
+    const accountLabel = isAuthenticated ? (isAdmin ? "Cont Admin" : "Profilul meu") : "Autentificare";
     const accountIcon = isAuthenticated ? "fas fa-gauge-high" : "fas fa-user-lock";
 
     const searchablePages = useMemo(
