@@ -14,3 +14,16 @@
     margin-right: 8px;
     color: var(--accent-color);
 }
+
+@media (max-width: 640px) {
+    .top-bar {
+        padding: 6px 0;
+        font-size: 0.82rem;
+        text-align: center;
+    }
+
+    .official-notice {
+        margin-left: 0;
+        display: inline-block;
+    }
+}
