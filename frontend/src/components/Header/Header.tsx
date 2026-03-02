@@ -2,7 +2,7 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { formatNotificationDate, useNotifications } from "../../hooks/useNotifications";
 import { useAuth } from "../../hooks/useAuth";
-import { PUBLIC_PAGES, getSearchPages, type SitePage } from "../navigation/siteNavigation";
+import { HEADER_PAGES, getSearchPages, type SitePage } from "../navigation/siteNavigation";
 import "./Header.css";
 
 type Props = {
@@ -52,7 +52,7 @@ export default function Header({ onOpenSidebar, isSidebarOpen }: Props) {
     });
 
     const accountPath = isAuthenticated ? (isAdmin ? "/admin" : "/dashboard") : "/login";
-    const accountLabel = isAuthenticated ? (isAdmin ? "Admin Panel" : "Profilul meu") : "Autentificare";
+    const accountLabel = isAuthenticated ? (isAdmin ? "Cont Admin" : "Profilul meu") : "Autentificare";
     const accountIcon = isAuthenticated ? "fas fa-gauge-high" : "fas fa-user-lock";
 
     const searchablePages = useMemo(
@@ -137,7 +137,7 @@ export default function Header({ onOpenSidebar, isSidebarOpen }: Props) {
 
                 <nav className="main-nav">
                     <ul>
-                        {PUBLIC_PAGES.map((page) => (
+                        {HEADER_PAGES.map((page) => (
                             <li key={page.path}>
                                 <NavLink to={page.path} end={page.path === "/"} className={({ isActive }) => (isActive ? "active" : "")}>
                                     {page.label}
