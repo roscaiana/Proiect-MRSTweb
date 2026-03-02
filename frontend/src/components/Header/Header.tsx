@@ -2,7 +2,7 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { formatNotificationDate, useNotifications } from "../../hooks/useNotifications";
 import { useAuth } from "../../hooks/useAuth";
-import { HEADER_PAGES, getSearchPages, type SitePage } from "../navigation/siteNavigation";
+import { PUBLIC_PAGES, getSearchPages, type SitePage } from "../navigation/siteNavigation";
 import "./Header.css";
 
 type Props = {
@@ -137,7 +137,7 @@ export default function Header({ onOpenSidebar, isSidebarOpen }: Props) {
 
                 <nav className="main-nav">
                     <ul>
-                        {HEADER_PAGES.map((page) => (
+                        {PUBLIC_PAGES.map((page) => (
                             <li key={page.path}>
                                 <NavLink to={page.path} end={page.path === "/"} className={({ isActive }) => (isActive ? "active" : "")}>
                                     {page.label}
