@@ -122,6 +122,37 @@ ul {
     border-radius: 2px;
 }
 
+.page-hero-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0.55rem 1.4rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    color: #e6effa;
+    font-size: 0.9rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    margin-bottom: 1.6rem;
+}
+
+.page-hero-badge-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #bfdbfe;
+    flex-shrink: 0;
+}
+
+.page-hero-badge-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
 img,
 picture,
 video,
