@@ -6,6 +6,7 @@ import Support from "./pages/support/support";
 import News from "./pages/news/News";
 import Contact from "./pages/contacts/Contact";
 import TestsPage from "./pages/testpage/TestsPage";
+import LegislativeMaterialsPage from "./pages/legislative-materials/LegislativeMaterialsPage";
 import AppointmentPage from "./pages/exam-regist/AppointmentPage";
 import PrivacyPolicy from "./pages/privacy/PrivacyPolicy";
 import TermsAndConditions from "./pages/terms/TermsAndConditions";
@@ -88,6 +89,7 @@ export default function App() {
                                 path={APP_ROUTES.tests}
                                 element={<TestsPage />}
                             />
+                            <Route path={APP_ROUTES.legislativeMaterials} element={<LegislativeMaterialsPage />} />
                             <Route path={APP_ROUTES.privacy} element={<PrivacyPolicy />} />
                             <Route path={APP_ROUTES.terms} element={<TermsAndConditions />} />
                             <Route path={APP_ROUTES.termsAlt} element={<TermsAndConditions />} />
