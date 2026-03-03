@@ -263,6 +263,21 @@
     background: #ffffff;
 }
 
+.admin-field input[type="date"] {
+    min-height: 42px;
+    border-radius: 10px;
+    padding-right: 38px;
+    font-weight: 600;
+    color: #1f3555;
+}
+
+.admin-field input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.75;
+    padding: 3px;
+    border-radius: 6px;
+}
+
 .admin-field input:focus,
 .admin-field select:focus,
 .admin-field textarea:focus {
