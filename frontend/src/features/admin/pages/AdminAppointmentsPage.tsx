@@ -13,6 +13,7 @@ import {
 } from "../../../utils/appointmentScheduling";
 import { isAllowedDay } from "../../../utils/dateUtils";
 import { notifyUser } from "../../../utils/appEventNotifications";
+import CompactDatePicker from "../../../components/CompactDatePicker/CompactDatePicker";
 
 const formatDateLabel = (value: string): string => {
     return new Date(value).toLocaleDateString("ro-RO", {
@@ -629,7 +630,12 @@ const AdminAppointmentsPage: React.FC = () => {
                 <div className="admin-form-grid admin-appointments-config-grid">
                     <label className="admin-field">
                         <span>Data configurare</span>
-                        <input type="date" value={configDate} onChange={(event) => setConfigDate(event.target.value)} />
+                        <CompactDatePicker
+                            value={configDate}
+                            onChange={setConfigDate}
+                            allowClear={false}
+                            ariaLabel="Calendar configurare zi"
+                        />
                     </label>
 
                     <label className="admin-field">
@@ -773,7 +779,11 @@ const AdminAppointmentsPage: React.FC = () => {
 
                     <label className="admin-field">
                         <span>Data</span>
-                        <input type="date" value={dateFilter} onChange={(event) => setDateFilter(event.target.value)} />
+                        <CompactDatePicker
+                            value={dateFilter}
+                            onChange={setDateFilter}
+                            ariaLabel="Calendar filtrare programari"
+                        />
                     </label>
 
                     <label className="admin-field">
