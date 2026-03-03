@@ -274,6 +274,10 @@
     position: relative;
 }
 
+.appointment-page .custom-date-picker.open {
+    z-index: 4;
+}
+
 .appointment-page .date-trigger {
     width: 100%;
     min-height: 54px;
@@ -330,16 +334,17 @@
 }
 
 .appointment-page .calendar-popover {
-    position: absolute;
-    top: calc(100% + 10px);
-    left: 0;
-    z-index: 12;
-    width: min(420px, 100%);
+    position: relative;
+    top: auto;
+    left: auto;
+    z-index: 2;
+    margin-top: 10px;
+    width: min(360px, 100%);
     border: 1px solid #d6e0ee;
-    border-radius: 18px;
+    border-radius: 16px;
     background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
     box-shadow: 0 20px 42px rgba(15, 44, 82, 0.18);
-    padding: 14px;
+    padding: 10px;
 }
 
 .appointment-page .calendar-popover-header {
@@ -347,22 +352,22 @@
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .appointment-page .calendar-month-label {
     color: #0f2c52;
-    font-size: 16px;
+    font-size: 15px;
     line-height: 1.2;
     font-weight: 800;
     text-transform: capitalize;
 }
 
 .appointment-page .calendar-nav-btn {
-    width: 34px;
-    height: 34px;
+    width: 30px;
+    height: 30px;
     border: 1px solid #d8e2ef;
-    border-radius: 11px;
+    border-radius: 10px;
     background: #ffffff;
     color: #36557d;
     display: inline-flex;
@@ -386,8 +391,8 @@
 .appointment-page .calendar-week-row {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 8px;
-    margin-bottom: 8px;
+    gap: 6px;
+    margin-bottom: 6px;
 }
 
 .appointment-page .calendar-week-row span {
@@ -402,19 +407,19 @@
 .appointment-page .calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 8px;
+    gap: 6px;
 }
 
 .appointment-page .calendar-day-cell {
     border: 1px solid #dfe7f3;
-    border-radius: 12px;
+    border-radius: 10px;
     background: #ffffff;
     color: #243f62;
-    min-height: 44px;
+    min-height: 36px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 700;
     cursor: pointer;
     transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease, background-color 0.16s ease;
@@ -475,19 +480,19 @@
 }
 
 .appointment-page .calendar-legend {
-    margin-top: 12px;
-    padding-top: 10px;
+    margin-top: 10px;
+    padding-top: 8px;
     border-top: 1px solid #e9eff7;
     display: flex;
     flex-wrap: wrap;
-    gap: 10px 14px;
+    gap: 8px 12px;
 }
 
 .appointment-page .calendar-legend span {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font-size: 12px;
+    font-size: 11px;
     color: #4f627b;
     font-weight: 700;
 }
@@ -1183,6 +1188,26 @@
     .appointment-page-form .appointment-content-panel {
         border-radius: 16px;
         padding: 10px;
+    }
+}
+
+@media (max-height: 820px) {
+    .appointment-page .calendar-popover {
+        padding: 8px;
+    }
+
+    .appointment-page .calendar-grid,
+    .appointment-page .calendar-week-row {
+        gap: 4px;
+    }
+
+    .appointment-page .calendar-day-cell {
+        min-height: 32px;
+        font-size: 12px;
+    }
+
+    .appointment-page .calendar-legend {
+        display: none;
     }
 }
 

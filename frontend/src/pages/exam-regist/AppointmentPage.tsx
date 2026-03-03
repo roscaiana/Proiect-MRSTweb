@@ -890,7 +890,7 @@ const AppointmentPage: React.FC = () => {
                                     <label htmlFor="examDate">
                                         Alege Data <span className="required">*</span>
                                     </label>
-                                    <div className={`custom-date-picker ${errors.date ? 'error' : ''}`} ref={calendarPickerRef}>
+                                    <div className={`custom-date-picker ${errors.date ? 'error' : ''} ${isCalendarOpen ? 'open' : ''}`} ref={calendarPickerRef}>
                                         <button
                                             type="button"
                                             id="examDate"
