@@ -806,8 +806,10 @@ const AppointmentPage: React.FC = () => {
                 <div className="appointment-hero-overlay appointment-hero-overlay-left" />
                 <div className="container">
                     <div className="appointment-hero-simple-content">
-                        <div className="appointment-hero-badge">
-                            <CalendarCheck className="w-4 h-4 text-blue-200" />
+                        <div className="page-hero-badge">
+                            <span className="page-hero-badge-icon" aria-hidden="true">
+                                <CalendarCheck />
+                            </span>
                             <span className="uppercase">Înscriere examen</span>
                         </div>
                         <h1 id="appointment-page-title">
