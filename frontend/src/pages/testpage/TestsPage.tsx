@@ -429,9 +429,9 @@ const TestsPage: React.FC = () => {
                 <div className="tests-hero-overlay tests-hero-overlay-left" />
                 <div className="container">
                     <div className="tests-hero-content">
-                        <div className="tests-hero-badge">
-                            <span className="tests-hero-badge-icon" aria-hidden="true">
-                                <ClipboardList size={16} />
+                        <div className="page-hero-badge">
+                            <span className="page-hero-badge-icon" aria-hidden="true">
+                                <ClipboardList />
                             </span>
                             <span className="uppercase">Simulare examen</span>
                         </div>
