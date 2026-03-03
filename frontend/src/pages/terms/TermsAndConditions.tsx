@@ -148,8 +148,10 @@ export default function TermsAndConditions() {
                 <div className="terms-overlay-2"></div>
 
                 <div className="container terms-hero-content">
-                    <div className="terms-badge">
-                        <Gavel size={16} />
+                    <div className="page-hero-badge">
+                        <span className="page-hero-badge-icon" aria-hidden="true">
+                            <Gavel />
+                        </span>
                         <span>Termeni și condiții e-Electoral</span>
                     </div>
                     <h1>Termeni și condiții</h1>
