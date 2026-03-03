@@ -4,6 +4,7 @@ export const APP_ROUTES = {
     support: "/support",
     contact: "/contact",
     tests: "/tests",
+    legislativeMaterials: "/materiale-legislative",
     privacy: "/politica-confidentialitate",
     terms: "/termeni-conditii",
     termsAlt: "/termeni-si-conditii",
