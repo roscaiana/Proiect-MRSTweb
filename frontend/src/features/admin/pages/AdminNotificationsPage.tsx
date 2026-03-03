@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useAdminPanel } from "../hooks/useAdminPanel";
 import type { NotificationTarget } from "../types";
+import CompactDatePicker from "../../../components/CompactDatePicker/CompactDatePicker";
 
 type NotificationsView = "compose" | "history";
 
@@ -319,11 +320,19 @@ const AdminNotificationsPage: React.FC = () => {
                         </label>
                         <label className="admin-field">
                             <span>De la</span>
-                            <input type="date" value={historyFrom} onChange={(event) => setHistoryFrom(event.target.value)} />
+                            <CompactDatePicker
+                                value={historyFrom}
+                                onChange={setHistoryFrom}
+                                ariaLabel="Calendar filtrare notificari de la"
+                            />
                         </label>
                         <label className="admin-field">
                             <span>Până la</span>
-                            <input type="date" value={historyTo} onChange={(event) => setHistoryTo(event.target.value)} />
+                            <CompactDatePicker
+                                value={historyTo}
+                                onChange={setHistoryTo}
+                                ariaLabel="Calendar filtrare notificari pana la"
+                            />
                         </label>
                     </div>
 

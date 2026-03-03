@@ -86,11 +86,7 @@ export default function App() {
                             <Route path={APP_ROUTES.contact} element={<Contact />} />
                             <Route
                                 path={APP_ROUTES.tests}
-                                element={
-                                    <ProtectedRoute>
-                                        <TestsPage />
-                                    </ProtectedRoute>
-                                }
+                                element={<TestsPage />}
                             />
                             <Route path={APP_ROUTES.privacy} element={<PrivacyPolicy />} />
                             <Route path={APP_ROUTES.terms} element={<TermsAndConditions />} />

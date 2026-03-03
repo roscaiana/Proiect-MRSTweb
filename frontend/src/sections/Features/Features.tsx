@@ -27,7 +27,7 @@ export default function Features() {
                         <div className="icon-wrapper">
                             <i className="fas fa-laptop-code"></i>
                         </div>
-                        <h3>Simulatoare Examen</h3>
+                        <h3>Simulare Examen</h3>
                         <p>Teste cronometrate care reproduc fidel condițiile de examinare reală. Feedback instantaneu.</p>
                         <Link to="/tests" className="link-arrow">Începe Test &rarr;</Link>
                     </div>
