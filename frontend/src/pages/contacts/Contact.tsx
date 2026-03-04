@@ -77,8 +77,10 @@ const Contact: React.FC = () => {
                         <div className="hero-overlay-2"></div>
 
                         <div className="hero-content">
-                            <div className="hero-badge">
-                                <MessageSquare className="w-4 h-4 text-blue-200" />
+                            <div className="page-hero-badge">
+                                <span className="page-hero-badge-icon" aria-hidden="true">
+                                    <MessageSquare />
+                                </span>
                                 <span className="uppercase">Disponibili 24/7</span>
                             </div>
 

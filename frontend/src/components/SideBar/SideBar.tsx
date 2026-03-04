@@ -17,6 +17,9 @@ type SidebarLink = {
 export default function Sidebar({ open, onClose }: Props) {
     const { isAuthenticated, isAdmin, logout } = useAuth();
     const accountLabel = isAdmin ? "Cont Admin" : "Contul Meu";
+    const infoLinks: SidebarLink[] = [
+        { to: "/materiale-legislative", icon: "fas fa-scale-balanced", label: "Materiale legislative" },
+    ];
 
     const accountLinks: SidebarLink[] = isAuthenticated
         ? [{ to: isAdmin ? "/admin" : "/dashboard", icon: "fas fa-user", label: accountLabel }]
@@ -67,19 +70,45 @@ export default function Sidebar({ open, onClose }: Props) {
                     <div className="sidebar-section">
                         <h4>{"Naviga\u021Bie"}</h4>
                         <ul>
-                            {PUBLIC_PAGES.map((page) => (
-                                <li key={page.path}>
-                                    <NavLink
-                                        to={page.path}
-                                        end={page.path === "/"}
-                                        onClick={onClose}
-                                        className={({ isActive }) => (isActive ? "active" : "")}
-                                    >
-                                        <i className={page.icon}></i>
-                                        {page.label}
-                                    </NavLink>
-                                </li>
-                            ))}
+                            {PUBLIC_PAGES.flatMap((page) => {
+                                if (page.path === "/tests") {
+                                    return [
+                                        ...infoLinks.map((link) => (
+                                            <li key={`${link.to}-${link.label}`}>
+                                                <Link to={link.to} onClick={onClose}>
+                                                    <i className={link.icon}></i>
+                                                    {link.label}
+                                                </Link>
+                                            </li>
+                                        )),
+                                        <li key={page.path}>
+                                            <NavLink
+                                                to={page.path}
+                                                end={page.path === "/"}
+                                                onClick={onClose}
+                                                className={({ isActive }) => (isActive ? "active" : "")}
+                                            >
+                                                <i className={page.icon}></i>
+                                                {page.label}
+                                            </NavLink>
+                                        </li>,
+                                    ];
+                                }
+
+                                return [
+                                    <li key={page.path}>
+                                        <NavLink
+                                            to={page.path}
+                                            end={page.path === "/"}
+                                            onClick={onClose}
+                                            className={({ isActive }) => (isActive ? "active" : "")}
+                                        >
+                                            <i className={page.icon}></i>
+                                            {page.label}
+                                        </NavLink>
+                                    </li>,
+                                ];
+                            })}
                         </ul>
                     </div>
 

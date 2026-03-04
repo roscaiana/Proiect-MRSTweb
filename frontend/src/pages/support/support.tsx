@@ -95,8 +95,10 @@ const Support: React.FC = () => {
                         <div className="hero-overlay-2"></div>
 
                         <div className="hero-content">
-                            <div className="hero-badge">
-                                <LifeBuoy className="w-4 h-4 text-blue-200" />
+                            <div className="page-hero-badge">
+                                <span className="page-hero-badge-icon" aria-hidden="true">
+                                    <LifeBuoy />
+                                </span>
                                 <span className="uppercase">Centrul de Ajutor e-Electoral</span>
                             </div>
 

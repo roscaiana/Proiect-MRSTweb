@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Search, Calendar, ArrowRight, Newspaper, Bell, FileText, Users, Globe, Info } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Search, Calendar, Newspaper, Bell, FileText, Users, Globe, Info } from 'lucide-react';
 import { Resource } from '@/types/news';
 import './News.css';
 
@@ -76,6 +76,7 @@ const getIcon = (type: string) => {
 const News: React.FC = () => {
     const [news] = useState<Resource[]>(mockNews);
     const [searchQuery, setSearchQuery] = useState('');
+    const [activeItem, setActiveItem] = useState<Resource | null>(null);
 
     const filteredNews = useMemo(() => {
         return news.filter(item =>
@@ -85,6 +86,21 @@ const News: React.FC = () => {
         );
     }, [news, searchQuery]);
 
+    useEffect(() => {
+        if (!activeItem) {
+            return;
+        }
+
+        const handleEscape = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setActiveItem(null);
+            }
+        };
+
+        document.addEventListener('keydown', handleEscape);
+        return () => document.removeEventListener('keydown', handleEscape);
+    }, [activeItem]);
+
     return (
         <div className="news-container">
             {/* Hero Section */}
@@ -93,8 +109,10 @@ const News: React.FC = () => {
                 <div className="hero-overlay-2"></div>
 
                 <div className="hero-content">
-                    <div className="hero-badge">
-                        <Newspaper className="w-4 h-4 text-blue-200" />
+                    <div className="page-hero-badge">
+                        <span className="page-hero-badge-icon" aria-hidden="true">
+                            <Newspaper />
+                        </span>
                         <span className="uppercase">Noutăți e-Electoral</span>
                     </div>
 
@@ -124,9 +142,22 @@ const News: React.FC = () => {
             <main className="main-content">
                 <div className="news-grid">
                     {filteredNews.map((item: Resource) => (
-                        <div key={item.id} className="news-card group">
+                        <article
+                            key={item.id}
+                            className="news-card group"
+                            role="button"
+                            tabIndex={0}
+                            aria-label={`Deschide știrea: ${item.title}`}
+                            onClick={() => setActiveItem(item)}
+                            onKeyDown={(event) => {
+                                if (event.key === 'Enter' || event.key === ' ') {
+                                    event.preventDefault();
+                                    setActiveItem(item);
+                                }
+                            }}
+                        >
                             <div className="image-wrapper">
-                                <span className="category-badge yellow-badge">{item.category}</span>
+                                <span className="category-badge">{item.category}</span>
                                 <div className="icon-display">
                                     {getIcon(item.image)}
                                 </div>
@@ -139,15 +170,39 @@ const News: React.FC = () => {
                                 <h3 className="news-title group-hover:text-[#003366] transition-colors">{item.title}</h3>
                                 <p className="news-desc">{item.description}</p>
 
-                                <button className="read-more-btn-yellow">
-                                    Citește Mai Mult
-                                    <ArrowRight className="w-4 h-4" />
-                                </button>
                             </div>
-                        </div>
+                        </article>
                     ))}
                 </div>
             </main>
+
+            {activeItem && (
+                <div className="news-modal-overlay" role="dialog" aria-modal="true">
+                    <div className="news-modal">
+                        <button
+                            type="button"
+                            className="news-modal-close"
+                            onClick={() => setActiveItem(null)}
+                            aria-label="Închide"
+                        >
+                            ×
+                        </button>
+                        <span className="news-modal-category">{activeItem.category}</span>
+                        <h2>{activeItem.title}</h2>
+                        <div className="news-modal-date">
+                            <Calendar className="w-4 h-4" />
+                            <span>24 Februarie 2026</span>
+                        </div>
+                        <p>{activeItem.description}</p>
+                    </div>
+                    <button
+                        type="button"
+                        className="news-modal-backdrop"
+                        onClick={() => setActiveItem(null)}
+                        aria-label="Închide"
+                    />
+                </div>
+            )}
         </div>
     );
 };

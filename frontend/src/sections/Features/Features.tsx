@@ -2,8 +2,6 @@
 import "./Features.css";
 
 export default function Features() {
-    const block = (e: React.MouseEvent) => e.preventDefault();
-
     return (
         <section className="section-features">
             <div className="container">
@@ -20,7 +18,7 @@ export default function Features() {
                         </div>
                         <h3>Materiale Legislative</h3>
                         <p>Acces direct la Codul Electoral și regulamentele conexe, actualizate la zi pentru sesiunea curentă.</p>
-                        <a href="#" className="link-arrow" onClick={block}>Citește mai mult &rarr;</a>
+                        <Link to="/materiale-legislative" className="link-arrow">Citește mai mult &rarr;</Link>
                     </div>
 
                     <div className="feature-box">
@@ -38,7 +36,7 @@ export default function Features() {
                         </div>
                         <h3>Rapoarte de Progres</h3>
                         <p>Monitorizați evoluția cunoștințelor dumneavoastră prin grafice detaliate și istoric de testare.</p>
-                        <a href="#" className="link-arrow" onClick={block}>Vezi Rapoarte &rarr;</a>
+                        <Link to="/dashboard" className="link-arrow">Vezi Rapoarte &rarr;</Link>
                     </div>
 
                     <div className="feature-box">
