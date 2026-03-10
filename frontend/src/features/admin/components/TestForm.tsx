@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
 import type { AdminQuestion, AdminTest, AdminTestInput } from "../types";
+import AdminSingleSelect from "./AdminSingleSelect";
 
 type Props = {
     mode: "create" | "edit";
@@ -292,21 +293,17 @@ const TestForm: React.FC<Props> = ({ mode, initialValue, onSubmit, onCancel }) =
 
                         <label className="admin-field">
                             <span>Varianta corectă</span>
-                            <select
-                                value={question.correctAnswer}
-                                onChange={(event) =>
-                                    updateQuestionCorrectAnswer(
-                                        questionIndex,
-                                        Number(event.target.value)
-                                    )
+                            <AdminSingleSelect
+                                ariaLabel={`Selectare varianta corecta pentru intrebarea ${questionIndex + 1}`}
+                                options={question.options.map((_, optionIndex) => ({
+                                    value: String(optionIndex),
+                                    label: `Opțiunea ${optionIndex + 1}`,
+                                }))}
+                                value={String(question.correctAnswer)}
+                                onChange={(value) =>
+                                    updateQuestionCorrectAnswer(questionIndex, Number(value))
                                 }
-                            >
-                                {question.options.map((_, optionIndex) => (
-                                    <option key={optionIndex} value={optionIndex}>
-                                        Opțiunea {optionIndex + 1}
-                                    </option>
-                                ))}
-                            </select>
+                            />
                         </label>
                     </article>
                 ))}
