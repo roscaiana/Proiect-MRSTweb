@@ -1,5 +1,19 @@
 import React, { useMemo, useState } from "react";
 import { useAdminPanel } from "../hooks/useAdminPanel";
+import AdminMultiSelect, { type AdminMultiSelectOption } from "../components/AdminMultiSelect";
+
+type UserRoleFilter = "user" | "admin";
+type UserStatusFilter = "active" | "blocked";
+
+const USER_ROLE_OPTIONS: ReadonlyArray<AdminMultiSelectOption<UserRoleFilter>> = [
+    { value: "user", label: "User" },
+    { value: "admin", label: "Admin" },
+];
+
+const USER_STATUS_OPTIONS: ReadonlyArray<AdminMultiSelectOption<UserStatusFilter>> = [
+    { value: "active", label: "Active" },
+    { value: "blocked", label: "Blocate" },
+];
 
 const formatDate = (value: string): string => {
     return new Date(value).toLocaleDateString("ro-RO", {
@@ -12,25 +26,21 @@ const formatDate = (value: string): string => {
 const AdminUsersPage: React.FC = () => {
     const { state, toggleUserBlocked } = useAdminPanel();
     const [search, setSearch] = useState("");
-    const [roleFilter, setRoleFilter] = useState<"all" | "user" | "admin">("all");
-    const [statusFilter, setStatusFilter] = useState<"all" | "active" | "blocked">("all");
+    const [roleFilters, setRoleFilters] = useState<UserRoleFilter[]>([]);
+    const [statusFilters, setStatusFilters] = useState<UserStatusFilter[]>([]);
 
     const filteredUsers = useMemo(() => {
         return state.users.filter((user) => {
             const matchesSearch =
                 user.fullName.toLowerCase().includes(search.toLowerCase()) ||
                 user.email.toLowerCase().includes(search.toLowerCase());
-            const matchesRole = roleFilter === "all" ? true : user.role === roleFilter;
-            const matchesStatus =
-                statusFilter === "all"
-                    ? true
-                    : statusFilter === "active"
-                    ? !user.isBlocked
-                    : user.isBlocked;
+            const matchesRole = roleFilters.length === 0 ? true : roleFilters.includes(user.role);
+            const statusKey: UserStatusFilter = user.isBlocked ? "blocked" : "active";
+            const matchesStatus = statusFilters.length === 0 ? true : statusFilters.includes(statusKey);
 
             return matchesSearch && matchesRole && matchesStatus;
         });
-    }, [roleFilter, search, state.users, statusFilter]);
+    }, [roleFilters, search, state.users, statusFilters]);
 
     return (
         <div className="admin-page-content">
@@ -53,30 +63,24 @@ const AdminUsersPage: React.FC = () => {
 
                     <label className="admin-field">
                         <span>Rol</span>
-                        <select
-                            value={roleFilter}
-                            onChange={(event) =>
-                                setRoleFilter(event.target.value as "all" | "user" | "admin")
-                            }
-                        >
-                            <option value="all">Toate rolurile</option>
-                            <option value="user">User</option>
-                            <option value="admin">Admin</option>
-                        </select>
+                        <AdminMultiSelect
+                            ariaLabel="Filtrare dupa rol utilizator"
+                            options={USER_ROLE_OPTIONS}
+                            selectedValues={roleFilters}
+                            onChange={setRoleFilters}
+                            placeholder="Toate rolurile"
+                        />
                     </label>
 
                     <label className="admin-field">
                         <span>Status cont</span>
-                        <select
-                            value={statusFilter}
-                            onChange={(event) =>
-                                setStatusFilter(event.target.value as "all" | "active" | "blocked")
-                            }
-                        >
-                            <option value="all">Toate</option>
-                            <option value="active">Active</option>
-                            <option value="blocked">Blocate</option>
-                        </select>
+                        <AdminMultiSelect
+                            ariaLabel="Filtrare dupa status cont"
+                            options={USER_STATUS_OPTIONS}
+                            selectedValues={statusFilters}
+                            onChange={setStatusFilters}
+                            placeholder="Toate"
+                        />
                     </label>
                 </div>
 

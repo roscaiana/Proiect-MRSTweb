@@ -286,6 +286,127 @@
     box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.12);
 }
 
+.admin-multi-select {
+    position: relative;
+}
+
+.admin-multi-select-trigger {
+    width: 100%;
+    border: 1px solid #c8d2de;
+    border-radius: 5px;
+    padding: 10px 12px;
+    min-height: 42px;
+    font-size: 0.92rem;
+    color: #111827;
+    background: #ffffff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    text-align: left;
+}
+
+.admin-multi-select.is-open .admin-multi-select-trigger,
+.admin-multi-select-trigger:focus-visible {
+    outline: none;
+    border-color: #003366;
+    box-shadow: 0 0 0 2px rgba(0, 51, 102, 0.12);
+}
+
+.admin-multi-select-value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.admin-multi-select-value.is-placeholder {
+    color: #475569;
+}
+
+.admin-multi-select-caret {
+    color: #5b6b80;
+    font-size: 0.74rem;
+    transition: transform 0.12s ease;
+    flex-shrink: 0;
+}
+
+.admin-multi-select.is-open .admin-multi-select-caret {
+    transform: rotate(180deg);
+}
+
+.admin-multi-select-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 30;
+    border: 1px solid #c8d2de;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.14);
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: 260px;
+    overflow-y: auto;
+}
+
+.admin-multi-select-option {
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    padding: 8px 9px;
+    font-size: 0.9rem;
+    color: #1f2937;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-align: left;
+}
+
+.admin-multi-select-option:hover {
+    background: #eef4fb;
+}
+
+.admin-multi-select-option.is-active {
+    background: #e3edf9;
+    color: #003366;
+    font-weight: 600;
+}
+
+.admin-multi-select-option-clear {
+    border-bottom: 1px solid #e2e8f0;
+    margin-bottom: 2px;
+    padding-bottom: 10px;
+}
+
+.admin-multi-select-checkbox {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+    border: 1px solid #9bb0c8;
+    background: #ffffff;
+    color: #003366;
+    font-size: 0.72rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.admin-multi-select-option.is-active .admin-multi-select-checkbox {
+    border-color: #003366;
+    background: #dbe8f8;
+}
+
+.admin-single-select-check {
+    margin-left: auto;
+    font-size: 0.78rem;
+}
+
 .admin-field-full {
     grid-column: 1 / -1;
 }

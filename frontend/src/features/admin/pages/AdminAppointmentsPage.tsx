@@ -14,6 +14,8 @@ import {
 import { isAllowedDay } from "../../../utils/dateUtils";
 import { notifyUser } from "../../../utils/appEventNotifications";
 import CompactDatePicker from "../../../components/CompactDatePicker/CompactDatePicker";
+import AdminMultiSelect, { type AdminMultiSelectOption } from "../components/AdminMultiSelect";
+import AdminSingleSelect, { type AdminSingleSelectOption } from "../components/AdminSingleSelect";
 
 const formatDateLabel = (value: string): string => {
     return new Date(value).toLocaleDateString("ro-RO", {
@@ -40,13 +42,29 @@ const statusLabel = (status: AppointmentStatus): string => {
     return "Anulată";
 };
 
+const APPOINTMENT_STATUS_FILTER_OPTIONS: ReadonlyArray<AdminMultiSelectOption<AppointmentStatus>> = [
+    { value: "pending", label: "În așteptare" },
+    { value: "approved", label: "Aprobate" },
+    { value: "rejected", label: "Respinse" },
+    { value: "cancelled", label: "Anulate" },
+];
+
+type AppointmentSortBy = "updated_desc" | "exam_asc" | "exam_desc" | "name_asc";
+
+const APPOINTMENT_SORT_OPTIONS: ReadonlyArray<AdminSingleSelectOption<AppointmentSortBy>> = [
+    { value: "updated_desc", label: "Actualizate recent" },
+    { value: "exam_asc", label: "Data examen (crescător)" },
+    { value: "exam_desc", label: "Data examen (descrescător)" },
+    { value: "name_asc", label: "Nume candidat (A-Z)" },
+];
+
 const AdminAppointmentsPage: React.FC = () => {
     const { state, updateAppointmentStatus, updateAppointment, updateSettings } = useAdminPanel();
-    const [statusFilter, setStatusFilter] = useState<"all" | AppointmentStatus>("all");
+    const [statusFilters, setStatusFilters] = useState<AppointmentStatus[]>([]);
     const [search, setSearch] = useState("");
     const [dateFilter, setDateFilter] = useState("");
-    const [slotFilter, setSlotFilter] = useState("all");
-    const [sortBy, setSortBy] = useState<"updated_desc" | "exam_asc" | "exam_desc" | "name_asc">("updated_desc");
+    const [slotFilters, setSlotFilters] = useState<string[]>([]);
+    const [sortBy, setSortBy] = useState<AppointmentSortBy>("updated_desc");
     const [selectedAppointmentIds, setSelectedAppointmentIds] = useState<string[]>([]);
     const [feedback, setFeedback] = useState("");
 
@@ -90,8 +108,12 @@ const AdminAppointmentsPage: React.FC = () => {
     const slotOptions = useMemo(() => {
         const all = new Set<string>(TIME_SLOTS.map((slot) => `${slot.startTime}-${slot.endTime}`));
         state.appointments.forEach((appointment) => all.add(`${appointment.slotStart}-${appointment.slotEnd}`));
-        return ["all", ...Array.from(all).sort()];
+        return Array.from(all).sort();
     }, [state.appointments]);
+
+    useEffect(() => {
+        setSlotFilters((prev) => prev.filter((slot) => slotOptions.includes(slot)));
+    }, [slotOptions]);
 
     const occupancyPreview = useMemo(
         () => getNextEligibleDates(state.settings, state.appointments, { count: 16 }),
@@ -150,7 +172,8 @@ const AdminAppointmentsPage: React.FC = () => {
     const filteredAppointments = useMemo(() => {
         return [...state.appointments]
             .filter((appointment) => {
-                const matchesStatus = statusFilter === "all" ? true : appointment.status === statusFilter;
+                const matchesStatus =
+                    statusFilters.length === 0 ? true : statusFilters.includes(appointment.status);
                 const query = search.trim().toLowerCase();
                 const matchesSearch =
                     !query ||
@@ -160,7 +183,8 @@ const AdminAppointmentsPage: React.FC = () => {
                     (appointment.appointmentCode || "").toLowerCase().includes(query);
                 const matchesDate = !dateFilter || toDateKey(appointment.date) === dateFilter;
                 const matchesSlot =
-                    slotFilter === "all" || `${appointment.slotStart}-${appointment.slotEnd}` === slotFilter;
+                    slotFilters.length === 0 ||
+                    slotFilters.includes(`${appointment.slotStart}-${appointment.slotEnd}`);
 
                 return matchesStatus && matchesSearch && matchesDate && matchesSlot;
             })
@@ -181,7 +205,7 @@ const AdminAppointmentsPage: React.FC = () => {
                 const bTime = new Date(b.updatedAt || b.createdAt).getTime();
                 return bTime - aTime;
             });
-    }, [dateFilter, search, slotFilter, sortBy, state.appointments, statusFilter]);
+    }, [dateFilter, search, slotFilters, sortBy, state.appointments, statusFilters]);
 
     useEffect(() => {
         const availableIds = new Set(filteredAppointments.map((appointment) => appointment.id));
@@ -765,16 +789,13 @@ const AdminAppointmentsPage: React.FC = () => {
 
                     <label className="admin-field">
                         <span>Status</span>
-                        <select
-                            value={statusFilter}
-                            onChange={(event) => setStatusFilter(event.target.value as "all" | AppointmentStatus)}
-                        >
-                            <option value="all">Toate</option>
-                            <option value="pending">În așteptare</option>
-                            <option value="approved">Aprobate</option>
-                            <option value="rejected">Respinse</option>
-                            <option value="cancelled">Anulate</option>
-                        </select>
+                        <AdminMultiSelect
+                            ariaLabel="Filtrare dupa status programari"
+                            options={APPOINTMENT_STATUS_FILTER_OPTIONS}
+                            selectedValues={statusFilters}
+                            onChange={setStatusFilters}
+                            placeholder="Toate"
+                        />
                     </label>
 
                     <label className="admin-field">
@@ -788,23 +809,23 @@ const AdminAppointmentsPage: React.FC = () => {
 
                     <label className="admin-field">
                         <span>Interval</span>
-                        <select value={slotFilter} onChange={(event) => setSlotFilter(event.target.value)}>
-                            {slotOptions.map((value) => (
-                                <option key={value} value={value}>
-                                    {value === "all" ? "Toate intervalele" : value}
-                                </option>
-                            ))}
-                        </select>
+                        <AdminMultiSelect
+                            ariaLabel="Filtrare dupa interval programari"
+                            options={slotOptions.map((value) => ({ value, label: value }))}
+                            selectedValues={slotFilters}
+                            onChange={setSlotFilters}
+                            placeholder="Toate intervalele"
+                        />
                     </label>
 
                     <label className="admin-field">
                         <span>Sortare</span>
-                        <select value={sortBy} onChange={(event) => setSortBy(event.target.value as typeof sortBy)}>
-                            <option value="updated_desc">Actualizate recent</option>
-                            <option value="exam_asc">Data examen (crescător)</option>
-                            <option value="exam_desc">Data examen (descrescător)</option>
-                            <option value="name_asc">Nume candidat (A-Z)</option>
-                        </select>
+                        <AdminSingleSelect
+                            ariaLabel="Sortare programari"
+                            options={APPOINTMENT_SORT_OPTIONS}
+                            value={sortBy}
+                            onChange={setSortBy}
+                        />
                     </label>
                 </div>
 

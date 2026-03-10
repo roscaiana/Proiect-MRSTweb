@@ -2,6 +2,8 @@ import React, { useMemo, useState } from "react";
 import { useAdminPanel } from "../hooks/useAdminPanel";
 import type { NotificationTarget } from "../types";
 import CompactDatePicker from "../../../components/CompactDatePicker/CompactDatePicker";
+import AdminMultiSelect, { type AdminMultiSelectOption } from "../components/AdminMultiSelect";
+import AdminSingleSelect, { type AdminSingleSelectOption } from "../components/AdminSingleSelect";
 
 type NotificationsView = "compose" | "history";
 
@@ -44,6 +46,28 @@ const NOTIFICATION_TEMPLATES: NotificationTemplate[] = [
     },
 ];
 
+const NOTIFICATION_TARGET_FILTER_OPTIONS: ReadonlyArray<AdminMultiSelectOption<NotificationTarget>> = [
+    { value: "all", label: "all (platforma)" },
+    { value: "users", label: "users" },
+    { value: "admins", label: "admins" },
+    { value: "email", label: "email" },
+];
+
+const NOTIFICATION_TEMPLATE_OPTIONS: ReadonlyArray<AdminSingleSelectOption<string>> = [
+    { value: "", label: "Fără template" },
+    ...NOTIFICATION_TEMPLATES.map((template) => ({
+        value: template.key,
+        label: template.label,
+    })),
+];
+
+const NOTIFICATION_TARGET_COMPOSE_OPTIONS: ReadonlyArray<AdminSingleSelectOption<NotificationTarget>> = [
+    { value: "all", label: "Toată platforma" },
+    { value: "users", label: "Doar utilizatori" },
+    { value: "admins", label: "Doar administratori" },
+    { value: "email", label: "Email specific" },
+];
+
 const formatDateTime = (value: string): string => {
     return new Date(value).toLocaleString("ro-RO", {
         day: "2-digit",
@@ -71,7 +95,7 @@ const AdminNotificationsPage: React.FC = () => {
     const [feedback, setFeedback] = useState("");
     const [selectedTemplateKey, setSelectedTemplateKey] = useState("");
 
-    const [historyTargetFilter, setHistoryTargetFilter] = useState<"all" | NotificationTarget>("all");
+    const [historyTargetFilters, setHistoryTargetFilters] = useState<NotificationTarget[]>([]);
     const [historySearch, setHistorySearch] = useState("");
     const [historyFrom, setHistoryFrom] = useState("");
     const [historyTo, setHistoryTo] = useState("");
@@ -105,7 +129,8 @@ const AdminNotificationsPage: React.FC = () => {
         const toDate = historyTo ? new Date(`${historyTo}T23:59:59`) : null;
 
         return state.sentNotifications.filter((log) => {
-            const matchesTarget = historyTargetFilter === "all" || log.target === historyTargetFilter;
+            const matchesTarget =
+                historyTargetFilters.length === 0 ? true : historyTargetFilters.includes(log.target);
             const matchesQuery =
                 !query ||
                 log.title.toLowerCase().includes(query) ||
@@ -118,7 +143,7 @@ const AdminNotificationsPage: React.FC = () => {
 
             return matchesTarget && matchesQuery && matchesFrom && matchesTo;
         });
-    }, [historyFrom, historySearch, historyTargetFilter, historyTo, state.sentNotifications]);
+    }, [historyFrom, historySearch, historyTargetFilters, historyTo, state.sentNotifications]);
 
     const applySelectedTemplate = () => {
         const template = NOTIFICATION_TEMPLATES.find((item) => item.key === selectedTemplateKey);
@@ -208,17 +233,13 @@ const AdminNotificationsPage: React.FC = () => {
                     <div className="admin-toolbar admin-notifications-compose-toolbar">
                         <label className="admin-field">
                             <span>Template rapid</span>
-                            <select
+                            <AdminSingleSelect
+                                ariaLabel="Selectare template notificare"
+                                options={NOTIFICATION_TEMPLATE_OPTIONS}
                                 value={selectedTemplateKey}
-                                onChange={(event) => setSelectedTemplateKey(event.target.value)}
-                            >
-                                <option value="">Fără template</option>
-                                {NOTIFICATION_TEMPLATES.map((template) => (
-                                    <option key={template.key} value={template.key}>
-                                        {template.label}
-                                    </option>
-                                ))}
-                            </select>
+                                onChange={setSelectedTemplateKey}
+                                placeholder="Fără template"
+                            />
                         </label>
                         <div className="admin-field admin-notifications-template-actions">
                             <span>Acțiune</span>
@@ -236,15 +257,12 @@ const AdminNotificationsPage: React.FC = () => {
                     <form className="admin-form-grid" onSubmit={handleSubmit}>
                         <label className="admin-field">
                             <span>Target</span>
-                            <select
+                            <AdminSingleSelect
+                                ariaLabel="Selectare target notificare"
+                                options={NOTIFICATION_TARGET_COMPOSE_OPTIONS}
                                 value={target}
-                                onChange={(event) => setTarget(event.target.value as NotificationTarget)}
-                            >
-                                <option value="all">Toată platforma</option>
-                                <option value="users">Doar utilizatori</option>
-                                <option value="admins">Doar administratori</option>
-                                <option value="email">Email specific</option>
-                            </select>
+                                onChange={setTarget}
+                            />
                         </label>
 
                         {target === "email" && (
@@ -308,15 +326,13 @@ const AdminNotificationsPage: React.FC = () => {
                         </label>
                         <label className="admin-field">
                             <span>Target</span>
-                            <select
-                                value={historyTargetFilter}
-                                onChange={(event) => setHistoryTargetFilter(event.target.value as "all" | NotificationTarget)}
-                            >
-                                <option value="all">all (platforma)</option>
-                                <option value="users">users</option>
-                                <option value="admins">admins</option>
-                                <option value="email">email</option>
-                            </select>
+                            <AdminMultiSelect
+                                ariaLabel="Filtrare istoric notificari dupa target"
+                                options={NOTIFICATION_TARGET_FILTER_OPTIONS}
+                                selectedValues={historyTargetFilters}
+                                onChange={setHistoryTargetFilters}
+                                placeholder="Toate target-urile"
+                            />
                         </label>
                         <label className="admin-field">
                             <span>De la</span>
