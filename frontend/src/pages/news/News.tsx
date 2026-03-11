@@ -1,65 +1,37 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Search, Calendar, Newspaper, Bell, FileText, Users, Globe, Info } from 'lucide-react';
-import { Resource } from '@/types/news';
 import './News.css';
 
-// Using Resource type as NewsItem since they share similar structure
-const mockNews: Resource[] = [
-    {
-        id: 1,
-        title: "Rezultatele Sesiunii de Certificare 2025",
-        price: 0,
-        description: "A fost finalizată centralizarea rezultatelor pentru sesiunea de certificare 2025. Felicitări celor 7764 de candidați care au promovat!",
-        category: "Certificare",
-        image: "cert",
-        rating: { rate: 5, count: 2025 } // Using rating fields for metadata (Year/Count)
-    },
-    {
-        id: 2,
-        title: "Lansarea Programului de Instruire pentru Observatori",
-        price: 0,
-        description: "CICDE lansează noul modul de instruire dedicat observatorilor naționali și internaționali pentru următoarele scrutine.",
-        category: "Instruiri",
-        image: "users",
-        rating: { rate: 4.8, count: 156 }
-    },
-    {
-        id: 3,
-        title: "Actualizări ale Codului Electoral: Ce trebuie să știți",
-        price: 0,
-        description: "Analiza principalelor modificări aduse Codului Electoral și impactul acestora asupra procesului de certificare a funcționarilor.",
-        category: "Legislativ",
-        image: "law",
-        rating: { rate: 4.9, count: 890 }
-    },
-    {
-        id: 4,
-        title: "Calendarul Electoral pentru Alegerile Locale 2026",
-        price: 0,
-        description: "Consultă etapele principale și termenele limită pentru organizarea scrutinelelor locale de anul viitor.",
-        category: "Evenimente",
-        image: "calendar",
-        rating: { rate: 4.7, count: 423 }
-    },
-    {
-        id: 5,
-        title: "Nouă Platformă e-Electoral: Ghid de Utilizare",
-        price: 0,
-        description: "Am lansat o interfață modernizată pentru a facilita accesul la resursele de studiu și simulările de examen.",
-        category: "Platformă",
-        image: "web",
-        rating: { rate: 5.0, count: 12000 }
-    },
-    {
-        id: 6,
-        title: "Parteneriat CICDE cu Organizații Internaționale",
-        price: 0,
-        description: "Colaborare nouă pentru schimbul de bune practici în domeniul educației electorale la nivel european.",
-        category: "Extern",
-        image: "globe",
-        rating: { rate: 4.6, count: 75 }
+type NewsDisplayItem = {
+    id: string;
+    title: string;
+    description: string;
+    category: string;
+    image: string;
+    publishedAt: string;
+};
+
+function loadNewsFromStorage(): NewsDisplayItem[] {
+    try {
+        const raw = localStorage.getItem("adminNews");
+        if (raw) {
+            const parsed = JSON.parse(raw) as any[];
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                return parsed.map((item, i) => ({
+                    id: item.id || String(i),
+                    title: item.title || "",
+                    description: item.description || "",
+                    category: item.category || "",
+                    image: item.image || "cert",
+                    publishedAt: item.publishedAt || new Date().toISOString(),
+                }));
+            }
+        }
+    } catch {
+        // ignore
     }
-];
+    return [];
+}
 
 const getIcon = (type: string) => {
     switch (type) {
@@ -74,9 +46,15 @@ const getIcon = (type: string) => {
 };
 
 const News: React.FC = () => {
-    const [news] = useState<Resource[]>(mockNews);
+    const [news, setNews] = useState<NewsDisplayItem[]>(() => loadNewsFromStorage());
     const [searchQuery, setSearchQuery] = useState('');
-    const [activeItem, setActiveItem] = useState<Resource | null>(null);
+    const [activeItem, setActiveItem] = useState<NewsDisplayItem | null>(null);
+
+    useEffect(() => {
+        const handleStorageUpdate = () => setNews(loadNewsFromStorage());
+        window.addEventListener("app-storage-updated", handleStorageUpdate);
+        return () => window.removeEventListener("app-storage-updated", handleStorageUpdate);
+    }, []);
 
     const filteredNews = useMemo(() => {
         return news.filter(item =>
@@ -141,7 +119,7 @@ const News: React.FC = () => {
 
             <main className="main-content">
                 <div className="news-grid">
-                    {filteredNews.map((item: Resource) => (
+                    {filteredNews.map((item) => (
                         <article
                             key={item.id}
                             className="news-card group"
@@ -165,7 +143,7 @@ const News: React.FC = () => {
                             <div className="card-content">
                                 <div className="news-date">
                                     <Calendar className="w-3 h-3 text-yellow-500" />
-                                    <span>24 Februarie 2026</span>
+                                    <span>{new Date(item.publishedAt).toLocaleDateString("ro-RO", { day: "2-digit", month: "long", year: "numeric" })}</span>
                                 </div>
                                 <h3 className="news-title group-hover:text-[#003366] transition-colors">{item.title}</h3>
                                 <p className="news-desc">{item.description}</p>
@@ -191,7 +169,7 @@ const News: React.FC = () => {
                         <h2>{activeItem.title}</h2>
                         <div className="news-modal-date">
                             <Calendar className="w-4 h-4" />
-                            <span>24 Februarie 2026</span>
+                            <span>{new Date(activeItem.publishedAt).toLocaleDateString("ro-RO", { day: "2-digit", month: "long", year: "numeric" })}</span>
                         </div>
                         <p>{activeItem.description}</p>
                     </div>
