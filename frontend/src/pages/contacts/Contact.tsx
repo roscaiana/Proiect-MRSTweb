@@ -1,4 +1,4 @@
-﻿import React, { useState, FormEvent } from 'react';
+﻿import React, { useState, FormEvent, useEffect } from 'react';
 import { Mail, Phone, MapPin, Send, MessageSquare, User, AtSign, CheckCircle2 } from 'lucide-react';
 import { ContactFormData } from '@/types/contact';
 import Sidebar from "../../components/SideBar/SideBar";
@@ -56,15 +56,15 @@ const Contact: React.FC = () => {
         }
     };
 
-    const openSidebar = () => {
-        setSidebarOpen(true);
-        document.body.style.overflow = "hidden";
-    };
+    useEffect(() => {
+        document.body.classList.toggle("no-scroll", sidebarOpen);
+        return () => {
+            document.body.classList.remove("no-scroll");
+        };
+    }, [sidebarOpen]);
 
-    const closeSidebar = () => {
-        setSidebarOpen(false);
-        document.body.style.overflow = "";
-    };
+    const openSidebar = () => setSidebarOpen(true);
+    const closeSidebar = () => setSidebarOpen(false);
 
     return (
         <>
