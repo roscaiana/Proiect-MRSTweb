@@ -9,6 +9,7 @@ const navItems = [
     { to: "/admin/users", label: "Utilizatori", iconClass: "fas fa-users" },
     { to: "/admin/appointments", label: "Programări", iconClass: "fas fa-calendar-check" },
     { to: "/admin/notifications", label: "Notificări", iconClass: "fas fa-bell" },
+    { to: "/admin/news", label: "Noutăți", iconClass: "fas fa-newspaper" },
 ];
 
 const AdminPanelLayout: React.FC = () => {
@@ -30,15 +31,9 @@ const AdminPanelLayout: React.FC = () => {
     }, [location.pathname]);
 
     useEffect(() => {
-        if (!isMobileSidebarOpen) {
-            document.body.style.overflow = "";
-            return;
-        }
-
-        document.body.style.overflow = "hidden";
-
+        document.body.classList.toggle("no-scroll", isMobileSidebarOpen);
         return () => {
-            document.body.style.overflow = "";
+            document.body.classList.remove("no-scroll");
         };
     }, [isMobileSidebarOpen]);
 

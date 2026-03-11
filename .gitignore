@@ -34,3 +34,7 @@ Thumbs.db
 
 # Cache de la Vite
 .vite
+
+# Claude Code
+.claude/
+CLAUDE.md

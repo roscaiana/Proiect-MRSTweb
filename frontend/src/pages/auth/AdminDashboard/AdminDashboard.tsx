@@ -8,6 +8,7 @@ import AdminTestsPage from "../../../features/admin/pages/AdminTestsPage";
 import AdminUsersPage from "../../../features/admin/pages/AdminUsersPage";
 import AdminAppointmentsPage from "../../../features/admin/pages/AdminAppointmentsPage";
 import AdminNotificationsPage from "../../../features/admin/pages/AdminNotificationsPage";
+import AdminNewsPage from "../../../features/admin/pages/AdminNewsPage";
 
 const AdminDashboard: React.FC = () => {
     const { isAuthenticated, isAdmin } = useAuth();
@@ -30,6 +31,7 @@ const AdminDashboard: React.FC = () => {
                     <Route path="users" element={<AdminUsersPage />} />
                     <Route path="appointments" element={<AdminAppointmentsPage />} />
                     <Route path="notifications" element={<AdminNotificationsPage />} />
+                    <Route path="news" element={<AdminNewsPage />} />
                     <Route path="*" element={<Navigate to="/admin/overview" replace />} />
                 </Route>
             </Routes>

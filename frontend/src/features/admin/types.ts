@@ -133,6 +133,25 @@ export interface SendNotificationInput {
     targetEmail?: string;
 }
 
+export interface AdminNewsArticle {
+    id: string;
+    title: string;
+    description: string;
+    category: string;
+    image: string;
+    publishedAt: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface AdminNewsArticleInput {
+    title: string;
+    description: string;
+    category: string;
+    image: string;
+    publishedAt: string;
+}
+
 export interface AdminState {
     tests: AdminTest[];
     settings: ExamSettings;
@@ -140,4 +159,5 @@ export interface AdminState {
     appointments: AdminAppointmentRecord[];
     quizHistory: QuizHistoryRecord[];
     sentNotifications: SentNotificationLog[];
+    news: AdminNewsArticle[];
 }

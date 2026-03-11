@@ -8,6 +8,7 @@ import { notifyAppointmentStatusChanged } from "../../../utils/appEventNotificat
 import {
     STORAGE_KEYS,
     loadAdminState,
+    writeAdminNews,
     writeAdminTests,
     writeAdminUsers,
     writeAppointments,
@@ -16,6 +17,8 @@ import {
 } from "../storage";
 import type {
     AdminAppointmentRecord,
+    AdminNewsArticle,
+    AdminNewsArticleInput,
     AdminState,
     AdminTestInput,
     AppointmentStatus,
@@ -42,7 +45,10 @@ type AdminAction =
           };
       }
     | { type: "appointment/update"; payload: { id: string; patch: Partial<AdminAppointmentRecord> } }
-    | { type: "notifications/log"; payload: SentNotificationLog };
+    | { type: "notifications/log"; payload: SentNotificationLog }
+    | { type: "news/create"; payload: AdminNewsArticleInput }
+    | { type: "news/update"; payload: { id: string; data: AdminNewsArticleInput } }
+    | { type: "news/delete"; payload: { id: string } };
 
 type AdminPanelContextValue = {
     state: AdminState;
@@ -58,6 +64,9 @@ type AdminPanelContextValue = {
     ) => void;
     updateAppointment: (appointmentId: string, patch: Partial<AdminAppointmentRecord>) => void;
     sendNotification: (input: SendNotificationInput) => number;
+    createNewsArticle: (input: AdminNewsArticleInput) => void;
+    updateNewsArticle: (id: string, input: AdminNewsArticleInput) => void;
+    deleteNewsArticle: (id: string) => void;
     refreshState: () => void;
 };
 
@@ -176,6 +185,25 @@ const reducer = (state: AdminState, action: AdminAction): AdminState => {
                 ...state,
                 sentNotifications: [action.payload, ...state.sentNotifications].slice(0, 100),
             };
+        case "news/create": {
+            const now = new Date().toISOString();
+            const id = createId("news");
+            const article: AdminNewsArticle = { id, ...action.payload, createdAt: now, updatedAt: now };
+            return { ...state, news: [article, ...state.news] };
+        }
+        case "news/update": {
+            const now = new Date().toISOString();
+            return {
+                ...state,
+                news: state.news.map((article) =>
+                    article.id !== action.payload.id
+                        ? article
+                        : { ...article, ...action.payload.data, updatedAt: now }
+                ),
+            };
+        }
+        case "news/delete":
+            return { ...state, news: state.news.filter((article) => article.id !== action.payload.id) };
         default:
             return state;
     }
@@ -228,6 +256,7 @@ export const AdminPanelProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             STORAGE_KEYS.appointments,
             STORAGE_KEYS.quizHistory,
             STORAGE_KEYS.sentNotifications,
+            STORAGE_KEYS.news,
         ]);
 
         const handleStorageEvent = (event: StorageEvent) => {
@@ -262,6 +291,10 @@ export const AdminPanelProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     useEffect(() => {
         writeSentNotifications(state.sentNotifications);
     }, [state.sentNotifications]);
+
+    useEffect(() => {
+        writeAdminNews(state.news);
+    }, [state.news]);
 
     const createTest = useCallback((input: AdminTestInput) => {
         dispatch({ type: "test/create", payload: input });
@@ -380,6 +413,18 @@ export const AdminPanelProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         [state]
     );
 
+    const createNewsArticle = useCallback((input: AdminNewsArticleInput) => {
+        dispatch({ type: "news/create", payload: input });
+    }, []);
+
+    const updateNewsArticle = useCallback((id: string, input: AdminNewsArticleInput) => {
+        dispatch({ type: "news/update", payload: { id, data: input } });
+    }, []);
+
+    const deleteNewsArticle = useCallback((id: string) => {
+        dispatch({ type: "news/delete", payload: { id } });
+    }, []);
+
     const value = useMemo<AdminPanelContextValue>(
         () => ({
             state,
@@ -391,6 +436,9 @@ export const AdminPanelProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             updateAppointmentStatus,
             updateAppointment,
             sendNotification,
+            createNewsArticle,
+            updateNewsArticle,
+            deleteNewsArticle,
             refreshState,
         }),
         [
@@ -403,6 +451,9 @@ export const AdminPanelProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             updateAppointmentStatus,
             updateAppointment,
             sendNotification,
+            createNewsArticle,
+            updateNewsArticle,
+            deleteNewsArticle,
             refreshState,
         ]
     );

@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo, useEffect } from 'react';
 import { Search, ChevronDown, LifeBuoy, FileText, HelpCircle, Calculator } from 'lucide-react';
 import { FaqItem, FaqCategory } from "@/types/support1.1";
 import Sidebar from "../../components/SideBar/SideBar";
@@ -74,15 +74,15 @@ const Support: React.FC = () => {
         });
     }, [searchQuery, activeCategory]);
 
-    const openSidebar = () => {
-        setSidebarOpen(true);
-        document.body.style.overflow = "hidden";
-    };
+    useEffect(() => {
+        document.body.classList.toggle("no-scroll", sidebarOpen);
+        return () => {
+            document.body.classList.remove("no-scroll");
+        };
+    }, [sidebarOpen]);
 
-    const closeSidebar = () => {
-        setSidebarOpen(false);
-        document.body.style.overflow = "";
-    };
+    const openSidebar = () => setSidebarOpen(true);
+    const closeSidebar = () => setSidebarOpen(false);
 
     return (
         <>

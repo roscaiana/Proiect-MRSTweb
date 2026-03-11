@@ -2,6 +2,7 @@ import { quizCategories, questionBanks } from "../../data/quizData";
 import { assertNoSimulatedServerError } from "../../utils/serverErrorSimulation";
 import type {
     AdminAppointmentRecord,
+    AdminNewsArticle,
     AdminState,
     AdminTest,
     AdminUserRecord,
@@ -17,6 +18,7 @@ export const STORAGE_KEYS = {
     appointments: "appointments",
     quizHistory: "quizHistory",
     sentNotifications: "adminSentNotifications",
+    news: "adminNews",
 } as const;
 
 const ensureNoSimulatedServerError = (): void => {
@@ -386,6 +388,40 @@ export const writeSentNotifications = (logs: SentNotificationLog[]): void => {
     emitStorageUpdate(STORAGE_KEYS.sentNotifications);
 };
 
+const SEED_NEWS: AdminNewsArticle[] = [
+    { id: "news-1", title: "Rezultatele Sesiunii de Certificare 2025", description: "A fost finalizată centralizarea rezultatelor pentru sesiunea de certificare 2025. Felicitări celor 7764 de candidați care au promovat!", category: "Certificare", image: "cert", publishedAt: "2025-02-24T00:00:00.000Z", createdAt: "2025-02-24T00:00:00.000Z", updatedAt: "2025-02-24T00:00:00.000Z" },
+    { id: "news-2", title: "Lansarea Programului de Instruire pentru Observatori", description: "CICDE lansează noul modul de instruire dedicat observatorilor naționali și internaționali pentru următoarele scrutine.", category: "Instruiri", image: "users", publishedAt: "2025-02-24T00:00:00.000Z", createdAt: "2025-02-24T00:00:00.000Z", updatedAt: "2025-02-24T00:00:00.000Z" },
+    { id: "news-3", title: "Actualizări ale Codului Electoral: Ce trebuie să știți", description: "Analiza principalelor modificări aduse Codului Electoral și impactul acestora asupra procesului de certificare a funcționarilor.", category: "Legislativ", image: "law", publishedAt: "2025-02-24T00:00:00.000Z", createdAt: "2025-02-24T00:00:00.000Z", updatedAt: "2025-02-24T00:00:00.000Z" },
+    { id: "news-4", title: "Calendarul Electoral pentru Alegerile Locale 2026", description: "Consultă etapele principale și termenele limită pentru organizarea scrutinelelor locale de anul viitor.", category: "Evenimente", image: "calendar", publishedAt: "2025-02-24T00:00:00.000Z", createdAt: "2025-02-24T00:00:00.000Z", updatedAt: "2025-02-24T00:00:00.000Z" },
+    { id: "news-5", title: "Nouă Platformă e-Electoral: Ghid de Utilizare", description: "Am lansat o interfață modernizată pentru a facilita accesul la resursele de studiu și simulările de examen.", category: "Platformă", image: "web", publishedAt: "2025-02-24T00:00:00.000Z", createdAt: "2025-02-24T00:00:00.000Z", updatedAt: "2025-02-24T00:00:00.000Z" },
+    { id: "news-6", title: "Parteneriat CICDE cu Organizații Internaționale", description: "Colaborare nouă pentru schimbul de bune practici în domeniul educației electorale la nivel european.", category: "Extern", image: "globe", publishedAt: "2025-02-24T00:00:00.000Z", createdAt: "2025-02-24T00:00:00.000Z", updatedAt: "2025-02-24T00:00:00.000Z" },
+];
+
+export const readAdminNews = (): AdminNewsArticle[] => {
+    ensureNoSimulatedServerError();
+    const items = readArray<any>(localStorage.getItem(STORAGE_KEYS.news));
+    if (items.length > 0) {
+        return items.map((item, index) => ({
+            id: item.id || `news-${index + 1}`,
+            title: item.title || "",
+            description: item.description || "",
+            category: item.category || "",
+            image: item.image || "cert",
+            publishedAt: item.publishedAt ? new Date(item.publishedAt).toISOString() : new Date().toISOString(),
+            createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
+            updatedAt: item.updatedAt ? new Date(item.updatedAt).toISOString() : new Date().toISOString(),
+        }));
+    }
+    localStorage.setItem(STORAGE_KEYS.news, JSON.stringify(SEED_NEWS));
+    return SEED_NEWS;
+};
+
+export const writeAdminNews = (news: AdminNewsArticle[]): void => {
+    ensureNoSimulatedServerError();
+    localStorage.setItem(STORAGE_KEYS.news, JSON.stringify(news));
+    emitStorageUpdate(STORAGE_KEYS.news);
+};
+
 export const loadAdminState = (): AdminState => {
     ensureNoSimulatedServerError();
     return {
@@ -395,5 +431,6 @@ export const loadAdminState = (): AdminState => {
         appointments: readAppointments(),
         quizHistory: readQuizHistory(),
         sentNotifications: readSentNotifications(),
+        news: readAdminNews(),
     };
 };
