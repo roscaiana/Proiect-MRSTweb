@@ -1,4 +1,4 @@
-﻿﻿import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+﻿﻿import { useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { formatNotificationDate, useNotifications } from "../../hooks/useNotifications";
 import { useAuth } from "../../hooks/useAuth";
@@ -43,7 +43,10 @@ export default function Header({ onOpenSidebar, isSidebarOpen }: Props) {
     const { isAuthenticated, isAdmin, user, logout } = useAuth();
     const [notificationsOpen, setNotificationsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
+    const [searchOpen, setSearchOpen] = useState(false);
     const notificationRef = useRef<HTMLDivElement>(null);
+    const searchRef = useRef<HTMLFormElement>(null);
+    const searchInputRef = useRef<HTMLInputElement>(null);
 
     const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications({
         isAuthenticated,
@@ -75,7 +78,36 @@ export default function Header({ onOpenSidebar, isSidebarOpen }: Props) {
 
         navigate(matchedPath);
         setSearchQuery("");
+        setSearchOpen(false);
     };
+
+    const handleSearchToggle = () => {
+        setSearchOpen((prev) => !prev);
+        if (searchOpen) {
+            setSearchQuery("");
+        }
+    };
+
+    useEffect(() => {
+        if (!searchOpen) return;
+
+        const handleClickOutside = (event: MouseEvent) => {
+            if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+                setSearchOpen(false);
+                setSearchQuery("");
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [searchOpen]);
+
+    useLayoutEffect(() => {
+        if (searchOpen) {
+            searchInputRef.current?.focus();
+        }
+    }, [searchOpen]);
+
 
     useEffect(() => {
         if (!notificationsOpen) {
@@ -162,20 +194,42 @@ export default function Header({ onOpenSidebar, isSidebarOpen }: Props) {
 
                 <div className="header-actions">
                     <div className="header-main-actions">
-                        <form className="header-search-form" onSubmit={handleSearchSubmit} role="search">
-                            <i className="fas fa-search header-search-icon" aria-hidden="true"></i>
+                        <div className="header-search-wrap">
+                        <form
+                            ref={searchRef}
+                            className={`header-search-form${searchOpen ? " is-open" : ""}`}
+                            onSubmit={handleSearchSubmit}
+                            role="search"
+                        >
+                            <button
+                                type="button"
+                                className="header-search-toggle"
+                                onClick={handleSearchToggle}
+                                aria-label={"Caut\u0103 pagin\u0103"}
+                                aria-expanded={searchOpen}
+                            >
+                                <i className="fas fa-search" aria-hidden="true"></i>
+                            </button>
                             <input
+                                ref={searchInputRef}
                                 className="header-search-input"
                                 type="search"
                                 value={searchQuery}
                                 onChange={(event) => setSearchQuery(event.target.value)}
                                 placeholder={"Caut\u0103 pagin\u0103..."}
                                 aria-label={"Caut\u0103 pagin\u0103"}
+                                tabIndex={searchOpen ? 0 : -1}
                             />
-                            <button type="submit" className="header-search-submit" aria-label={"Caut\u0103"}>
+                            <button
+                                type="submit"
+                                className="header-search-submit"
+                                aria-label={"Caut\u0103"}
+                                tabIndex={searchOpen ? 0 : -1}
+                            >
                                 <i className="fas fa-arrow-right" aria-hidden="true"></i>
                             </button>
                         </form>
+                        </div>
 
                         <Link to={accountPath} className="btn btn-primary header-auth-btn">
                             <i className={accountIcon}></i> {accountLabel}

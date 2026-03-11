@@ -14,9 +14,7 @@ export const PUBLIC_PAGES: SitePage[] = [
     { label: "Contact", path: "/contact", icon: "fas fa-address-book", keywords: ["contact", "telefon", "email"] },
 ];
 
-export const HEADER_AUTH_PAGES: SitePage[] = PUBLIC_PAGES.filter(
-    (page) => page.path === "/" || page.path === "/tests" || page.path === "/appointment" || page.path === "/news",
-);
+export const HEADER_AUTH_PAGES: SitePage[] = PUBLIC_PAGES;
 
 export const GUEST_PAGES: SitePage[] = [
     { label: "Autentificare", path: "/login", icon: "fas fa-right-to-bracket", keywords: ["login", "autentificare", "cont"] },
