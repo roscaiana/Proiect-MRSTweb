@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from "react";
-import { useAdminPanel } from "../hooks/useAdminPanel";
 import AdminMultiSelect, { type AdminMultiSelectOption } from "../components/AdminMultiSelect";
+import AdminUserRow from "../components/AdminUserRow";
+import { useAdminPanel } from "../hooks/useAdminPanel";
+import { formatDateShort } from "../../../utils/dateUtils";
 
 type UserRoleFilter = "user" | "admin";
 type UserStatusFilter = "active" | "blocked";
@@ -15,14 +17,6 @@ const USER_STATUS_OPTIONS: ReadonlyArray<AdminMultiSelectOption<UserStatusFilter
     { value: "blocked", label: "Blocate" },
 ];
 
-const formatDate = (value: string): string => {
-    return new Date(value).toLocaleDateString("ro-RO", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-    });
-};
-
 const AdminUsersPage: React.FC = () => {
     const { state, toggleUserBlocked } = useAdminPanel();
     const [search, setSearch] = useState("");
@@ -34,9 +28,9 @@ const AdminUsersPage: React.FC = () => {
             const matchesSearch =
                 user.fullName.toLowerCase().includes(search.toLowerCase()) ||
                 user.email.toLowerCase().includes(search.toLowerCase());
-            const matchesRole = roleFilters.length === 0 ? true : roleFilters.includes(user.role);
+            const matchesRole = roleFilters.length === 0 || roleFilters.includes(user.role);
             const statusKey: UserStatusFilter = user.isBlocked ? "blocked" : "active";
-            const matchesStatus = statusFilters.length === 0 ? true : statusFilters.includes(statusKey);
+            const matchesStatus = statusFilters.length === 0 || statusFilters.includes(statusKey);
 
             return matchesSearch && matchesRole && matchesStatus;
         });
@@ -84,9 +78,7 @@ const AdminUsersPage: React.FC = () => {
                     </label>
                 </div>
 
-                <p className="admin-muted-text">
-                    Afișate {filteredUsers.length} din {state.users.length} conturi.
-                </p>
+                <p className="admin-muted-text">Afișate {filteredUsers.length} din {state.users.length} conturi.</p>
 
                 <div className="admin-table-wrapper">
                     <table className="admin-table">
@@ -102,29 +94,18 @@ const AdminUsersPage: React.FC = () => {
                         </thead>
                         <tbody>
                             {filteredUsers.map((user) => (
-                                <tr key={user.id}>
-                                    <td>
-                                        <strong>{user.fullName}</strong>
-                                        <p>{user.email}</p>
-                                    </td>
-                                    <td>{user.role}</td>
-                                    <td>{formatDate(user.createdAt)}</td>
-                                    <td>{user.lastLoginAt ? formatDate(user.lastLoginAt) : "N/A"}</td>
-                                    <td>
-                                        <span className={`admin-pill ${user.isBlocked ? "rejected" : "approved"}`}>
-                                            {user.isBlocked ? "blocat" : "activ"}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <button
-                                            className={`admin-text-btn ${user.isBlocked ? "" : "danger"}`}
-                                            type="button"
-                                            onClick={() => toggleUserBlocked(user.id)}
-                                        >
-                                            {user.isBlocked ? "Deblochează" : "Blochează"}
-                                        </button>
-                                    </td>
-                                </tr>
+                                <AdminUserRow
+                                    key={user.id}
+                                    id={user.id}
+                                    fullName={user.fullName}
+                                    email={user.email}
+                                    role={user.role}
+                                    createdAt={user.createdAt}
+                                    lastLoginAt={user.lastLoginAt}
+                                    isBlocked={user.isBlocked}
+                                    formatDate={formatDateShort}
+                                    onToggleBlocked={toggleUserBlocked}
+                                />
                             ))}
                         </tbody>
                     </table>

@@ -1,11 +1,16 @@
 ﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useStorageSync } from '../../hooks/useStorageSync';
 import { ClipboardList } from 'lucide-react';
 import { getQuizCategories, getQuestionsByCategory, getCategoryById } from '../../data/quizData';
 import { useAuth } from '../../hooks/useAuth';
 import type { QuizMode, QuizResult, QuizSession } from '../../types/quiz';
 import type { QuizHistoryRecord } from '../../features/admin/types';
 import { readAdminTests, readExamSettings, readQuizHistory, STORAGE_KEYS, writeQuizHistory } from '../../features/admin/storage';
+import ChapterFeedbackItem from './ChapterFeedbackItem';
+import QuestionOptionButton from './QuestionOptionButton';
 import QuestionNavigationGrid from './QuestionNavigationGrid';
+import QuizAnswerResultItem from './QuizAnswerResultItem';
+import QuizCategoryCard from './QuizCategoryCard';
 import { difficultyLabel, fmt, inferChapter, modeLabel, normalizeText, renderCategoryIcon } from './testsPageUtils';
 import { useQuestionGridAutoScroll } from './useQuestionGridAutoScroll';
 import { notifyQuizCompleted } from '../../utils/appEventNotifications';
@@ -31,28 +36,11 @@ const TestsPage: React.FC = () => {
         window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     }, [testsView]);
 
-    useEffect(() => {
-        const refresh = () => {
-            setCategories(getQuizCategories());
-            setAdminTests(readAdminTests());
-            setExamSettings(readExamSettings());
-        };
-        const onStorage = (event: StorageEvent) => {
-            const changedKey = event.key;
-            if (changedKey === STORAGE_KEYS.tests || changedKey === STORAGE_KEYS.settings) refresh();
-        };
-        const onAppStorage = (event: Event) => {
-            const customEvent = event as CustomEvent<{ key?: string }>;
-            const changedKey = customEvent.detail?.key;
-            if (changedKey === STORAGE_KEYS.tests || changedKey === STORAGE_KEYS.settings) refresh();
-        };
-        window.addEventListener('storage', onStorage);
-        window.addEventListener('app-storage-updated', onAppStorage as EventListener);
-        return () => {
-            window.removeEventListener('storage', onStorage);
-            window.removeEventListener('app-storage-updated', onAppStorage as EventListener);
-        };
-    }, []);
+    useStorageSync([STORAGE_KEYS.tests, STORAGE_KEYS.settings], () => {
+        setCategories(getQuizCategories());
+        setAdminTests(readAdminTests());
+        setExamSettings(readExamSettings());
+    });
 
     const durationByCategoryId = useMemo(() => {
         return adminTests.reduce<Record<string, number>>((acc, test) => {
@@ -277,7 +265,7 @@ const TestsPage: React.FC = () => {
                                 {strongChapters.length === 0 ? (
                                     <p className="chapter-feedback-empty">Niciun capitol peste 70% în această încercare.</p>
                                 ) : (
-                                    <ul>{strongChapters.map((x) => <li key={x.chapterId}><span>{x.chapterTitle}</span><strong>{x.accuracy}%</strong></li>)}</ul>
+                                    <ul>{strongChapters.map((x) => <ChapterFeedbackItem key={x.chapterId} chapterId={x.chapterId} chapterTitle={x.chapterTitle} accuracy={x.accuracy} />)}</ul>
                                 )}
                             </article>
                             <article className="chapter-feedback-card weak">
@@ -285,7 +273,7 @@ const TestsPage: React.FC = () => {
                                 {weakChapters.length === 0 ? (
                                     <p className="chapter-feedback-empty">Foarte bine, nu ai capitole sub 70%.</p>
                                 ) : (
-                                    <ul>{weakChapters.map((x) => <li key={x.chapterId}><span>{x.chapterTitle}</span><strong>{x.accuracy}%</strong></li>)}</ul>
+                                    <ul>{weakChapters.map((x) => <ChapterFeedbackItem key={x.chapterId} chapterId={x.chapterId} chapterTitle={x.chapterTitle} accuracy={x.accuracy} />)}</ul>
                                 )}
                             </article>
                         </div>
@@ -294,12 +282,16 @@ const TestsPage: React.FC = () => {
                             <h3>Detalii răspunsuri</h3>
                             <div className="answer-list">
                                 {quizResult.answers.map((answer, index) => (
-                                    <div key={answer.questionId} className={`answer-item ${answer.isCorrect ? 'correct' : 'incorrect'}`}>
-                                        <div className="answer-header"><strong>Întrebarea {index + 1}</strong><span>{answer.chapterTitle}</span></div>
-                                        <p className="answer-question">{answer.questionText}</p>
-                                        <p>Răspunsul tău: <strong>{answer.userAnswerText || 'Neselectat'}</strong></p>
-                                        {!answer.isCorrect && <p>Corect: <strong>{answer.correctAnswerText}</strong></p>}
-                                    </div>
+                                    <QuizAnswerResultItem
+                                        key={answer.questionId}
+                                        questionId={answer.questionId}
+                                        index={index}
+                                        chapterTitle={answer.chapterTitle}
+                                        questionText={answer.questionText}
+                                        userAnswerText={answer.userAnswerText}
+                                        correctAnswerText={answer.correctAnswerText}
+                                        isCorrect={answer.isCorrect}
+                                    />
                                 ))}
                             </div>
                         </div>
@@ -377,10 +369,14 @@ const TestsPage: React.FC = () => {
                                     const correctOption = index === currentQuestion.correctAnswer;
                                     const state = showFeedback ? (correctOption ? 'correct' : selected ? 'incorrect' : '') : '';
                                     return (
-                                        <button key={index} className={`option-btn ${selected ? 'selected' : ''} ${state}`.trim()} onClick={() => setAnswer(index)} type="button">
-                                            <span className="option-prefix">{String.fromCharCode(65 + index)}</span>
-                                            <span className="option-text">{normalizeText(option)}</span>
-                                        </button>
+                                        <QuestionOptionButton
+                                            key={index}
+                                            index={index}
+                                            option={normalizeText(option)}
+                                            selected={selected}
+                                            stateClass={state}
+                                            onSelect={setAnswer}
+                                        />
                                     );
                                 })}
                             </div>
@@ -501,19 +497,19 @@ const TestsPage: React.FC = () => {
 
                         <div className="quiz-categories">
                             {categories.map((category) => (
-                                <article key={category.id} className="quiz-category-card">
-                                    <div className="category-icon" aria-hidden="true">{renderCategoryIcon(category.id)}</div>
-                                    <h3>{normalizeText(category.title)}</h3>
-                                    <p className="category-description">{normalizeText(category.description)}</p>
-
-                                    <div className="category-meta">
-                                        <div className="meta-item"><span>Durata test: {durationByCategoryId[category.id] ?? category.estimatedTime} min</span></div>
-                                        <div className="meta-item"><span>{category.questionCount} întrebări</span></div>
-                                        <div className="meta-item"><span className={`difficulty-badge ${category.difficulty}`}>{difficultyLabel(category.difficulty)}</span></div>
-                                    </div>
-
-                                    <button className="btn-start-quiz" onClick={() => startQuiz(category.id)}>Începe în modul {modeLabel(quizMode)}</button>
-                                </article>
+                                <QuizCategoryCard
+                                    key={category.id}
+                                    id={category.id}
+                                    title={normalizeText(category.title)}
+                                    description={normalizeText(category.description)}
+                                    questionCount={category.questionCount}
+                                    difficulty={category.difficulty}
+                                    durationMinutes={durationByCategoryId[category.id] ?? category.estimatedTime}
+                                    quizModeLabel={modeLabel(quizMode)}
+                                    icon={renderCategoryIcon(category.id)}
+                                    difficultyLabel={difficultyLabel(category.difficulty)}
+                                    onStart={startQuiz}
+                                />
                             ))}
                         </div>
                     </section>

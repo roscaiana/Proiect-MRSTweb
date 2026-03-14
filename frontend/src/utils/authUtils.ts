@@ -6,6 +6,7 @@ import {
     UpdateUserProfileInput,
 } from '../types/user';
 import { buildNotificationStorageKey, readNotifications, saveNotifications } from './notificationUtils';
+import { emitStorageUpdate, emitNotificationsUpdated } from './storageEvents';
 
 // Email validation regex
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -20,18 +21,6 @@ const PHONE_REGEX = /^[0-9+\s()-]{6,20}$/;
 type AuthStorageUser = {
     email?: string;
     role?: 'admin' | 'user';
-};
-
-const emitStorageUpdate = (key: string): void => {
-    if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('app-storage-updated', { detail: { key } }));
-    }
-};
-
-const emitNotificationsUpdated = (storageKey: string): void => {
-    if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('notifications-updated', { detail: { storageKey } }));
-    }
 };
 
 const normalizeComparableEmail = (value: string): string => value.trim().toLowerCase();

@@ -1,6 +1,8 @@
-﻿import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { PUBLIC_PAGES } from "../navigation/siteNavigation";
+import SidebarAccountItem from "./SidebarAccountItem";
+import SidebarNavItem from "./SidebarNavItem";
 import "./SideBar.css";
 
 type Props = {
@@ -29,8 +31,8 @@ export default function Sidebar({ open, onClose }: Props) {
         ];
 
     const navigate = useNavigate();
-
     const accountTitle = isAuthenticated ? accountLabel : "Autentificare";
+    const navigationLinks = PUBLIC_PAGES.flatMap((page) => (page.path === "/tests" ? [page, ...infoLinks] : [page]));
 
     const handleLogout = () => {
         logout();
@@ -42,13 +44,13 @@ export default function Sidebar({ open, onClose }: Props) {
         <>
             <nav className={`sidebar ${open ? "active" : ""}`} id="main-sidebar" aria-hidden={!open}>
                 <div className="sidebar-header">
-                    <Link to="/" className="logo-area white-text" onClick={onClose} aria-label={"Acas\u0103"}>
+                    <Link to="/" className="logo-area white-text" onClick={onClose} aria-label="Acasă">
                         <div className="logo-emblem" style={{ width: 40, height: 40 }}>
                             <svg viewBox="0 0 100 100" className="svg-logo">
                                 <defs>
                                     <linearGradient id="goldGradientSidebarFix" x1="0%" y1="0%" x2="100%" y2="100%">
-                                        <stop offset="0%" style={{ stopColor: '#f1c40f', stopOpacity: 1 }} />
-                                        <stop offset="100%" style={{ stopColor: '#b7950b', stopOpacity: 1 }} />
+                                        <stop offset="0%" style={{ stopColor: "#f1c40f", stopOpacity: 1 }} />
+                                        <stop offset="100%" style={{ stopColor: "#b7950b", stopOpacity: 1 }} />
                                     </linearGradient>
                                 </defs>
                                 <path d="M50 5 L90 25 V75 L50 95 L10 75 V25 L50 5 Z" fill="#003366" stroke="white" strokeWidth="2" />
@@ -68,47 +70,21 @@ export default function Sidebar({ open, onClose }: Props) {
 
                 <div className="sidebar-content">
                     <div className="sidebar-section">
-                        <h4>{"Naviga\u021Bie"}</h4>
+                        <h4>Navigație</h4>
                         <ul>
-                            {PUBLIC_PAGES.flatMap((page) => {
-                                if (page.path === "/tests") {
-                                    return [
-                                        ...infoLinks.map((link) => (
-                                            <li key={`${link.to}-${link.label}`}>
-                                                <Link to={link.to} onClick={onClose}>
-                                                    <i className={link.icon}></i>
-                                                    {link.label}
-                                                </Link>
-                                            </li>
-                                        )),
-                                        <li key={page.path}>
-                                            <NavLink
-                                                to={page.path}
-                                                end={page.path === "/"}
-                                                onClick={onClose}
-                                                className={({ isActive }) => (isActive ? "active" : "")}
-                                            >
-                                                <i className={page.icon}></i>
-                                                {page.label}
-                                            </NavLink>
-                                        </li>,
-                                    ];
-                                }
-
-                                return [
-                                    <li key={page.path}>
-                                        <NavLink
-                                            to={page.path}
-                                            end={page.path === "/"}
-                                            onClick={onClose}
-                                            className={({ isActive }) => (isActive ? "active" : "")}
-                                        >
-                                            <i className={page.icon}></i>
-                                            {page.label}
-                                        </NavLink>
-                                    </li>,
-                                ];
-                            })}
+                            {navigationLinks.map((link) =>
+                                "to" in link ? (
+                                    <SidebarAccountItem
+                                        key={`${link.to}-${link.label}`}
+                                        to={link.to}
+                                        icon={link.icon}
+                                        label={link.label}
+                                        onClose={onClose}
+                                    />
+                                ) : (
+                                    <SidebarNavItem key={link.path} page={link} onClose={onClose} />
+                                )
+                            )}
                         </ul>
                     </div>
 
@@ -116,11 +92,13 @@ export default function Sidebar({ open, onClose }: Props) {
                         <h4>{accountTitle}</h4>
                         <ul>
                             {accountLinks.map((link) => (
-                                <li key={`${link.to}-${link.label}`}>
-                                    <Link to={link.to} onClick={onClose}>
-                                        <i className={link.icon}></i> {link.label}
-                                    </Link>
-                                </li>
+                                <SidebarAccountItem
+                                    key={`${link.to}-${link.label}`}
+                                    to={link.to}
+                                    icon={link.icon}
+                                    label={link.label}
+                                    onClose={onClose}
+                                />
                             ))}
                             {isAuthenticated ? (
                                 <li>
@@ -135,12 +113,11 @@ export default function Sidebar({ open, onClose }: Props) {
                 </div>
 
                 <div className="sidebar-footer">
-                    <p>{"\u00A9 2026 e-Electoral"}</p>
+                    <p>© 2026 e-Electoral</p>
                 </div>
             </nav>
 
-            <div className={`sidebar-overlay ${open ? 'active' : ''}`} onClick={onClose}></div>
+            <div className={`sidebar-overlay ${open ? "active" : ""}`} onClick={onClose}></div>
         </>
     );
 }
-

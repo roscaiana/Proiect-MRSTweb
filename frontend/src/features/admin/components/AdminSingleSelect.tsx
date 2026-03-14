@@ -1,4 +1,6 @@
-import React, { useEffect, useId, useMemo, useRef, useState } from "react";
+import React, { useId, useMemo } from "react";
+import { useDropdown } from "../../../hooks/useDropdown";
+import AdminSingleSelectOptionButton from "./AdminSingleSelectOptionButton";
 
 export type AdminSingleSelectOption<T extends string> = {
     value: T;
@@ -20,40 +22,10 @@ const AdminSingleSelect = <T extends string,>({
     ariaLabel,
     placeholder = "Selectează",
 }: AdminSingleSelectProps<T>) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const rootRef = useRef<HTMLDivElement | null>(null);
+    const { isOpen, setIsOpen, rootRef } = useDropdown();
     const listboxId = useId();
 
-    useEffect(() => {
-        if (!isOpen) {
-            return;
-        }
-
-        const handleOutsideClick = (event: MouseEvent) => {
-            if (rootRef.current?.contains(event.target as Node)) {
-                return;
-            }
-            setIsOpen(false);
-        };
-
-        const handleEscape = (event: KeyboardEvent) => {
-            if (event.key === "Escape") {
-                setIsOpen(false);
-            }
-        };
-
-        window.addEventListener("mousedown", handleOutsideClick);
-        window.addEventListener("keydown", handleEscape);
-        return () => {
-            window.removeEventListener("mousedown", handleOutsideClick);
-            window.removeEventListener("keydown", handleEscape);
-        };
-    }, [isOpen]);
-
-    const selectedOption = useMemo(
-        () => options.find((option) => option.value === value),
-        [options, value]
-    );
+    const selectedOption = useMemo(() => options.find((option) => option.value === value), [options, value]);
 
     return (
         <div className={`admin-multi-select ${isOpen ? "is-open" : ""}`} ref={rootRef}>
@@ -76,25 +48,18 @@ const AdminSingleSelect = <T extends string,>({
 
             {isOpen && (
                 <div className="admin-multi-select-menu" id={listboxId} role="listbox">
-                    {options.map((option) => {
-                        const isSelected = option.value === value;
-                        return (
-                            <button
-                                type="button"
-                                key={option.value}
-                                className={`admin-multi-select-option ${isSelected ? "is-active" : ""}`}
-                                role="option"
-                                aria-selected={isSelected}
-                                onClick={() => {
-                                    onChange(option.value);
-                                    setIsOpen(false);
-                                }}
-                            >
-                                <span>{option.label}</span>
-                                {isSelected && <i className="fas fa-check admin-single-select-check" aria-hidden="true"></i>}
-                            </button>
-                        );
-                    })}
+                    {options.map((option) => (
+                        <AdminSingleSelectOptionButton
+                            key={option.value}
+                            value={option.value}
+                            label={option.label}
+                            isSelected={option.value === value}
+                            onSelect={(nextValue) => {
+                                onChange(nextValue as T);
+                                setIsOpen(false);
+                            }}
+                        />
+                    ))}
                 </div>
             )}
         </div>

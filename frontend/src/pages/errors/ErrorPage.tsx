@@ -1,5 +1,6 @@
 import React from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import ErrorActionButton from "./ErrorActionButton";
 import { clearSimulatedServerError } from "../../utils/serverErrorSimulation";
 import "./ErrorPage.css";
 
@@ -28,21 +29,15 @@ const ErrorPage: React.FC<ErrorPageProps> = ({ code, title, description, hint, a
                     <p className="error-description">{description}</p>
                     {hint && <p className="error-hint">{hint}</p>}
                     <div className="error-actions">
-                        {actions.map((action) => {
-                            const className = `btn ${action.variant === "outline" ? "btn-outline" : "btn-primary"}`;
-                            if (action.to) {
-                                return (
-                                    <Link key={action.label} to={action.to} className={className}>
-                                        {action.label}
-                                    </Link>
-                                );
-                            }
-                            return (
-                                <button key={action.label} type="button" className={className} onClick={action.onClick}>
-                                    {action.label}
-                                </button>
-                            );
-                        })}
+                        {actions.map((action) => (
+                            <ErrorActionButton
+                                key={action.label}
+                                label={action.label}
+                                to={action.to}
+                                onClick={action.onClick}
+                                variant={action.variant}
+                            />
+                        ))}
                     </div>
                 </div>
             </div>

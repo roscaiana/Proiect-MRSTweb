@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useAdminPanel } from "../hooks/useAdminPanel";
 import type { AppointmentStatus } from "../types";
+import { appointmentStatusLabelFeminine } from "../../../utils/appointmentUtils";
 import { TIME_SLOTS } from "../../../types/appointment";
 import {
     buildAvailableSlotsForDate,
@@ -11,19 +12,13 @@ import {
     parseDateKey,
     toDateKey,
 } from "../../../utils/appointmentScheduling";
-import { isAllowedDay } from "../../../utils/dateUtils";
+import { isAllowedDay, formatDateShort } from "../../../utils/dateUtils";
 import { notifyUser } from "../../../utils/appEventNotifications";
-import CompactDatePicker from "../../../components/CompactDatePicker/CompactDatePicker";
-import AdminMultiSelect, { type AdminMultiSelectOption } from "../components/AdminMultiSelect";
-import AdminSingleSelect, { type AdminSingleSelectOption } from "../components/AdminSingleSelect";
+import AdminAppointmentPendingItem from "../components/AdminAppointmentPendingItem";
+import AdminAppointmentHeatmapDay from "../components/AdminAppointmentHeatmapDay";
+import AdminCalendarDayConfig from "../components/AdminCalendarDayConfig";
+import AdminAppointmentsTable, { type AppointmentSortBy } from "../components/AdminAppointmentsTable";
 
-const formatDateLabel = (value: string): string => {
-    return new Date(value).toLocaleDateString("ro-RO", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-    });
-};
 
 const formatDateTimeLabel = (value: string): string => {
     return new Date(value).toLocaleString("ro-RO", {
@@ -34,29 +29,6 @@ const formatDateTimeLabel = (value: string): string => {
         minute: "2-digit",
     });
 };
-
-const statusLabel = (status: AppointmentStatus): string => {
-    if (status === "pending") return "În așteptare";
-    if (status === "approved") return "Aprobată";
-    if (status === "rejected") return "Respinsă";
-    return "Anulată";
-};
-
-const APPOINTMENT_STATUS_FILTER_OPTIONS: ReadonlyArray<AdminMultiSelectOption<AppointmentStatus>> = [
-    { value: "pending", label: "În așteptare" },
-    { value: "approved", label: "Aprobate" },
-    { value: "rejected", label: "Respinse" },
-    { value: "cancelled", label: "Anulate" },
-];
-
-type AppointmentSortBy = "updated_desc" | "exam_asc" | "exam_desc" | "name_asc";
-
-const APPOINTMENT_SORT_OPTIONS: ReadonlyArray<AdminSingleSelectOption<AppointmentSortBy>> = [
-    { value: "updated_desc", label: "Actualizate recent" },
-    { value: "exam_asc", label: "Data examen (crescător)" },
-    { value: "exam_desc", label: "Data examen (descrescător)" },
-    { value: "name_asc", label: "Nume candidat (A-Z)" },
-];
 
 const AdminAppointmentsPage: React.FC = () => {
     const { state, updateAppointmentStatus, updateAppointment, updateSettings } = useAdminPanel();
@@ -77,11 +49,13 @@ const AdminAppointmentsPage: React.FC = () => {
     const [slotDraftText, setSlotDraftText] = useState("");
     const [locationValue, setLocationValue] = useState(state.settings.appointmentLocation);
     const [roomValue, setRoomValue] = useState(state.settings.appointmentRoom);
+    const [allowedWeekdaysDraft, setAllowedWeekdaysDraft] = useState<number[]>(state.settings.allowedWeekdays);
 
     useEffect(() => {
         setLocationValue(state.settings.appointmentLocation);
         setRoomValue(state.settings.appointmentRoom);
-    }, [state.settings.appointmentLocation, state.settings.appointmentRoom]);
+        setAllowedWeekdaysDraft(state.settings.allowedWeekdays);
+    }, [state.settings.appointmentLocation, state.settings.appointmentRoom, state.settings.allowedWeekdays]);
 
     useEffect(() => {
         const blocked = state.settings.blockedDates.find((item) => item.date === configDate);
@@ -298,6 +272,7 @@ const AdminAppointmentsPage: React.FC = () => {
             ...state.settings,
             appointmentLocation: locationValue.trim() || state.settings.appointmentLocation,
             appointmentRoom: roomValue.trim() || state.settings.appointmentRoom,
+            allowedWeekdays: allowedWeekdaysDraft.length > 0 ? allowedWeekdaysDraft : state.settings.allowedWeekdays,
             blockedDates: nextBlockedDates,
             capacityOverrides: nextCapacityOverrides,
             slotOverrides: nextSlotOverrides,
@@ -465,8 +440,8 @@ const AdminAppointmentsPage: React.FC = () => {
 
         const nextDateValue = window.prompt("Data nouă (YYYY-MM-DD):", toDateKey(appointment.date)) || "";
         if (!nextDateValue) return;
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(nextDateValue) || !isAllowedDay(parseDateKey(nextDateValue))) {
-            setFeedback("Data introdusă nu este validă (Luni/Miercuri/Vineri).");
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(nextDateValue) || !isAllowedDay(parseDateKey(nextDateValue), state.settings.allowedWeekdays)) {
+            setFeedback("Data introdusă nu este validă (zi neeligibilă).");
             return;
         }
         if (getBlockedDateEntry(state.settings, nextDateValue)) {
@@ -545,57 +520,13 @@ const AdminAppointmentsPage: React.FC = () => {
                 ) : (
                     <div className="admin-simple-list">
                         {pendingQueue.map((appointment) => (
-                            <div className="admin-simple-item" key={`pending-queue-${appointment.id}`}>
-                                <div>
-                                    <strong>{appointment.fullName}</strong>
-                                    <p>
-                                        {formatDateLabel(appointment.date)} · {appointment.slotStart}-{appointment.slotEnd}
-                                    </p>
-                                    <p>{appointment.appointmentCode || "Fără cod"}</p>
-                                </div>
-                                <div className="admin-actions-row admin-actions-row-wrap">
-                                    <button className="admin-text-btn" type="button" onClick={() => handleApprove(appointment.id)}>
-                                        Aprobă
-                                    </button>
-                                    <button className="admin-text-btn danger" type="button" onClick={() => handleReject(appointment.id)}>
-                                        Respinge
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </section>
-
-            <section className="admin-panel-card">
-                <div className="admin-card-header">
-                    <h3><i className="fas fa-table-cells admin-card-header-icon"></i> Calendar zi (sloturi)</h3>
-                    <span className="admin-muted-text">{configDate}</span>
-                </div>
-                {configDayCalendarRows.length === 0 ? (
-                    <p className="admin-muted-text">Nu există sloturi configurate pentru ziua selectată.</p>
-                ) : (
-                    <div className="admin-day-calendar-list">
-                        {configDayCalendarRows.map(({ key, slot, occupiedAppointment }) => (
-                            <div key={key} className={`admin-day-calendar-item ${occupiedAppointment ? "occupied" : "free"}`}>
-                                <div className="admin-day-calendar-slot">
-                                    <strong>{slot.startTime} - {slot.endTime}</strong>
-                                    <span>{occupiedAppointment ? "ocupat" : "liber"}</span>
-                                </div>
-                                <div className="admin-day-calendar-content">
-                                    {occupiedAppointment ? (
-                                        <>
-                                            <strong>{occupiedAppointment.fullName}</strong>
-                                            <p>{occupiedAppointment.userEmail || occupiedAppointment.idOrPhone}</p>
-                                            <p>
-                                                {occupiedAppointment.appointmentCode || "Fără cod"} · {statusLabel(occupiedAppointment.status)}
-                                            </p>
-                                        </>
-                                    ) : (
-                                        <p className="admin-muted-text">Slot disponibil</p>
-                                    )}
-                                </div>
-                            </div>
+                            <AdminAppointmentPendingItem
+                                key={`pending-queue-${appointment.id}`}
+                                appointment={appointment}
+                                formatDateLabel={formatDateShort}
+                                onApprove={handleApprove}
+                                onReject={handleReject}
+                            />
                         ))}
                     </div>
                 )}
@@ -606,422 +537,78 @@ const AdminAppointmentsPage: React.FC = () => {
                     <h3><i className="fas fa-chart-bar admin-card-header-icon"></i> Ocupare zile eligibile (preview)</h3>
                 </div>
                 <div className="admin-appointment-heatmap">
-                    {occupancyPreview.map((day) => {
-                        const ratio = day.capacity > 0 ? day.occupied / day.capacity : 0;
-                        const levelClass = day.blocked
-                            ? "blocked"
-                            : day.remaining === 0
-                              ? "full"
-                              : ratio >= 0.8
-                                ? "high"
-                                : ratio > 0
-                                  ? "medium"
-                                  : "low";
-
-                        return (
-                            <button
-                                key={day.dateKey}
-                                type="button"
-                                className={`admin-appointment-heatmap-day ${levelClass} ${configDate === day.dateKey ? "active" : ""}`}
-                                onClick={() => setConfigDate(day.dateKey)}
-                                title={
-                                    day.blocked
-                                        ? `Blocată${day.blockedNote ? `: ${day.blockedNote}` : ""}`
-                                        : `${day.occupied}/${day.capacity} ocupate`
-                                }
-                            >
-                                <strong>
-                                    {new Date(day.date).toLocaleDateString("ro-RO", {
-                                        day: "2-digit",
-                                        month: "2-digit",
-                                    })}
-                                </strong>
-                                <span>{day.blocked ? "blocată" : `${day.remaining} lib.`}</span>
-                            </button>
-                        );
-                    })}
+                    {occupancyPreview.map((day) => (
+                        <AdminAppointmentHeatmapDay
+                            key={day.dateKey}
+                            day={day}
+                            dateKey={day.dateKey}
+                            isActive={configDate === day.dateKey}
+                            onSelect={setConfigDate}
+                        />
+                    ))}
                 </div>
             </section>
 
-            <section className="admin-panel-card">
-                <div className="admin-card-header">
-                    <h3><i className="fas fa-gear admin-card-header-icon"></i> Configurare zi / reguli programare</h3>
-                    <button className="admin-btn secondary" type="button" onClick={handleSaveDayConfig}>
-                        Salvează
-                    </button>
-                </div>
+            <AdminCalendarDayConfig
+                configDate={configDate}
+                onConfigDateChange={setConfigDate}
+                configDayCalendarRows={configDayCalendarRows}
+                settings={state.settings}
+                blockDate={blockDate}
+                blockNote={blockNote}
+                overrideCapacity={overrideCapacity}
+                capacityValue={capacityValue}
+                overrideSlots={overrideSlots}
+                slotDraftText={slotDraftText}
+                locationValue={locationValue}
+                roomValue={roomValue}
+                configDayAppointments={configDayAppointments}
+                configDayCapacity={configDayCapacity}
+                configDaySlots={configDaySlots}
+                configDayBlockedEntry={configDayBlockedEntry}
+                onBlockDateChange={setBlockDate}
+                onBlockNoteChange={setBlockNote}
+                onOverrideCapacityChange={setOverrideCapacity}
+                onCapacityValueChange={setCapacityValue}
+                onOverrideSlotsChange={setOverrideSlots}
+                onSlotDraftTextChange={setSlotDraftText}
+                onLocationValueChange={setLocationValue}
+                onRoomValueChange={setRoomValue}
+                allowedWeekdays={allowedWeekdaysDraft}
+                onAllowedWeekdaysChange={setAllowedWeekdaysDraft}
+                onSave={handleSaveDayConfig}
+            />
 
-                <div className="admin-form-grid admin-appointments-config-grid">
-                    <label className="admin-field">
-                        <span>Data configurare</span>
-                        <CompactDatePicker
-                            value={configDate}
-                            onChange={setConfigDate}
-                            allowClear={false}
-                            ariaLabel="Calendar configurare zi"
-                        />
-                    </label>
-
-                    <label className="admin-field">
-                        <span>Locație examen</span>
-                        <input
-                            type="text"
-                            value={locationValue}
-                            onChange={(event) => setLocationValue(event.target.value)}
-                        />
-                    </label>
-
-                    <label className="admin-field">
-                        <span>Sală</span>
-                        <input type="text" value={roomValue} onChange={(event) => setRoomValue(event.target.value)} />
-                    </label>
-
-                    <label className="admin-field">
-                        <span>Override capacitate zi</span>
-                        <div className="admin-inline-checkbox">
-                            <input
-                                type="checkbox"
-                                checked={overrideCapacity}
-                                onChange={(event) => setOverrideCapacity(event.target.checked)}
-                            />
-                            <span>Activ</span>
-                        </div>
-                        <input
-                            type="number"
-                            min={1}
-                            value={capacityValue}
-                            disabled={!overrideCapacity}
-                            onChange={(event) => setCapacityValue(Number(event.target.value) || 1)}
-                        />
-                        <small className="admin-field-hint">Default: {state.settings.appointmentsPerDay}</small>
-                    </label>
-
-                    <label className="admin-field admin-field-full">
-                        <span>Zi blocată</span>
-                        <div className="admin-inline-checkbox">
-                            <input
-                                type="checkbox"
-                                checked={blockDate}
-                                onChange={(event) => setBlockDate(event.target.checked)}
-                            />
-                            <span>Blocare zi {configDate}</span>
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Motiv (optional)"
-                            value={blockNote}
-                            disabled={!blockDate}
-                            onChange={(event) => setBlockNote(event.target.value)}
-                        />
-                    </label>
-
-                    <label className="admin-field admin-field-full">
-                        <span>Override sloturi pentru zi</span>
-                        <div className="admin-inline-checkbox">
-                            <input
-                                type="checkbox"
-                                checked={overrideSlots}
-                                onChange={(event) => setOverrideSlots(event.target.checked)}
-                            />
-                            <span>Folosește sloturi custom pentru {configDate}</span>
-                        </div>
-                        <textarea
-                            rows={5}
-                            disabled={!overrideSlots}
-                            value={slotDraftText}
-                            onChange={(event) => setSlotDraftText(event.target.value)}
-                            placeholder={"08:00-08:30\n09:00-09:30\n14:00-14:30"}
-                        />
-                        <small className="admin-field-hint">
-                            Câte un slot pe linie, format HH:MM-HH:MM. Dacă este dezactivat, se folosesc sloturile implicite.
-                        </small>
-                    </label>
-                </div>
-
-                <div className="admin-appointments-day-summary">
-                    <div className="admin-summary-chip">
-                        <span>Data</span>
-                        <strong>{configDate}</strong>
-                    </div>
-                    <div className="admin-summary-chip">
-                        <span>Zi</span>
-                        <strong>
-                            {parseDateKey(configDate).toLocaleDateString("ro-RO", { weekday: "long" })}
-                        </strong>
-                    </div>
-                    <div className="admin-summary-chip">
-                        <span>Ocupare</span>
-                        <strong>
-                            {configDayAppointments.length}/{configDayCapacity}
-                        </strong>
-                    </div>
-                    <div className="admin-summary-chip">
-                        <span>Sloturi libere</span>
-                        <strong>
-                            {configDaySlots.filter((slot) => slot.available).length}/{configDaySlots.length}
-                        </strong>
-                    </div>
-                    <div className={`admin-summary-chip ${configDayBlockedEntry ? "danger" : ""}`}>
-                        <span>Status zi</span>
-                        <strong>{configDayBlockedEntry ? "Blocată" : "Activă"}</strong>
-                    </div>
-                </div>
-            </section>
-
-            <section className="admin-panel-card">
-                <div className="admin-card-header">
-                    <h3><i className="fas fa-list admin-card-header-icon"></i> Programări</h3>
-                    <button className="admin-btn secondary" type="button" onClick={handleExportCsv}>
-                        Export CSV
-                    </button>
-                </div>
-
-                <div className="admin-toolbar admin-toolbar-appointments">
-                    <label className="admin-field">
-                        <span>Caută candidat</span>
-                        <input
-                            type="text"
-                            placeholder="Nume, email, telefon sau cod"
-                            value={search}
-                            onChange={(event) => setSearch(event.target.value)}
-                        />
-                    </label>
-
-                    <label className="admin-field">
-                        <span>Status</span>
-                        <AdminMultiSelect
-                            ariaLabel="Filtrare dupa status programari"
-                            options={APPOINTMENT_STATUS_FILTER_OPTIONS}
-                            selectedValues={statusFilters}
-                            onChange={setStatusFilters}
-                            placeholder="Toate"
-                        />
-                    </label>
-
-                    <label className="admin-field">
-                        <span>Data</span>
-                        <CompactDatePicker
-                            value={dateFilter}
-                            onChange={setDateFilter}
-                            ariaLabel="Calendar filtrare programari"
-                        />
-                    </label>
-
-                    <label className="admin-field">
-                        <span>Interval</span>
-                        <AdminMultiSelect
-                            ariaLabel="Filtrare dupa interval programari"
-                            options={slotOptions.map((value) => ({ value, label: value }))}
-                            selectedValues={slotFilters}
-                            onChange={setSlotFilters}
-                            placeholder="Toate intervalele"
-                        />
-                    </label>
-
-                    <label className="admin-field">
-                        <span>Sortare</span>
-                        <AdminSingleSelect
-                            ariaLabel="Sortare programari"
-                            options={APPOINTMENT_SORT_OPTIONS}
-                            value={sortBy}
-                            onChange={setSortBy}
-                        />
-                    </label>
-                </div>
-
-                <div className="admin-appointments-stats">
-                    <div className="admin-summary-chip">
-                        <span>Total rezultate</span>
-                        <strong>{filteredAppointments.length}</strong>
-                    </div>
-                    <div className="admin-summary-chip">
-                        <span>În așteptare</span>
-                        <strong>{filteredAppointments.filter((item) => item.status === "pending").length}</strong>
-                    </div>
-                    <div className="admin-summary-chip">
-                        <span>Aprobate</span>
-                        <strong>{filteredAppointments.filter((item) => item.status === "approved").length}</strong>
-                    </div>
-                    <div className="admin-summary-chip">
-                        <span>Respinse/Anulate</span>
-                        <strong>
-                            {
-                                filteredAppointments.filter(
-                                    (item) => item.status === "rejected" || item.status === "cancelled"
-                                ).length
-                            }
-                        </strong>
-                    </div>
-                </div>
-
-                <div className="admin-bulk-toolbar">
-                    <div className="admin-bulk-toolbar-left">
-                        <label className="admin-bulk-select-toggle">
-                            <input
-                                type="checkbox"
-                                checked={allFilteredSelected}
-                                onChange={toggleSelectAllFiltered}
-                                disabled={filteredAppointments.length === 0}
-                            />
-                            <span>Selectează toate rezultatele filtrate</span>
-                        </label>
-                        <span className="admin-muted-text">{selectedAppointmentIds.length} selectate</span>
-                    </div>
-                    <div className="admin-bulk-toolbar-actions">
-                        <button
-                            type="button"
-                            className="admin-btn secondary"
-                            onClick={() => applyBulkStatusAction("approve")}
-                            disabled={selectedAppointmentIds.length === 0}
-                        >
-                            Aprobă selectate
-                        </button>
-                        <button
-                            type="button"
-                            className="admin-btn ghost"
-                            onClick={() => applyBulkStatusAction("reject")}
-                            disabled={selectedAppointmentIds.length === 0}
-                        >
-                            Respinge selectate
-                        </button>
-                        <button
-                            type="button"
-                            className="admin-btn ghost"
-                            onClick={() => applyBulkStatusAction("cancel")}
-                            disabled={selectedAppointmentIds.length === 0}
-                        >
-                            Anulează selectate
-                        </button>
-                        <button
-                            type="button"
-                            className="admin-btn ghost"
-                            onClick={() => setSelectedAppointmentIds([])}
-                            disabled={selectedAppointmentIds.length === 0}
-                        >
-                            Golește selecție
-                        </button>
-                    </div>
-                </div>
-
-                {filteredAppointments.length === 0 ? (
-                    <p className="admin-muted-text">Nu există programări pentru filtrul selectat.</p>
-                ) : (
-                    <div className="admin-table-wrapper">
-                        <table className="admin-table">
-                            <thead>
-                                <tr>
-                                    <th className="admin-table-checkbox-col">
-                                        <input
-                                            type="checkbox"
-                                            checked={allFilteredSelected}
-                                            onChange={toggleSelectAllFiltered}
-                                            aria-label="Selectează toate programările filtrate"
-                                        />
-                                    </th>
-                                    <th>Candidat</th>
-                                    <th>Cod / Meta</th>
-                                    <th>Data examen</th>
-                                    <th>Interval</th>
-                                    <th>Status</th>
-                                    <th>Acțiuni</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredAppointments.map((appointment) => (
-                                    <tr key={appointment.id}>
-                                        <td className="admin-table-checkbox-col">
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedAppointmentIds.includes(appointment.id)}
-                                                onChange={() => toggleAppointmentSelection(appointment.id)}
-                                                aria-label={`Selectează programarea ${appointment.fullName}`}
-                                            />
-                                        </td>
-                                        <td>
-                                            <strong>{appointment.fullName}</strong>
-                                            <p>{appointment.userEmail || appointment.idOrPhone}</p>
-                                            {appointment.userEmail && <p>{appointment.idOrPhone}</p>}
-                                            <p>Creat: {formatDateTimeLabel(appointment.createdAt)}</p>
-                                        </td>
-
-                                        <td className="admin-appointment-meta-cell">
-                                            <p>
-                                                <strong>{appointment.appointmentCode || "Fără cod"}</strong>
-                                            </p>
-                                            <p>Actualizat: {formatDateTimeLabel(appointment.updatedAt || appointment.createdAt)}</p>
-                                            {typeof appointment.rescheduleCount === "number" && (
-                                                <p>Reprogramări: {appointment.rescheduleCount}</p>
-                                            )}
-                                            {appointment.cancelledBy && <p>Anulată de: {appointment.cancelledBy}</p>}
-                                        </td>
-
-                                        <td>{formatDateLabel(appointment.date)}</td>
-
-                                        <td>
-                                            {appointment.slotStart} - {appointment.slotEnd}
-                                        </td>
-
-                                        <td>
-                                            <span className={`admin-pill ${appointment.status}`}>
-                                                {statusLabel(appointment.status)}
-                                            </span>
-                                            {appointment.statusReason && (
-                                                <p className="admin-appointment-status-note">
-                                                    Motiv: {appointment.statusReason}
-                                                </p>
-                                            )}
-                                            {appointment.adminNote && (
-                                                <p className="admin-appointment-status-note">
-                                                    Nota admin: {appointment.adminNote}
-                                                </p>
-                                            )}
-                                        </td>
-
-                                        <td>
-                                            <div className="admin-actions-row admin-actions-row-wrap">
-                                                <button
-                                                    className="admin-text-btn"
-                                                    type="button"
-                                                    onClick={() => handleApprove(appointment.id)}
-                                                    disabled={
-                                                        appointment.status === "approved" || appointment.status === "cancelled"
-                                                    }
-                                                >
-                                                    Aprobă
-                                                </button>
-                                                <button
-                                                    className="admin-text-btn danger"
-                                                    type="button"
-                                                    onClick={() => handleReject(appointment.id)}
-                                                    disabled={appointment.status === "cancelled"}
-                                                >
-                                                    Respinge
-                                                </button>
-                                                <button
-                                                    className="admin-text-btn"
-                                                    type="button"
-                                                    onClick={() => handleReschedule(appointment.id)}
-                                                    disabled={appointment.status === "cancelled"}
-                                                >
-                                                    Reprogramează
-                                                </button>
-                                                <button
-                                                    className="admin-text-btn danger"
-                                                    type="button"
-                                                    onClick={() => handleCancelByAdmin(appointment.id)}
-                                                    disabled={appointment.status === "cancelled"}
-                                                >
-                                                    Anulează
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
-            </section>
+            <AdminAppointmentsTable
+                filteredAppointments={filteredAppointments}
+                allFilteredSelected={allFilteredSelected}
+                selectedAppointmentIds={selectedAppointmentIds}
+                search={search}
+                statusFilters={statusFilters}
+                dateFilter={dateFilter}
+                slotFilters={slotFilters}
+                slotOptions={slotOptions}
+                sortBy={sortBy}
+                onSearchChange={setSearch}
+                onStatusFiltersChange={setStatusFilters}
+                onDateFilterChange={setDateFilter}
+                onSlotFiltersChange={setSlotFilters}
+                onSortChange={setSortBy}
+                onToggleSelectAll={toggleSelectAllFiltered}
+                onToggleSelection={toggleAppointmentSelection}
+                onBulkApprove={() => applyBulkStatusAction("approve")}
+                onBulkReject={() => applyBulkStatusAction("reject")}
+                onBulkCancel={() => applyBulkStatusAction("cancel")}
+                onClearSelection={() => setSelectedAppointmentIds([])}
+                onExportCsv={handleExportCsv}
+                onApprove={handleApprove}
+                onReject={handleReject}
+                onReschedule={handleReschedule}
+                onCancel={handleCancelByAdmin}
+                formatDateLabel={formatDateShort}
+                formatDateTimeLabel={formatDateTimeLabel}
+                statusLabel={appointmentStatusLabelFeminine}
+            />
         </div>
     );
 };

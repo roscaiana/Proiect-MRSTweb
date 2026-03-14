@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import AdminNewsRow from "../components/AdminNewsRow";
+import AdminSingleSelect, { type AdminSingleSelectOption } from "../components/AdminSingleSelect";
 import { useAdminPanel } from "../hooks/useAdminPanel";
 import type { AdminNewsArticle, AdminNewsArticleInput } from "../types";
-import AdminSingleSelect, { type AdminSingleSelectOption } from "../components/AdminSingleSelect";
+import { formatDateShort } from "../../../utils/dateUtils";
 
 type NewsView = "list" | "form";
 
@@ -31,8 +33,6 @@ const EMPTY_FORM: AdminNewsArticleInput = {
     publishedAt: new Date().toISOString().slice(0, 10),
 };
 
-const formatDate = (iso: string): string =>
-    new Date(iso).toLocaleDateString("ro-RO", { day: "2-digit", month: "short", year: "numeric" });
 
 const AdminNewsPage: React.FC = () => {
     const { state, createNewsArticle, updateNewsArticle, deleteNewsArticle } = useAdminPanel();
@@ -62,15 +62,26 @@ const AdminNewsPage: React.FC = () => {
     };
 
     const handleDelete = (id: string) => {
-        if (!window.confirm("Ești sigur că vrei să ștergi această știre?")) return;
+        if (!window.confirm("Ești sigur că vrei să ștergi această știre?")) {
+            return;
+        }
         deleteNewsArticle(id);
     };
 
     const handleSubmit = (event: React.FormEvent) => {
         event.preventDefault();
-        if (!form.title.trim()) { setError("Titlul este obligatoriu."); return; }
-        if (!form.description.trim()) { setError("Descrierea este obligatorie."); return; }
-        if (!form.publishedAt) { setError("Data publicării este obligatorie."); return; }
+        if (!form.title.trim()) {
+            setError("Titlul este obligatoriu.");
+            return;
+        }
+        if (!form.description.trim()) {
+            setError("Descrierea este obligatorie.");
+            return;
+        }
+        if (!form.publishedAt) {
+            setError("Data publicării este obligatorie.");
+            return;
+        }
 
         const input: AdminNewsArticleInput = {
             ...form,
@@ -134,36 +145,17 @@ const AdminNewsPage: React.FC = () => {
                                 </thead>
                                 <tbody>
                                     {state.news.map((article) => (
-                                        <tr key={article.id}>
-                                            <td>
-                                                <strong>{article.title}</strong>
-                                                <p className="admin-muted-text" style={{ margin: "2px 0 0", fontSize: "0.8rem" }}>
-                                                    {article.description.length > 80
-                                                        ? article.description.slice(0, 80) + "…"
-                                                        : article.description}
-                                                </p>
-                                            </td>
-                                            <td>{article.category}</td>
-                                            <td>{formatDate(article.publishedAt)}</td>
-                                            <td>
-                                                <div style={{ display: "flex", gap: "0.4rem" }}>
-                                                    <button
-                                                        type="button"
-                                                        className="admin-btn ghost"
-                                                        onClick={() => openEdit(article)}
-                                                    >
-                                                        <i className="fas fa-pen"></i> Editează
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        className="admin-btn danger"
-                                                        onClick={() => handleDelete(article.id)}
-                                                    >
-                                                        <i className="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
+                                        <AdminNewsRow
+                                            key={article.id}
+                                            id={article.id}
+                                            title={article.title}
+                                            description={article.description}
+                                            category={article.category}
+                                            publishedAt={article.publishedAt}
+                                            formatDate={formatDateShort}
+                                            onEdit={() => openEdit(article)}
+                                            onDelete={handleDelete}
+                                        />
                                     ))}
                                 </tbody>
                             </table>

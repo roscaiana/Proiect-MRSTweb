@@ -1,8 +1,11 @@
-﻿﻿import { useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from "react";
-import { Link, NavLink, useNavigate } from "react-router-dom";
-import { formatNotificationDate, useNotifications } from "../../hooks/useNotifications";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useNotifications } from "../../hooks/useNotifications";
 import { useAuth } from "../../hooks/useAuth";
 import { HEADER_AUTH_PAGES, PUBLIC_PAGES, getSearchPages, type SitePage } from "../navigation/siteNavigation";
+import { normalizeTextForSearch } from "../../utils/textUtils";
+import HeaderNavItem from "./HeaderNavItem";
+import NotificationListItem from "./NotificationListItem";
 import "./Header.css";
 
 type Props = {
@@ -10,18 +13,13 @@ type Props = {
     isSidebarOpen: boolean;
 };
 
-
-function normalizeText(value: string): string {
-    return value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-}
-
 function getFirstSearchMatch(query: string, pages: SitePage[]): string | null {
     const trimmed = query.trim();
     if (!trimmed) {
         return null;
     }
 
-    const normalizedQuery = normalizeText(trimmed);
+    const normalizedQuery = normalizeTextForSearch(trimmed);
 
     const byPath = pages.find((page) => page.path.toLowerCase() === trimmed.toLowerCase());
     if (byPath) {
@@ -29,9 +27,9 @@ function getFirstSearchMatch(query: string, pages: SitePage[]): string | null {
     }
 
     const byLabelOrKeyword = pages.find((page) => {
-        const labelMatch = normalizeText(page.label).includes(normalizedQuery);
+        const labelMatch = normalizeTextForSearch(page.label).includes(normalizedQuery);
         const pathMatch = page.path.toLowerCase().includes(normalizedQuery);
-        const keywordMatch = page.keywords.some((keyword) => normalizeText(keyword).includes(normalizedQuery));
+        const keywordMatch = page.keywords.some((keyword) => normalizeTextForSearch(keyword).includes(normalizedQuery));
         return labelMatch || pathMatch || keywordMatch;
     });
 
@@ -58,10 +56,7 @@ export default function Header({ onOpenSidebar, isSidebarOpen }: Props) {
     const accountLabel = isAuthenticated ? (isAdmin ? "Cont Admin" : "Profilul meu") : "Autentificare";
     const accountIcon = isAuthenticated ? "fas fa-gauge-high" : "fas fa-user-lock";
 
-    const searchablePages = useMemo(
-        () => getSearchPages(isAuthenticated, isAdmin),
-        [isAuthenticated, isAdmin],
-    );
+    const searchablePages = useMemo(() => getSearchPages(isAuthenticated, isAdmin), [isAuthenticated, isAdmin]);
 
     const handleLogout = () => {
         logout();
@@ -89,7 +84,9 @@ export default function Header({ onOpenSidebar, isSidebarOpen }: Props) {
     };
 
     useEffect(() => {
-        if (!searchOpen) return;
+        if (!searchOpen) {
+            return;
+        }
 
         const handleClickOutside = (event: MouseEvent) => {
             if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
@@ -107,7 +104,6 @@ export default function Header({ onOpenSidebar, isSidebarOpen }: Props) {
             searchInputRef.current?.focus();
         }
     }, [searchOpen]);
-
 
     useEffect(() => {
         if (!notificationsOpen) {
@@ -145,7 +141,7 @@ export default function Header({ onOpenSidebar, isSidebarOpen }: Props) {
                         <i className="fas fa-bars"></i>
                     </button>
 
-                    <Link to="/" className="logo-area" aria-label={"Acas\u0103"}>
+                    <Link to="/" className="logo-area" aria-label="Acasă">
                         <div className="logo-emblem">
                             <svg viewBox="0 0 100 100" className="svg-logo">
                                 <defs>
@@ -172,22 +168,7 @@ export default function Header({ onOpenSidebar, isSidebarOpen }: Props) {
                 <nav className="main-nav">
                     <ul>
                         {navPages.map((page) => (
-                            <li key={page.path}>
-                                <NavLink
-                                    to={page.path}
-                                    end={page.path === "/"}
-                                    className={({ isActive }) =>
-                                        [
-                                            isActive ? "active" : "",
-                                            page.path === "/" ? "home-link" : "",
-                                        ]
-                                            .filter(Boolean)
-                                            .join(" ")
-                                    }
-                                >
-                                    {page.label}
-                                </NavLink>
-                            </li>
+                            <HeaderNavItem key={page.path} page={page} />
                         ))}
                     </ul>
                 </nav>
@@ -195,40 +176,40 @@ export default function Header({ onOpenSidebar, isSidebarOpen }: Props) {
                 <div className="header-actions">
                     <div className="header-main-actions">
                         <div className="header-search-wrap">
-                        <form
-                            ref={searchRef}
-                            className={`header-search-form${searchOpen ? " is-open" : ""}`}
-                            onSubmit={handleSearchSubmit}
-                            role="search"
-                        >
-                            <button
-                                type="button"
-                                className="header-search-toggle"
-                                onClick={handleSearchToggle}
-                                aria-label={"Caut\u0103 pagin\u0103"}
-                                aria-expanded={searchOpen}
+                            <form
+                                ref={searchRef}
+                                className={`header-search-form${searchOpen ? " is-open" : ""}`}
+                                onSubmit={handleSearchSubmit}
+                                role="search"
                             >
-                                <i className="fas fa-search" aria-hidden="true"></i>
-                            </button>
-                            <input
-                                ref={searchInputRef}
-                                className="header-search-input"
-                                type="search"
-                                value={searchQuery}
-                                onChange={(event) => setSearchQuery(event.target.value)}
-                                placeholder={"Caut\u0103 pagin\u0103..."}
-                                aria-label={"Caut\u0103 pagin\u0103"}
-                                tabIndex={searchOpen ? 0 : -1}
-                            />
-                            <button
-                                type="submit"
-                                className="header-search-submit"
-                                aria-label={"Caut\u0103"}
-                                tabIndex={searchOpen ? 0 : -1}
-                            >
-                                <i className="fas fa-arrow-right" aria-hidden="true"></i>
-                            </button>
-                        </form>
+                                <button
+                                    type="button"
+                                    className="header-search-toggle"
+                                    onClick={handleSearchToggle}
+                                    aria-label="Caută pagină"
+                                    aria-expanded={searchOpen}
+                                >
+                                    <i className="fas fa-search" aria-hidden="true"></i>
+                                </button>
+                                <input
+                                    ref={searchInputRef}
+                                    className="header-search-input"
+                                    type="search"
+                                    value={searchQuery}
+                                    onChange={(event) => setSearchQuery(event.target.value)}
+                                    placeholder="Caută pagină..."
+                                    aria-label="Caută pagină"
+                                    tabIndex={searchOpen ? 0 : -1}
+                                />
+                                <button
+                                    type="submit"
+                                    className="header-search-submit"
+                                    aria-label="Caută"
+                                    tabIndex={searchOpen ? 0 : -1}
+                                >
+                                    <i className="fas fa-arrow-right" aria-hidden="true"></i>
+                                </button>
+                            </form>
                         </div>
 
                         <Link to={accountPath} className="btn btn-primary header-auth-btn">
@@ -238,11 +219,7 @@ export default function Header({ onOpenSidebar, isSidebarOpen }: Props) {
 
                     {isAuthenticated && (
                         <div className="header-secondary-actions">
-                            <button
-                                className="btn btn-outline btn-logout"
-                                type="button"
-                                onClick={handleLogout}
-                            >
+                            <button className="btn btn-outline btn-logout" type="button" onClick={handleLogout}>
                                 <i className="fas fa-right-from-bracket"></i> Deconectare
                             </button>
 
@@ -250,7 +227,7 @@ export default function Header({ onOpenSidebar, isSidebarOpen }: Props) {
                                 <button
                                     className="btn btn-outline notification-btn"
                                     type="button"
-                                    aria-label={"Notific\u0103ri"}
+                                    aria-label="Notificări"
                                     onClick={() => setNotificationsOpen((prev) => !prev)}
                                 >
                                     <i className="fas fa-bell"></i>
@@ -260,37 +237,30 @@ export default function Header({ onOpenSidebar, isSidebarOpen }: Props) {
                                 {notificationsOpen && (
                                     <div className="notification-panel">
                                         <div className="notification-panel-header">
-                                            <h4>{"Notific\u0103ri"}</h4>
+                                            <h4>Notificări</h4>
                                             {unreadCount > 0 && (
                                                 <button type="button" className="mark-read-btn" onClick={markAllAsRead}>
-                                                    {"Marcheaz\u0103 citite"}
+                                                    Marchează citite
                                                 </button>
                                             )}
                                         </div>
 
                                         <div className="notification-list">
                                             {notifications.length === 0 ? (
-                                                <p className="notification-empty">{"Nu ai notific\u0103ri."}</p>
+                                                <p className="notification-empty">Nu ai notificări.</p>
                                             ) : (
                                                 notifications.map((notification) => (
-                                                    <button
+                                                    <NotificationListItem
                                                         key={notification.id}
-                                                        type="button"
-                                                        className={`notification-item ${notification.read ? "" : "unread"}`}
-                                                        onClick={() => {
-                                                            markAsRead(notification.id);
+                                                        notification={notification}
+                                                        onSelect={(selectedNotification) => {
+                                                            markAsRead(selectedNotification.id);
                                                             setNotificationsOpen(false);
-                                                            if (notification.link) {
-                                                                navigate(notification.link);
+                                                            if (selectedNotification.link) {
+                                                                navigate(selectedNotification.link);
                                                             }
                                                         }}
-                                                    >
-                                                        <span className="notification-title">{notification.title}</span>
-                                                        <span className="notification-message">{notification.message}</span>
-                                                        <span className="notification-time">
-                                                            {formatNotificationDate(notification.createdAt)}
-                                                        </span>
-                                                    </button>
+                                                    />
                                                 ))
                                             )}
                                         </div>
@@ -304,4 +274,3 @@ export default function Header({ onOpenSidebar, isSidebarOpen }: Props) {
         </header>
     );
 }
-

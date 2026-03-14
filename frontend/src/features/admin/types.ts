@@ -56,6 +56,7 @@ export interface ExamSettings {
     rejectionCooldownDays: number;
     appointmentLocation: string;
     appointmentRoom: string;
+    allowedWeekdays: number[]; // 0=Sun, 1=Mon … 6=Sat
     blockedDates: AppointmentBlockedDate[];
     capacityOverrides: AppointmentCapacityOverride[];
     slotOverrides: AppointmentSlotOverride[];
@@ -151,6 +152,15 @@ export interface AdminNewsArticleInput {
     image: string;
     publishedAt: string;
 }
+
+export type NewsDisplayItem = {
+    id: string;
+    title: string;
+    description: string;
+    category: string;
+    image: string;
+    publishedAt: string;
+};
 
 export interface AdminState {
     tests: AdminTest[];

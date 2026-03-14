@@ -1,15 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Search, Calendar, Newspaper, Bell, FileText, Users, Globe, Info } from 'lucide-react';
-import './News.css';
-
-type NewsDisplayItem = {
-    id: string;
-    title: string;
-    description: string;
-    category: string;
-    image: string;
-    publishedAt: string;
-};
+import React, { useMemo, useState } from "react";
+import { Calendar, Newspaper, Search } from "lucide-react";
+import { useEscapeKey } from "../../hooks/useEscapeKey";
+import { useStorageSync } from "../../hooks/useStorageSync";
+import NewsCard from "./NewsCard";
+import type { NewsDisplayItem } from "../../features/admin/types";
+import { formatDateLong } from "../../utils/dateUtils";
+import "./News.css";
 
 function loadNewsFromStorage(): NewsDisplayItem[] {
     try {
@@ -33,55 +29,26 @@ function loadNewsFromStorage(): NewsDisplayItem[] {
     return [];
 }
 
-const getIcon = (type: string) => {
-    switch (type) {
-        case 'cert': return <FileText className="w-12 h-12 text-[#003366]" />;
-        case 'users': return <Users className="w-12 h-12 text-[#003366]" />;
-        case 'law': return <Info className="w-12 h-12 text-[#003366]" />;
-        case 'calendar': return <Calendar className="w-12 h-12 text-[#003366]" />;
-        case 'web': return <Bell className="w-12 h-12 text-[#003366]" />;
-        case 'globe': return <Globe className="w-12 h-12 text-[#003366]" />;
-        default: return <Newspaper className="w-12 h-12 text-[#003366]" />;
-    }
-};
-
 const News: React.FC = () => {
     const [news, setNews] = useState<NewsDisplayItem[]>(() => loadNewsFromStorage());
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState("");
     const [activeItem, setActiveItem] = useState<NewsDisplayItem | null>(null);
 
-    useEffect(() => {
-        const handleStorageUpdate = () => setNews(loadNewsFromStorage());
-        window.addEventListener("app-storage-updated", handleStorageUpdate);
-        return () => window.removeEventListener("app-storage-updated", handleStorageUpdate);
-    }, []);
+    useStorageSync(["adminNews"], () => setNews(loadNewsFromStorage()));
 
     const filteredNews = useMemo(() => {
-        return news.filter(item =>
-            item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.category.toLowerCase().includes(searchQuery.toLowerCase())
+        return news.filter(
+            (item) =>
+                item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                item.category.toLowerCase().includes(searchQuery.toLowerCase())
         );
     }, [news, searchQuery]);
 
-    useEffect(() => {
-        if (!activeItem) {
-            return;
-        }
-
-        const handleEscape = (event: KeyboardEvent) => {
-            if (event.key === 'Escape') {
-                setActiveItem(null);
-            }
-        };
-
-        document.addEventListener('keydown', handleEscape);
-        return () => document.removeEventListener('keydown', handleEscape);
-    }, [activeItem]);
+    useEscapeKey(() => setActiveItem(null), activeItem !== null);
 
     return (
         <div className="news-container">
-            {/* Hero Section */}
             <div className="news-hero">
                 <div className="hero-overlay-1"></div>
                 <div className="hero-overlay-2"></div>
@@ -99,7 +66,8 @@ const News: React.FC = () => {
                     </h1>
 
                     <p className="hero-subtitle">
-                        Rămâneți la curent cu cele mai recente știri din domeniul electoral, sesiunile de certificare și evenimentele CICDE.
+                        Rămâneți la curent cu cele mai recente știri din domeniul electoral, sesiunile de
+                        certificare și evenimentele CICDE.
                     </p>
 
                     <div className="search-container">
@@ -120,36 +88,7 @@ const News: React.FC = () => {
             <main className="main-content">
                 <div className="news-grid">
                     {filteredNews.map((item) => (
-                        <article
-                            key={item.id}
-                            className="news-card group"
-                            role="button"
-                            tabIndex={0}
-                            aria-label={`Deschide știrea: ${item.title}`}
-                            onClick={() => setActiveItem(item)}
-                            onKeyDown={(event) => {
-                                if (event.key === 'Enter' || event.key === ' ') {
-                                    event.preventDefault();
-                                    setActiveItem(item);
-                                }
-                            }}
-                        >
-                            <div className="image-wrapper">
-                                <span className="category-badge">{item.category}</span>
-                                <div className="icon-display">
-                                    {getIcon(item.image)}
-                                </div>
-                            </div>
-                            <div className="card-content">
-                                <div className="news-date">
-                                    <Calendar className="w-3 h-3 text-yellow-500" />
-                                    <span>{new Date(item.publishedAt).toLocaleDateString("ro-RO", { day: "2-digit", month: "long", year: "numeric" })}</span>
-                                </div>
-                                <h3 className="news-title group-hover:text-[#003366] transition-colors">{item.title}</h3>
-                                <p className="news-desc">{item.description}</p>
-
-                            </div>
-                        </article>
+                        <NewsCard key={item.id} item={item} onOpen={setActiveItem} />
                     ))}
                 </div>
             </main>
@@ -169,7 +108,9 @@ const News: React.FC = () => {
                         <h2>{activeItem.title}</h2>
                         <div className="news-modal-date">
                             <Calendar className="w-4 h-4" />
-                            <span>{new Date(activeItem.publishedAt).toLocaleDateString("ro-RO", { day: "2-digit", month: "long", year: "numeric" })}</span>
+                            <span>
+                                {formatDateLong(activeItem.publishedAt)}
+                            </span>
                         </div>
                         <p>{activeItem.description}</p>
                     </div>

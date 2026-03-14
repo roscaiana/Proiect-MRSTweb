@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from "react";
-import { useAdminPanel } from "../hooks/useAdminPanel";
-import type { NotificationTarget } from "../types";
 import CompactDatePicker from "../../../components/CompactDatePicker/CompactDatePicker";
 import AdminMultiSelect, { type AdminMultiSelectOption } from "../components/AdminMultiSelect";
+import AdminNotificationHistoryRow from "../components/AdminNotificationHistoryRow";
 import AdminSingleSelect, { type AdminSingleSelectOption } from "../components/AdminSingleSelect";
+import { useAdminPanel } from "../hooks/useAdminPanel";
+import type { NotificationTarget } from "../types";
 
 type NotificationsView = "compose" | "history";
 
@@ -94,28 +95,16 @@ const AdminNotificationsPage: React.FC = () => {
     const [message, setMessage] = useState("");
     const [feedback, setFeedback] = useState("");
     const [selectedTemplateKey, setSelectedTemplateKey] = useState("");
-
     const [historyTargetFilters, setHistoryTargetFilters] = useState<NotificationTarget[]>([]);
     const [historySearch, setHistorySearch] = useState("");
     const [historyFrom, setHistoryFrom] = useState("");
     const [historyTo, setHistoryTo] = useState("");
 
     const estimatedRecipients = useMemo(() => {
-        if (target === "all") {
-            return state.users.length + 1;
-        }
-
-        if (target === "users") {
-            return state.users.filter((user) => user.role === "user").length;
-        }
-
-        if (target === "admins") {
-            return state.users.filter((user) => user.role === "admin").length + 1;
-        }
-
-        if (!targetEmail.trim()) {
-            return 0;
-        }
+        if (target === "all") return state.users.length + 1;
+        if (target === "users") return state.users.filter((user) => user.role === "user").length;
+        if (target === "admins") return state.users.filter((user) => user.role === "admin").length + 1;
+        if (!targetEmail.trim()) return 0;
 
         const normalizedTargetEmail = targetEmail.trim().toLowerCase();
         const hasUser = state.users.some((user) => user.email.trim().toLowerCase() === normalizedTargetEmail);
@@ -129,8 +118,7 @@ const AdminNotificationsPage: React.FC = () => {
         const toDate = historyTo ? new Date(`${historyTo}T23:59:59`) : null;
 
         return state.sentNotifications.filter((log) => {
-            const matchesTarget =
-                historyTargetFilters.length === 0 ? true : historyTargetFilters.includes(log.target);
+            const matchesTarget = historyTargetFilters.length === 0 || historyTargetFilters.includes(log.target);
             const matchesQuery =
                 !query ||
                 log.title.toLowerCase().includes(query) ||
@@ -197,12 +185,7 @@ const AdminNotificationsPage: React.FC = () => {
                 <p>Trimite anunțuri către utilizatori și monitorizează istoricul mesajelor.</p>
             </section>
 
-            <div
-                className="admin-topbar-actions"
-                role="tablist"
-                aria-label="Vizualizare notificări admin"
-                style={{ justifyContent: "center", marginBottom: 4 }}
-            >
+            <div className="admin-topbar-actions" role="tablist" aria-label="Vizualizare notificări admin" style={{ justifyContent: "center", marginBottom: 4 }}>
                 <button
                     type="button"
                     role="tab"
@@ -336,19 +319,11 @@ const AdminNotificationsPage: React.FC = () => {
                         </label>
                         <label className="admin-field">
                             <span>De la</span>
-                            <CompactDatePicker
-                                value={historyFrom}
-                                onChange={setHistoryFrom}
-                                ariaLabel="Calendar filtrare notificari de la"
-                            />
+                            <CompactDatePicker value={historyFrom} onChange={setHistoryFrom} ariaLabel="Calendar filtrare notificari de la" />
                         </label>
                         <label className="admin-field">
                             <span>Până la</span>
-                            <CompactDatePicker
-                                value={historyTo}
-                                onChange={setHistoryTo}
-                                ariaLabel="Calendar filtrare notificari pana la"
-                            />
+                            <CompactDatePicker value={historyTo} onChange={setHistoryTo} ariaLabel="Calendar filtrare notificari pana la" />
                         </label>
                     </div>
 
@@ -367,15 +342,17 @@ const AdminNotificationsPage: React.FC = () => {
                                 </thead>
                                 <tbody>
                                     {filteredHistory.map((log) => (
-                                        <tr key={log.id}>
-                                            <td>
-                                                <strong>{log.title}</strong>
-                                                <p>{log.message}</p>
-                                            </td>
-                                            <td>{log.targetEmail || log.target}</td>
-                                            <td>{log.recipientCount}</td>
-                                            <td>{formatDateTime(log.sentAt)}</td>
-                                        </tr>
+                                        <AdminNotificationHistoryRow
+                                            key={log.id}
+                                            id={log.id}
+                                            title={log.title}
+                                            message={log.message}
+                                            target={log.target}
+                                            targetEmail={log.targetEmail}
+                                            recipientCount={log.recipientCount}
+                                            sentAt={log.sentAt}
+                                            formatDateTime={formatDateTime}
+                                        />
                                     ))}
                                 </tbody>
                             </table>
