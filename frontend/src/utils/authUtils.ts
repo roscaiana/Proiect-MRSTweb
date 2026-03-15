@@ -162,7 +162,7 @@ export const mockLogin = async (credentials: AuthCredentials): Promise<User> => 
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     // Check admin credentials
-    if (credentials.email === ADMIN_EMAIL && credentials.password === ADMIN_PASSWORD) {
+    if (normalizeComparableEmail(credentials.email) === normalizeComparableEmail(ADMIN_EMAIL) && credentials.password === ADMIN_PASSWORD) {
         return {
             id: 'admin-1',
             email: ADMIN_EMAIL,
@@ -175,7 +175,7 @@ export const mockLogin = async (credentials: AuthCredentials): Promise<User> => 
 
     // Check user credentials from localStorage
     const users = getStoredUsers();
-    const userIndex = users.findIndex(u => u.email === credentials.email);
+    const userIndex = users.findIndex(u => normalizeComparableEmail(u.email) === normalizeComparableEmail(credentials.email));
     const user = userIndex >= 0 ? users[userIndex] : undefined;
 
     if (!user) {
@@ -210,7 +210,7 @@ export const mockRegister = async (data: RegisterData): Promise<User> => {
 
     // Check if email already exists
     const users = getStoredUsers();
-    if (users.some(u => u.email === data.email)) {
+    if (users.some(u => normalizeComparableEmail(u.email) === normalizeComparableEmail(data.email))) {
         throw new Error('Acest email este deja înregistrat');
     }
 

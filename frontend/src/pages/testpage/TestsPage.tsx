@@ -27,6 +27,7 @@ const TestsPage: React.FC = () => {
     const [submitWarning, setSubmitWarning] = useState('');
     const [canForceSubmit, setCanForceSubmit] = useState(false);
     const [completionReason, setCompletionReason] = useState<'manual' | 'timeout' | null>(null);
+    const quizUserRef = React.useRef<{ email?: string; fullName?: string } | null>(null);
     const mobileQuestionGridRef = React.useRef<HTMLDivElement | null>(null);
     const sidebarQuestionGridRef = React.useRef<HTMLDivElement | null>(null);
     const questionGridRefs = useMemo(() => [mobileQuestionGridRef, sidebarQuestionGridRef], []);
@@ -53,6 +54,7 @@ const TestsPage: React.FC = () => {
     }, [adminTests]);
 
     const startQuiz = (categoryId: string, mode: QuizMode = quizMode) => {
+        quizUserRef.current = { email: user?.email, fullName: user?.fullName };
         const questions = getQuestionsByCategory(categoryId);
         if (questions.length === 0) return;
         const category = categories.find((item) => item.id === categoryId);
@@ -156,13 +158,13 @@ const TestsPage: React.FC = () => {
             timeTaken: result.timeTaken,
             durationSeconds: result.durationSeconds,
             chapterStats: result.chapterStats,
-            userEmail: user?.email,
-            userName: user?.fullName,
+            userEmail: quizUserRef.current?.email,
+            userName: quizUserRef.current?.fullName,
         };
         const nextHistory = [historyEntry, ...readQuizHistory()].slice(0, 100);
         writeQuizHistory(nextHistory);
         notifyQuizCompleted({
-            userEmail: user?.email,
+            userEmail: quizUserRef.current?.email,
             categoryTitle: result.categoryTitle,
             score: result.score,
             passed: result.score >= examSettings.passingThreshold,
@@ -172,7 +174,7 @@ const TestsPage: React.FC = () => {
         setQuizSession(null);
         setSubmitWarning(reason === 'timeout' ? 'Timpul a expirat. Testul a fost trimis automat.' : '');
         setCanForceSubmit(false);
-    }, [user?.email, user?.fullName]);
+    }, []);
 
     useEffect(() => {
         if (!quizSession) return;

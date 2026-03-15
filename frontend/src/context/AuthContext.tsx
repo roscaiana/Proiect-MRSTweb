@@ -26,7 +26,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Load auth state from localStorage on mount
     useEffect(() => {
         const authState = getAuthState();
-        if (authState) {
+        if (authState.user) {
             setUser(authState.user);
         }
         setIsAuthReady(true);

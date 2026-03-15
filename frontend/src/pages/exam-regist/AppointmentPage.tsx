@@ -163,7 +163,8 @@ const AppointmentPage: React.FC = () => {
 
     const userAppointments = useMemo(() => {
         if (!user?.email) return [];
-        return appointments.filter((appointment) => appointment.userEmail === user.email);
+        const normalizedEmail = user.email.trim().toLowerCase();
+        return appointments.filter((appointment) => appointment.userEmail?.trim().toLowerCase() === normalizedEmail);
     }, [appointments, user?.email]);
 
     const activeUserAppointments = useMemo(() => {
@@ -522,9 +523,10 @@ const AppointmentPage: React.FC = () => {
             }
 
             if (!rescheduleSourceId) {
+                const normalizedUserEmail = user?.email?.trim().toLowerCase();
                 const latestActiveUserAppointment = latestAppointments.find(
                     (appointment) =>
-                        appointment.userEmail === user?.email &&
+                        appointment.userEmail?.trim().toLowerCase() === normalizedUserEmail &&
                         (appointment.status === 'pending' || appointment.status === 'approved')
                 );
 
