@@ -34,7 +34,7 @@ export default function AdminNewsRow({
                     <button type="button" className="admin-btn ghost" onClick={onEdit}>
                         <i className="fas fa-pen"></i> Editează
                     </button>
-                    <button type="button" className="admin-btn danger" onClick={() => onDelete(id)}>
+                    <button type="button" className="admin-btn danger" onClick={() => onDelete(id)} aria-label="Șterge">
                         <i className="fas fa-trash"></i>
                     </button>
                 </div>

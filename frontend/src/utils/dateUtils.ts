@@ -22,6 +22,8 @@ export const getNextAvailableDate = (fromDate: Date = new Date(), allowedWeekday
   const date = new Date(fromDate);
   date.setHours(0, 0, 0, 0);
 
+  if (allowedWeekdays.length === 0) return date;
+
   // Start checking from tomorrow
   date.setDate(date.getDate() + 1);
 

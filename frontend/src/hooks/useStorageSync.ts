@@ -12,6 +12,7 @@ export function useStorageSync(keys: string[], onSync: () => void): void {
     onSyncRef.current = onSync;
 
     const keysRef = useRef(keys);
+    keysRef.current = keys;
 
     useEffect(() => {
         const handleStorage = (event: StorageEvent): void => {

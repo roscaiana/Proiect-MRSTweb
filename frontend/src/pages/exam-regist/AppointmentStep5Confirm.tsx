@@ -52,9 +52,8 @@ export default function AppointmentStep5Confirm({
                         <div className="detail-row">
                             <span className="detail-label">Data:</span>
                             <span className="detail-value">
-                                {formData.selectedDate && `${getDayName(formData.selectedDate)}, ${formatDate(formData.selectedDate)}`}
-                            </span>
-                        </div>
+                                {formData.selectedDate ? `${getDayName(formData.selectedDate)}, ${formatDate(formData.selectedDate)}` : "N/A"}
+                            </span>                        </div>
                         <div className="detail-row">
                             <span className="detail-label">Ora:</span>
                             <span className="detail-value">
