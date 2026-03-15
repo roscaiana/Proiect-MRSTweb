@@ -156,12 +156,19 @@ export const readExamSettings = (): ExamSettings => {
                 typeof parsed.appointmentRoom === "string" && parsed.appointmentRoom.trim()
                     ? parsed.appointmentRoom.trim()
                     : DEFAULT_SETTINGS.appointmentRoom,
-            allowedWeekdays:
-                Array.isArray(parsed.allowedWeekdays) && parsed.allowedWeekdays.length > 0
-                    ? (parsed.allowedWeekdays as number[]).filter(
-                          (d) => Number.isInteger(d) && d >= 0 && d <= 6
-                      )
-                    : DEFAULT_SETTINGS.allowedWeekdays,
+            allowedWeekdays: (() => {
+                    if (!Array.isArray(parsed.allowedWeekdays)) {
+                        return DEFAULT_SETTINGS.allowedWeekdays;
+                    }
+                    const filtered = [
+                        ...new Set(
+                            (parsed.allowedWeekdays as number[]).filter(
+                                (d) => Number.isInteger(d) && d >= 0 && d <= 6
+                            )
+                        ),
+                    ];
+                    return filtered.length > 0 ? filtered : DEFAULT_SETTINGS.allowedWeekdays;
+                })(),
             blockedDates: Array.isArray(parsed.blockedDates)
                 ? parsed.blockedDates
                       .map((item: any) => ({
