@@ -1,19 +1,14 @@
 import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { useNotifications } from "../../../hooks/useNotifications";
+import { useAuth } from "../../../hooks/useAuth";
+import AdminOverviewPeriodButton from "../components/AdminOverviewPeriodButton";
+import AdminOverviewSimpleItem from "../components/AdminOverviewSimpleItem";
 import AdminStatCard from "../components/AdminStatCard";
 import { useAdminPanel } from "../hooks/useAdminPanel";
-import { useAuth } from "../../../hooks/useAuth";
-import { useNotifications } from "../../../hooks/useNotifications";
+import { formatDateShort } from "../../../utils/dateUtils";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-
-const formatShortDate = (value: string): string => {
-    return new Date(value).toLocaleDateString("ro-RO", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-    });
-};
 
 const periodLabel = (days: 1 | 7 | 30): string => {
     if (days === 1) return "azi";
@@ -32,7 +27,7 @@ const AdminOverviewPage: React.FC = () => {
 
     const appointmentsInPeriod = useMemo(
         () => state.appointments.filter((appointment) => new Date(appointment.createdAt) >= periodStart),
-        [state.appointments, periodStart]
+        [periodStart, state.appointments]
     );
 
     const quizHistoryInPeriod = useMemo(
@@ -59,10 +54,7 @@ const AdminOverviewPage: React.FC = () => {
             return 0;
         }
 
-        const passed = quizHistoryInPeriod.filter(
-            (result) => result.score >= state.settings.passingThreshold
-        ).length;
-
+        const passed = quizHistoryInPeriod.filter((result) => result.score >= state.settings.passingThreshold).length;
         return Math.round((passed / quizHistoryInPeriod.length) * 100);
     }, [quizHistoryInPeriod, state.settings.passingThreshold]);
 
@@ -117,6 +109,17 @@ const AdminOverviewPage: React.FC = () => {
         return pendingAppointments.filter((appointment) => new Date(appointment.date).toDateString() === todayKey).length;
     }, [now, pendingAppointments]);
 
+    const cancelledLast7Days = useMemo(
+        () =>
+            state.appointments.filter(
+                (a) =>
+                    a.status === "cancelled" &&
+                    a.cancelledBy === "user" &&
+                    new Date(a.updatedAt || a.createdAt) >= new Date(now.getTime() - 7 * DAY_MS)
+            ).length,
+        [now, state.appointments]
+    );
+
     return (
         <div className="admin-page-content">
             <section className="admin-page-header">
@@ -132,16 +135,12 @@ const AdminOverviewPage: React.FC = () => {
                     </h3>
                     <div className="admin-topbar-actions" role="tablist" aria-label="Filtru interval KPI">
                         {[1, 7, 30].map((days) => (
-                            <button
+                            <AdminOverviewPeriodButton
                                 key={days}
-                                type="button"
-                                role="tab"
-                                aria-selected={periodDays === days}
-                                className={`admin-btn ${periodDays === days ? "primary" : "ghost"}`}
-                                onClick={() => setPeriodDays(days as 1 | 7 | 30)}
-                            >
-                                {days === 1 ? "Azi" : `${days} zile`}
-                            </button>
+                                days={days as 1 | 7 | 30}
+                                isActive={periodDays === days}
+                                onSelect={setPeriodDays}
+                            />
                         ))}
                     </div>
                 </div>
@@ -201,43 +200,36 @@ const AdminOverviewPage: React.FC = () => {
                         </Link>
                     </div>
                     <div className="admin-simple-list">
-                        <div className="admin-simple-item">
-                            <div>
-                                <strong>Programări pending</strong>
-                                <p>Cereri care așteaptă aprobare/respingere</p>
-                            </div>
-                            <span className="admin-pill pending">{pendingAppointments.length}</span>
-                        </div>
-                        <div className="admin-simple-item">
-                            <div>
-                                <strong>Pending pentru azi</strong>
-                                <p>Programări din ziua curentă aflate în așteptare</p>
-                            </div>
-                            <span className="admin-pill pending">{pendingToday}</span>
-                        </div>
-                        <div className="admin-simple-item">
-                            <div>
-                                <strong>Anulări de utilizator (7 zile)</strong>
-                                <p>Necesită verificare și eventuale sloturi realocate</p>
-                            </div>
-                            <span className="admin-pill cancelled">{
-                                state.appointments.filter((a) => a.status === "cancelled" && a.cancelledBy === "user" && new Date(a.updatedAt || a.createdAt) >= new Date(now.getTime() - 7 * DAY_MS)).length
-                            }</span>
-                        </div>
-                        <div className="admin-simple-item">
-                            <div>
-                                <strong>Conturi noi (24h)</strong>
-                                <p>Verifică activitatea și nevoile de suport</p>
-                            </div>
-                            <span className="admin-pill neutral">{newUsersLast24h}</span>
-                        </div>
-                        <div className="admin-simple-item">
-                            <div>
-                                <strong>Notificări admin necitite</strong>
-                                <p>Actualizări generate de acțiuni user/admin</p>
-                            </div>
-                            <span className="admin-pill neutral">{unreadCount}</span>
-                        </div>
+                        <AdminOverviewSimpleItem
+                            title="Programări pending"
+                            description="Cereri care așteaptă aprobare/respingere"
+                            badge={pendingAppointments.length}
+                            badgeClassName="pending"
+                        />
+                        <AdminOverviewSimpleItem
+                            title="Pending pentru azi"
+                            description="Programări din ziua curentă aflate în așteptare"
+                            badge={pendingToday}
+                            badgeClassName="pending"
+                        />
+                        <AdminOverviewSimpleItem
+                            title="Anulări de utilizator (7 zile)"
+                            description="Necesită verificare și eventuale sloturi realocate"
+                            badge={cancelledLast7Days}
+                            badgeClassName="cancelled"
+                        />
+                        <AdminOverviewSimpleItem
+                            title="Conturi noi (24h)"
+                            description="Verifică activitatea și nevoile de suport"
+                            badge={newUsersLast24h}
+                            badgeClassName="neutral"
+                        />
+                        <AdminOverviewSimpleItem
+                            title="Notificări admin necitite"
+                            description="Actualizări generate de acțiuni user/admin"
+                            badge={unreadCount}
+                            badgeClassName="neutral"
+                        />
                     </div>
                 </article>
 
@@ -275,16 +267,13 @@ const AdminOverviewPage: React.FC = () => {
                     ) : (
                         <div className="admin-simple-list">
                             {pendingQueue.map((appointment) => (
-                                <div className="admin-simple-item" key={appointment.id}>
-                                    <div>
-                                        <strong>{appointment.fullName}</strong>
-                                        <p>
-                                            {formatShortDate(appointment.date)} | {appointment.slotStart}-{appointment.slotEnd}
-                                        </p>
-                                        <p>{appointment.appointmentCode || "Fără cod"}</p>
-                                    </div>
-                                    <span className="admin-pill pending">pending</span>
-                                </div>
+                                <AdminOverviewSimpleItem
+                                    key={appointment.id}
+                                    title={appointment.fullName}
+                                    description={`${formatDateShort(appointment.date)} | ${appointment.slotStart}-${appointment.slotEnd}`}
+                                    badge="pending"
+                                    badgeClassName="pending"
+                                />
                             ))}
                         </div>
                     )}
@@ -302,13 +291,13 @@ const AdminOverviewPage: React.FC = () => {
                     ) : (
                         <div className="admin-simple-list">
                             {recentSentNotifications.map((log) => (
-                                <div className="admin-simple-item" key={log.id}>
-                                    <div>
-                                        <strong>{log.title}</strong>
-                                        <p>{formatShortDate(log.sentAt)} | {log.recipientCount} destinatari</p>
-                                    </div>
-                                    <span className="admin-pill neutral">{log.target}</span>
-                                </div>
+                                <AdminOverviewSimpleItem
+                                    key={log.id}
+                                    title={log.title}
+                                    description={`${formatDateShort(log.sentAt)} | ${log.recipientCount} destinatari`}
+                                    badge={log.target}
+                                    badgeClassName="neutral"
+                                />
                             ))}
                         </div>
                     )}
@@ -317,20 +306,20 @@ const AdminOverviewPage: React.FC = () => {
 
             <section className="admin-panel-card">
                 <div className="admin-card-header">
-                        <h3><i className="fas fa-calendar-days admin-card-header-icon"></i> Programări recente</h3>
+                    <h3><i className="fas fa-calendar-days admin-card-header-icon"></i> Programări recente</h3>
                 </div>
                 {recentAppointments.length === 0 ? (
                     <p className="admin-muted-text">Nu există programări înregistrate.</p>
                 ) : (
                     <div className="admin-simple-list">
                         {recentAppointments.map((appointment) => (
-                            <div className="admin-simple-item" key={appointment.id}>
-                                <div>
-                                    <strong>{appointment.fullName}</strong>
-                                    <p>{formatShortDate(appointment.date)} | {appointment.slotStart}-{appointment.slotEnd}</p>
-                                </div>
-                                <span className={`admin-pill ${appointment.status}`}>{appointment.status}</span>
-                            </div>
+                            <AdminOverviewSimpleItem
+                                key={appointment.id}
+                                title={appointment.fullName}
+                                description={`${formatDateShort(appointment.date)} | ${appointment.slotStart}-${appointment.slotEnd}`}
+                                badge={appointment.status}
+                                badgeClassName={appointment.status}
+                            />
                         ))}
                     </div>
                 )}
@@ -340,4 +329,3 @@ const AdminOverviewPage: React.FC = () => {
 };
 
 export default AdminOverviewPage;
-

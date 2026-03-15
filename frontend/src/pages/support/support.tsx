@@ -1,78 +1,90 @@
-﻿import React, { useState, useMemo, useEffect } from 'react';
-import { Search, ChevronDown, LifeBuoy, FileText, HelpCircle, Calculator } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from "react";
+import { Search, LifeBuoy, FileText, HelpCircle, Calculator } from "lucide-react";
 import { FaqItem, FaqCategory } from "@/types/support1.1";
 import Sidebar from "../../components/SideBar/SideBar";
-import './support.css';
+import SupportCategoryButton from "./SupportCategoryButton";
+import SupportFaqItem from "./SupportFaqItem";
+import "./support.css";
 
 const Support: React.FC = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [activeCategory, setActiveCategory] = useState('all');
+    const [searchQuery, setSearchQuery] = useState("");
+    const [activeCategory, setActiveCategory] = useState("all");
     const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
     const categories: FaqCategory[] = [
-        { id: 'all', title: 'Toate întrebările', icon: HelpCircle },
-        { id: 'general', title: 'Informații Generale', icon: FileText },
-        { id: 'exam', title: 'Examen și Certificare', icon: Calculator },
-        { id: 'technical', title: 'Suport Tehnic', icon: LifeBuoy },
+        { id: "all", title: "Toate întrebările", icon: HelpCircle },
+        { id: "general", title: "Informații Generale", icon: FileText },
+        { id: "exam", title: "Examen și Certificare", icon: Calculator },
+        { id: "technical", title: "Suport Tehnic", icon: LifeBuoy },
     ];
 
     const faqs: (FaqItem & { category: string })[] = [
         {
-            category: 'general',
-            question: 'Cine se poate înscrie la cursurile e-Electoral?',
-            answer: 'La cursurile de pe platforma e-Electoral se pot înscrie toți candidații care doresc să obțină certificarea în domeniul electoral, inclusiv viitori funcționari, observatori sau reprezentanți politici.'
+            category: "general",
+            question: "Cine se poate înscrie la cursurile e-Electoral?",
+            answer:
+                "La cursurile de pe platforma e-Electoral se pot înscrie toți candidații care doresc să obțină certificarea în domeniul electoral, inclusiv viitori funcționari, observatori sau reprezentanți politici.",
         },
         {
-            category: 'exam',
-            question: 'Cum pot accesa simulările de examen?',
-            answer: 'Simulările de examen pot fi accesate din secțiunea Resources Studiu după autentificare. Acestea imită formatul oficial al examenului de certificare.'
+            category: "exam",
+            question: "Cum pot accesa simulările de examen?",
+            answer:
+                "Simulările de examen pot fi accesate din secțiunea Resources Studiu după autentificare. Acestea imită formatul oficial al examenului de certificare.",
         },
         {
-            category: 'general',
-            question: 'Se oferă sprijin post-certificare?',
-            answer: 'Da, e-Electoral oferă resurse de actualizare a cunoștințelor și după promovarea examenului, pentru a fi la curent cu ultimele modificări legislative.'
+            category: "general",
+            question: "Se oferă sprijin post-certificare?",
+            answer:
+                "Da, e-Electoral oferă resurse de actualizare a cunoștințelor și după promovarea examenului, pentru a fi la curent cu ultimele modificări legislative.",
         },
         {
-            category: 'exam',
-            question: 'Cât timp este valabil certificatul obținut?',
-            answer: 'Certificatul de calificare electorală este valabil pentru o perioadă de 4 ani, după care este necesară o nouă evaluare pentru reconfirmarea competențelor.'
+            category: "exam",
+            question: "Cât timp este valabil certificatul obținut?",
+            answer:
+                "Certificatul de calificare electorală este valabil pentru o perioadă de 4 ani, după care este necesară o nouă evaluare pentru reconfirmarea competențelor.",
         },
         {
-            category: 'exam',
-            question: 'Ce se întâmplă dacă nu promovez examenul?',
-            answer: 'În cazul în care nu obțineți punctajul minim, aveți dreptul la o reevaluare după o perioadă de studiu suplimentar. Platforma e-Electoral vă va recomanda modulele pe care trebuie să le revizuiți.'
+            category: "exam",
+            question: "Ce se întâmplă dacă nu promovez examenul?",
+            answer:
+                "În cazul în care nu obțineți punctajul minim, aveți dreptul la o reevaluare după o perioadă de studiu suplimentar. Platforma e-Electoral vă va recomanda modulele pe care trebuie să le revizuiți.",
         },
         {
-            category: 'technical',
-            question: 'Cum îmi pot recupera parola?',
-            answer: 'Dacă ați uitat parola, utilizați funcția de recuperare de pe pagina de login. Veți primi un e-mail cu instrucțiuni pentru setarea unei parole noi.'
+            category: "technical",
+            question: "Cum îmi pot recupera parola?",
+            answer:
+                "Dacă ați uitat parola, utilizați funcția de recuperare de pe pagina de login. Veți primi un e-mail cu instrucțiuni pentru setarea unei parole noi.",
         },
         {
-            category: 'technical',
-            question: 'Pot accesa cursurile de pe dispozitive mobile?',
-            answer: 'Da, platforma e-Electoral este complet responsivă și poate fi accesată de pe smartphone sau tabletă, oferind o experiență de învățare optimizată pentru orice ecran.'
+            category: "technical",
+            question: "Pot accesa cursurile de pe dispozitive mobile?",
+            answer:
+                "Da, platforma e-Electoral este complet responsivă și poate fi accesată de pe smartphone sau tabletă, oferind o experiență de învățare optimizată pentru orice ecran.",
         },
         {
-            category: 'general',
-            question: 'Care este durata medie a unui curs de pregătire?',
-            answer: 'Durata variază în funcție de complexitatea modulului, dar în medie, un curs complet de pregătire pentru certificare durează între 20 și 40 de ore de studiu individual.'
+            category: "general",
+            question: "Care este durata medie a unui curs de pregătire?",
+            answer:
+                "Durata variază în funcție de complexitatea modulului, dar în medie, un curs complet de pregătire pentru certificare durează între 20 și 40 de ore de studiu individual.",
         },
         {
-            category: 'technical',
-            question: 'Ce fac dacă întâmpin probleme tehnice în timpul simulării?',
-            answer: 'Dacă întâmpinați erori tehnice, vă rugăm să contactați echipa de suport prin formularul de contact sau să utilizați chat-ul de asistență disponibil în colțul din dreapta jos al ecranului.'
-        }
+            category: "technical",
+            question: "Ce fac dacă întâmpin probleme tehnice în timpul simulării?",
+            answer:
+                "Dacă întâmpinați erori tehnice, vă rugăm să contactați echipa de suport prin formularul de contact sau să utilizați chat-ul de asistență disponibil în colțul din dreapta jos al ecranului.",
+        },
     ];
 
     const filteredFaqs = useMemo(() => {
-        return faqs.filter(faq => {
-            const matchesSearch = faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        return faqs.filter((faq) => {
+            const matchesSearch =
+                faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 faq.answer.toLowerCase().includes(searchQuery.toLowerCase());
-            const matchesCategory = activeCategory === 'all' || faq.category === activeCategory;
+            const matchesCategory = activeCategory === "all" || faq.category === activeCategory;
             return matchesSearch && matchesCategory;
         });
-    }, [searchQuery, activeCategory]);
+    }, [activeCategory, searchQuery]);
 
     useEffect(() => {
         document.body.classList.toggle("no-scroll", sidebarOpen);
@@ -81,7 +93,6 @@ const Support: React.FC = () => {
         };
     }, [sidebarOpen]);
 
-    const openSidebar = () => setSidebarOpen(true);
     const closeSidebar = () => setSidebarOpen(false);
 
     return (
@@ -89,7 +100,6 @@ const Support: React.FC = () => {
             <Sidebar open={sidebarOpen} onClose={closeSidebar} />
             <main>
                 <div className="support-container">
-                    {/* Hero Section */}
                     <div className="support-hero">
                         <div className="hero-overlay-1"></div>
                         <div className="hero-overlay-2"></div>
@@ -121,30 +131,23 @@ const Support: React.FC = () => {
 
                     <div className="main-content">
                         <div className="support-grid">
-                            {/* Sidebar Section */}
                             <div className="support-sidebar">
-                                {/* Categories Box */}
                                 <div className="categories-box">
                                     <h2 className="categories-title">CATEGORII</h2>
                                     <div className="category-list">
-                                        {categories.map((cat) => {
-                                            const Icon = cat.icon;
-                                            const isActive = activeCategory === cat.id;
-                                            return (
-                                                <button
-                                                    key={cat.id}
-                                                    onClick={() => setActiveCategory(cat.id)}
-                                                    className={`category-btn ${isActive ? 'active' : ''}`}
-                                                >
-                                                    <Icon className="category-icon" />
-                                                    {cat.title}
-                                                </button>
-                                            );
-                                        })}
+                                        {categories.map((category) => (
+                                            <SupportCategoryButton
+                                                key={category.id}
+                                                id={category.id}
+                                                title={category.title}
+                                                icon={category.icon}
+                                                isActive={activeCategory === category.id}
+                                                onSelect={setActiveCategory}
+                                            />
+                                        ))}
                                     </div>
                                 </div>
 
-                                {/* Direct Support Card */}
                                 <div className="direct-support-card">
                                     <div className="support-blob"></div>
                                     <div className="support-card-content">
@@ -162,34 +165,18 @@ const Support: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* FAQ Content Section */}
                             <div className="faq-section">
                                 {filteredFaqs.length > 0 ? (
-                                    filteredFaqs.map((faq: FaqItem, idx: number) => (
-                                        <div
-                                            key={idx}
-                                            className={`faq-item ${openFaqIndex === idx ? 'active' : ''}`}
-                                        >
-                                            <button
-                                                onClick={() => setOpenFaqIndex(openFaqIndex === idx ? null : idx)}
-                                                className="faq-question-btn"
-                                            >
-                                                <span className="faq-question-text">{faq.question}</span>
-                                                <div className="faq-icon-wrapper">
-                                                    <ChevronDown className="w-5 h-5" />
-                                                </div>
-                                            </button>
-                                            <div className="faq-answer-wrapper">
-                                                <div className="faq-answer-inner">
-                                                    <div className="faq-answer-content">
-                                                        <div className="faq-divider"></div>
-                                                        <p className="faq-answer-text">
-                                                            {faq.answer}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                    filteredFaqs.map((faq, index) => (
+                                        <SupportFaqItem
+                                            key={`${faq.question}-${index}`}
+                                            faq={faq}
+                                            index={index}
+                                            isOpen={openFaqIndex === index}
+                                            onToggle={(nextIndex) =>
+                                                setOpenFaqIndex(openFaqIndex === nextIndex ? null : nextIndex)
+                                            }
+                                        />
                                     ))
                                 ) : (
                                     <div className="no-results">
@@ -197,8 +184,16 @@ const Support: React.FC = () => {
                                             <Search className="w-12 h-12 text-slate-300" />
                                         </div>
                                         <h3 className="no-results-title">Niciun rezultat găsit</h3>
-                                        <p className="no-results-text">Nu am găsit întrebări care să corespundă termenilor căutați. Încercați o altă formulare.</p>
-                                        <button onClick={() => { setSearchQuery(''); setActiveCategory('all'); }} className="reset-btn">
+                                        <p className="no-results-text">
+                                            Nu am găsit întrebări care să corespundă termenilor căutați. Încercați o altă formulare.
+                                        </p>
+                                        <button
+                                            onClick={() => {
+                                                setSearchQuery("");
+                                                setActiveCategory("all");
+                                            }}
+                                            className="reset-btn"
+                                        >
                                             Resetează filtrele
                                         </button>
                                     </div>

@@ -1,17 +1,15 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { FileText } from "lucide-react";
+import { useEscapeKey } from "../../hooks/useEscapeKey";
+import LegislativeHeroTag from "./LegislativeHeroTag";
+import LegislativeResourceCard, { type ResourceCard } from "./LegislativeResourceCard";
+import LegislativeSidebarLink from "./LegislativeSidebarLink";
 import "./LegislativeMaterialsPage.css";
 
 type NavItem = {
     id: string;
     label: string;
     description: string;
-};
-
-type ResourceCard = {
-    title: string;
-    description: string;
-    tag: string;
 };
 
 const NAV_ITEMS: NavItem[] = [
@@ -73,20 +71,7 @@ export default function LegislativeMaterialsPage() {
 
     const activeItem = NAV_ITEMS.find((item) => item.id === activeId) ?? NAV_ITEMS[0];
 
-    useEffect(() => {
-        if (!activeCard) {
-            return;
-        }
-
-        const handleEscape = (event: KeyboardEvent) => {
-            if (event.key === "Escape") {
-                setActiveCard(null);
-            }
-        };
-
-        document.addEventListener("keydown", handleEscape);
-        return () => document.removeEventListener("keydown", handleEscape);
-    }, [activeCard]);
+    useEscapeKey(() => setActiveCard(null), activeCard !== null);
 
     return (
         <section className="legislative-page">
@@ -100,17 +85,14 @@ export default function LegislativeMaterialsPage() {
                             Resurse legislative
                         </div>
                         <h1>
-                            Materiale legislative{" "}
-                            <span className="hero-title-highlight">pentru certificare</span>
+                            Materiale legislative <span className="hero-title-highlight">pentru certificare</span>
                         </h1>
                         <p>
                             Acces rapid la cadrul normativ actualizat, structurat pe categorii, pentru o pregătire eficientă și riguroasă.
                         </p>
                         <div className="hero-tags">
                             {HERO_TAGS.map((tag) => (
-                                <span key={tag} className="hero-tag">
-                                    {tag}
-                                </span>
+                                <LegislativeHeroTag key={tag} tag={tag} />
                             ))}
                         </div>
                     </div>
@@ -126,15 +108,13 @@ export default function LegislativeMaterialsPage() {
                         </div>
                         <div className="sidebar-links">
                             {NAV_ITEMS.map((item) => (
-                                <button
+                                <LegislativeSidebarLink
                                     key={item.id}
-                                    type="button"
-                                    className={`sidebar-link ${activeId === item.id ? "active" : ""}`}
-                                    onClick={() => setActiveId(item.id)}
-                                >
-                                    <span>{item.label}</span>
-                                    <i className="fas fa-chevron-right" aria-hidden="true"></i>
-                                </button>
+                                    id={item.id}
+                                    label={item.label}
+                                    isActive={activeId === item.id}
+                                    onSelect={setActiveId}
+                                />
                             ))}
                         </div>
                         <div className="sidebar-note">
@@ -152,29 +132,7 @@ export default function LegislativeMaterialsPage() {
 
                         <div className="legislative-cards">
                             {RESOURCE_CARDS.map((card) => (
-                                <article
-                                    key={card.title}
-                                    className="legislative-card"
-                                    role="button"
-                                    tabIndex={0}
-                                    aria-label={`Deschide materialul: ${card.title}`}
-                                    onClick={() => setActiveCard(card)}
-                                    onKeyDown={(event) => {
-                                        if (event.key === "Enter" || event.key === " ") {
-                                            event.preventDefault();
-                                            setActiveCard(card);
-                                        }
-                                    }}
-                                >
-                                    <div className="card-top">
-                                        <span className="card-tag">{card.tag}</span>
-                                        <span className="card-arrow" aria-hidden="true">
-                                            →
-                                        </span>
-                                    </div>
-                                    <h3>{card.title}</h3>
-                                    <p>{card.description}</p>
-                                </article>
+                                <LegislativeResourceCard key={card.title} card={card} onOpen={setActiveCard} />
                             ))}
                         </div>
 
@@ -207,9 +165,7 @@ export default function LegislativeMaterialsPage() {
                         <span className="legislative-modal-tag">{activeCard.tag}</span>
                         <h2>{activeCard.title}</h2>
                         <p>{activeCard.description}</p>
-                        <p>
-                            Materialele complete pot fi consultate în format oficial pe site-ul CICDE.
-                        </p>
+                        <p>Materialele complete pot fi consultate în format oficial pe site-ul CICDE.</p>
                     </div>
                     <button
                         type="button"

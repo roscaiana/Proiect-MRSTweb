@@ -1,4 +1,6 @@
-import React, { useEffect, useId, useMemo, useRef, useState } from "react";
+import React, { useId, useMemo } from "react";
+import { useDropdown } from "../../../hooks/useDropdown";
+import AdminMultiSelectOptionButton from "./AdminMultiSelectOptionButton";
 
 export type AdminMultiSelectOption<T extends string> = {
     value: T;
@@ -20,37 +22,10 @@ const AdminMultiSelect = <T extends string,>({
     ariaLabel,
     placeholder = "Toate",
 }: AdminMultiSelectProps<T>) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const rootRef = useRef<HTMLDivElement | null>(null);
+    const { isOpen, setIsOpen, rootRef } = useDropdown();
     const listboxId = useId();
 
     const selectedSet = useMemo(() => new Set(selectedValues), [selectedValues]);
-
-    useEffect(() => {
-        if (!isOpen) {
-            return;
-        }
-
-        const handleOutsideClick = (event: MouseEvent) => {
-            if (rootRef.current?.contains(event.target as Node)) {
-                return;
-            }
-            setIsOpen(false);
-        };
-
-        const handleEscape = (event: KeyboardEvent) => {
-            if (event.key === "Escape") {
-                setIsOpen(false);
-            }
-        };
-
-        window.addEventListener("mousedown", handleOutsideClick);
-        window.addEventListener("keydown", handleEscape);
-        return () => {
-            window.removeEventListener("mousedown", handleOutsideClick);
-            window.removeEventListener("keydown", handleEscape);
-        };
-    }, [isOpen]);
 
     const summaryLabel = useMemo(() => {
         const selectedLabels = options.filter((option) => selectedSet.has(option.value)).map((option) => option.label);
@@ -96,37 +71,21 @@ const AdminMultiSelect = <T extends string,>({
 
             {isOpen && (
                 <div className="admin-multi-select-menu" id={listboxId} role="listbox" aria-multiselectable="true">
-                    <button
-                        type="button"
-                        className={`admin-multi-select-option admin-multi-select-option-clear ${selectedValues.length === 0 ? "is-active" : ""}`}
-                        role="option"
-                        aria-selected={selectedValues.length === 0}
-                        onClick={() => onChange([])}
-                    >
-                        <span className="admin-multi-select-checkbox" aria-hidden="true">
-                            {selectedValues.length === 0 ? "✓" : ""}
-                        </span>
-                        <span>{placeholder}</span>
-                    </button>
+                    <AdminMultiSelectOptionButton
+                        label={placeholder}
+                        checked={selectedValues.length === 0}
+                        onSelect={() => onChange([])}
+                        isClear
+                    />
 
-                    {options.map((option) => {
-                        const checked = selectedSet.has(option.value);
-                        return (
-                            <button
-                                type="button"
-                                key={option.value}
-                                className={`admin-multi-select-option ${checked ? "is-active" : ""}`}
-                                role="option"
-                                aria-selected={checked}
-                                onClick={() => toggleOption(option.value)}
-                            >
-                                <span className="admin-multi-select-checkbox" aria-hidden="true">
-                                    {checked ? "✓" : ""}
-                                </span>
-                                <span>{option.label}</span>
-                            </button>
-                        );
-                    })}
+                    {options.map((option) => (
+                        <AdminMultiSelectOptionButton
+                            key={option.value}
+                            label={option.label}
+                            checked={selectedSet.has(option.value)}
+                            onSelect={() => toggleOption(option.value)}
+                        />
+                    ))}
                 </div>
             )}
         </div>

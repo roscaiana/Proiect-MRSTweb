@@ -1,15 +1,16 @@
-﻿import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { CalendarCheck } from 'lucide-react';
 import { AppointmentFormData, FormErrors, TIME_SLOTS } from '../../types/appointment';
 import { useLocation } from 'react-router-dom';
 import {
     isAllowedDay,
-    //getNextAvailableDate,
     formatDate,
     getDayName,
-    getMonthName
+    getMonthName,
+    formatAllowedWeekdayNames,
 } from '../../utils/dateUtils';
 import { useAuth } from '../../hooks/useAuth';
+import { useStorageSync } from '../../hooks/useStorageSync';
 import type { AdminAppointmentRecord } from '../../features/admin/types';
 import { readAppointments, readExamSettings, STORAGE_KEYS, writeAppointments } from '../../features/admin/storage';
 import {
@@ -24,54 +25,26 @@ import {
     toDateKey,
 } from '../../utils/appointmentScheduling';
 import { notifyAppointmentCreated, notifyUser } from '../../utils/appEventNotifications';
+import {
+    startOfMonth,
+    getMonthKey,
+    clampMonth as clampMonthToRange,
+    isSameDate as isSameCalendarDate,
+    navigateMonth,
+} from '../../utils/calendarUtils';
+import { useAppointmentDraft } from '../../hooks/useAppointmentDraft';
+import AppointmentStepperItem from './AppointmentStepperItem';
+import AppointmentStep1Calendar from './AppointmentStep1Calendar';
+import AppointmentStep3Slots, { type SlotFilter } from './AppointmentStep3Slots';
+import AppointmentStep4Form from './AppointmentStep4Form';
+import AppointmentStep5Confirm from './AppointmentStep5Confirm';
 import './AppointmentPage.css';
-
-const APPOINTMENT_DRAFT_KEY = 'appointmentFormDraft';
-const APPOINTMENT_RESCHEDULE_KEY = 'appointmentRescheduleDraft';
-type SlotFilter = 'all' | 'midday' | 'afternoon';
-
-type CalendarDayCell = {
-    date: Date;
-    dateKey: string;
-    inCurrentMonth: boolean;
-    isToday: boolean;
-    isSelected: boolean;
-    isAllowedWeekday: boolean;
-    isWithinRange: boolean;
-    isLeadTimeMet: boolean;
-    isBlocked: boolean;
-    isFull: boolean;
-    remaining: number;
-    capacity: number;
-    selectable: boolean;
-};
-
-const CALENDAR_WEEK_DAYS = ['Lu', 'Ma', 'Mi', 'Jo', 'Vi', 'Sa', 'Du'];
-
-const startOfMonth = (date: Date): Date => new Date(date.getFullYear(), date.getMonth(), 1);
-
-const getMonthKey = (date: Date): number => date.getFullYear() * 12 + date.getMonth();
-
-const clampMonthToRange = (monthDate: Date, minDate: Date, maxDate: Date): Date => {
-    const monthStart = startOfMonth(monthDate);
-    const minMonth = startOfMonth(minDate);
-    const maxMonth = startOfMonth(maxDate);
-    const monthKey = getMonthKey(monthStart);
-
-    if (monthKey < getMonthKey(minMonth)) return minMonth;
-    if (monthKey > getMonthKey(maxMonth)) return maxMonth;
-    return monthStart;
-};
-
-const isSameCalendarDate = (left: Date, right: Date): boolean => (
-    left.getFullYear() === right.getFullYear()
-    && left.getMonth() === right.getMonth()
-    && left.getDate() === right.getDate()
-);
 
 const AppointmentPage: React.FC = () => {
     const { user } = useAuth();
     const location = useLocation();
+    const { getRescheduleSourceId, clearDraft } = useAppointmentDraft();
+
     const [formData, setFormData] = useState<AppointmentFormData>({
         fullName: user?.fullName || '',
         idOrPhone: '',
@@ -92,34 +65,10 @@ const AppointmentPage: React.FC = () => {
         user?.email ? user.email.trim().toLowerCase() : null
     );
 
-    useEffect(() => {
-        const refreshData = () => {
-            setExamSettings(readExamSettings());
-            setAppointments(readAppointments());
-        };
-
-        const handleStorage = (event: StorageEvent) => {
-            if (event.key === STORAGE_KEYS.settings || event.key === STORAGE_KEYS.appointments) {
-                refreshData();
-            }
-        };
-
-        const handleAppStorageUpdated = (event: Event) => {
-            const customEvent = event as CustomEvent<{ key?: string }>;
-            const key = customEvent.detail?.key;
-            if (key === STORAGE_KEYS.settings || key === STORAGE_KEYS.appointments) {
-                refreshData();
-            }
-        };
-
-        window.addEventListener('storage', handleStorage);
-        window.addEventListener('app-storage-updated', handleAppStorageUpdated as EventListener);
-
-        return () => {
-            window.removeEventListener('storage', handleStorage);
-            window.removeEventListener('app-storage-updated', handleAppStorageUpdated as EventListener);
-        };
-    }, []);
+    useStorageSync([STORAGE_KEYS.settings, STORAGE_KEYS.appointments], () => {
+        setExamSettings(readExamSettings());
+        setAppointments(readAppointments());
+    });
 
     useEffect(() => {
         if (!user?.fullName) return;
@@ -141,51 +90,41 @@ const AppointmentPage: React.FC = () => {
             setSubmitMessage('');
             setSubmittedAppointment(null);
             setRescheduleSourceId(null);
-            localStorage.removeItem(APPOINTMENT_DRAFT_KEY);
-            localStorage.removeItem(APPOINTMENT_RESCHEDULE_KEY);
+            clearDraft();
         }
 
         previousUserEmailRef.current = currentUserEmail;
-    }, [user?.email]);
+    }, [user?.email]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         const searchParams = new URLSearchParams(location.search);
         const rescheduleIdFromQuery = searchParams.get('reschedule');
-        const rawRescheduleDraft = localStorage.getItem(APPOINTMENT_RESCHEDULE_KEY);
         let sourceId = rescheduleIdFromQuery || null;
 
-        if (!sourceId && rawRescheduleDraft) {
-            try {
-                const parsed = JSON.parse(rawRescheduleDraft) as { appointmentId?: string };
-                sourceId = parsed.appointmentId || null;
-            } catch {
-                sourceId = null;
-            }
+        if (!sourceId) {
+            sourceId = getRescheduleSourceId();
         }
 
         if (sourceId) {
             setRescheduleSourceId(sourceId);
         }
-    }, [location.search]);
+    }, [location.search]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         if (!isSubmitted) return;
-        localStorage.removeItem(APPOINTMENT_DRAFT_KEY);
-        localStorage.removeItem(APPOINTMENT_RESCHEDULE_KEY);
-    }, [isSubmitted]);
+        clearDraft();
+    }, [isSubmitted]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Get minimum selectable date (Jan 1st, 2026)
     const minDate = useMemo(() => {
-        // Set strictly to 2026
-        const date = new Date(2026, 0, 1); // January 1st, 2026
-        return date;
+        return new Date(2026, 0, 1); // January 1st, 2026
     }, []);
 
     // Get maximum selectable date (Dec 31st, 2050)
     const maxDate = useMemo(() => {
-        const date = new Date(2050, 11, 31); // December 31st, 2050
-        return date;
+        return new Date(2050, 11, 31); // December 31st, 2050
     }, []);
+
     const [isCalendarOpen, setIsCalendarOpen] = useState(false);
     const [calendarMonth, setCalendarMonth] = useState<Date>(() => {
         return clampMonthToRange(startOfMonth(new Date()), new Date(2026, 0, 1), new Date(2050, 11, 31));
@@ -224,7 +163,8 @@ const AppointmentPage: React.FC = () => {
 
     const userAppointments = useMemo(() => {
         if (!user?.email) return [];
-        return appointments.filter((appointment) => appointment.userEmail === user.email);
+        const normalizedEmail = user.email.trim().toLowerCase();
+        return appointments.filter((appointment) => appointment.userEmail?.trim().toLowerCase() === normalizedEmail);
     }, [appointments, user?.email]);
 
     const activeUserAppointments = useMemo(() => {
@@ -247,14 +187,19 @@ const AppointmentPage: React.FC = () => {
     const canNavigatePrevMonth = getMonthKey(calendarMonth) > getMonthKey(minMonth);
     const canNavigateNextMonth = getMonthKey(calendarMonth) < getMonthKey(maxMonth);
 
+    const allowedWeekdayNames = useMemo(
+        () => formatAllowedWeekdayNames(examSettings.allowedWeekdays),
+        [examSettings.allowedWeekdays]
+    );
+
     const selectedDateLabel = useMemo(() => {
         if (!formData.selectedDate) return 'Selectați data programării';
         return `${getDayName(formData.selectedDate)}, ${formData.selectedDate.getDate()} ${getMonthName(formData.selectedDate)} ${formData.selectedDate.getFullYear()}`;
     }, [formData.selectedDate]);
 
-    const calendarDays = useMemo<CalendarDayCell[]>(() => {
+    const calendarDays = useMemo(() => {
         const firstDayOfMonth = startOfMonth(calendarMonth);
-        const monthStartWeekDay = (firstDayOfMonth.getDay() + 6) % 7; // Monday first
+        const monthStartWeekDay = (firstDayOfMonth.getDay() + 6) % 7;
         const gridStart = new Date(firstDayOfMonth);
         gridStart.setDate(firstDayOfMonth.getDate() - monthStartWeekDay);
 
@@ -274,7 +219,7 @@ const AppointmentPage: React.FC = () => {
             const capacity = getDailyCapacity(examSettings, dateKey);
             const blockedEntry = getBlockedDateEntry(examSettings, dateKey);
             const remaining = Math.max(0, capacity - dayAppointments.length);
-            const isAllowedWeekday = isAllowedDay(dayDate);
+            const isAllowedWeekday = isAllowedDay(dayDate, examSettings.allowedWeekdays);
             const isWithinRange = dayDate >= minDate && dayDate <= maxDate;
             const isLeadTimeMet = isLeadTimeSatisfied(examSettings, dayDate);
             const isBlocked = Boolean(blockedEntry);
@@ -379,8 +324,8 @@ const AppointmentPage: React.FC = () => {
         let dateError: string | undefined;
         let slotError: string | undefined;
 
-        if (!isAllowedDay(selectedDate)) {
-            dateError = 'Vă rugăm să selectați Luni, Miercuri sau Vineri.';
+        if (!isAllowedDay(selectedDate, examSettings.allowedWeekdays)) {
+            dateError = `Vă rugăm să selectați ${allowedWeekdayNames}.`;
         } else if (blockedEntry) {
             dateError = blockedEntry.note
                 ? `Ziua este blocată: ${blockedEntry.note}.`
@@ -408,17 +353,8 @@ const AppointmentPage: React.FC = () => {
         setIsCalendarOpen((prev) => !prev);
     };
 
-    const goToPreviousMonth = () => {
-        if (!canNavigatePrevMonth) return;
-        const previous = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1);
-        setCalendarMonth(clampMonthToRange(previous, minDate, maxDate));
-    };
-
-    const goToNextMonth = () => {
-        if (!canNavigateNextMonth) return;
-        const next = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1);
-        setCalendarMonth(clampMonthToRange(next, minDate, maxDate));
-    };
+    const goToPreviousMonth = () => { if (canNavigatePrevMonth) setCalendarMonth(navigateMonth('prev', calendarMonth, minDate, maxDate)); };
+    const goToNextMonth = () => { if (canNavigateNextMonth) setCalendarMonth(navigateMonth('next', calendarMonth, minDate, maxDate)); };
 
     const handleCalendarDaySelect = (dateKey: string) => {
         handleDateValueChange(dateKey);
@@ -458,8 +394,8 @@ const AppointmentPage: React.FC = () => {
             });
             const dayCapacity = getDailyCapacity(examSettings, selectedDateKeyForValidation);
 
-            if (!isAllowedDay(formData.selectedDate)) {
-                newErrors.date = 'Vă rugăm să selectați Luni, Miercuri sau Vineri.';
+            if (!isAllowedDay(formData.selectedDate, examSettings.allowedWeekdays)) {
+                newErrors.date = `Vă rugăm să selectați ${allowedWeekdayNames}.`;
             } else if (isDateBlocked(examSettings, selectedDateKeyForValidation)) {
                 const blockedEntry = getBlockedDateEntry(examSettings, selectedDateKeyForValidation);
                 newErrors.date = blockedEntry?.note
@@ -561,8 +497,8 @@ const AppointmentPage: React.FC = () => {
             });
             const dayCapacity = getDailyCapacity(latestSettings, selectedDateKeyForSubmit);
 
-            if (!isAllowedDay(formData.selectedDate)) {
-                setErrors((prev) => ({ ...prev, date: 'Sunt permise doar zilele Luni, Miercuri sau Vineri.' }));
+            if (!isAllowedDay(formData.selectedDate, latestSettings.allowedWeekdays)) {
+                setErrors((prev) => ({ ...prev, date: `Sunt permise doar zilele ${formatAllowedWeekdayNames(latestSettings.allowedWeekdays)}.` }));
                 setIsSubmitting(false);
                 return;
             }
@@ -587,11 +523,13 @@ const AppointmentPage: React.FC = () => {
             }
 
             if (!rescheduleSourceId) {
+                const normalizedUserEmail = user?.email?.trim().toLowerCase();
                 const latestActiveUserAppointment = latestAppointments.find(
                     (appointment) =>
-                        appointment.userEmail === user?.email &&
+                        appointment.userEmail?.trim().toLowerCase() === normalizedUserEmail &&
                         (appointment.status === 'pending' || appointment.status === 'approved')
                 );
+
                 if (latestActiveUserAppointment) {
                     setErrors((prev) => ({
                         ...prev,
@@ -712,8 +650,7 @@ const AppointmentPage: React.FC = () => {
         setSubmittedAppointment(null);
         setSubmitMessage('');
         setRescheduleSourceId(null);
-        localStorage.removeItem(APPOINTMENT_DRAFT_KEY);
-        localStorage.removeItem(APPOINTMENT_RESCHEDULE_KEY);
+        clearDraft();
     };
 
     const rescheduleSourceAppointment = useMemo(
@@ -730,72 +667,16 @@ const AppointmentPage: React.FC = () => {
 
     if (isSubmitted) {
         return (
-            <div className="appointment-page">
-                <div className="container">
-                    <div className="success-card">
-                        <div className="success-icon">
-                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
-                                <circle cx="12" cy="12" r="10" stroke="#FFCC00" strokeWidth="2" />
-                                <path d="M8 12l2 2 4-4" stroke="#FFCC00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                        </div>
-                        <h2>Programare Confirmată!</h2>
-                        <p className="success-message">
-                            {submitMessage || 'Programarea dumneavoastră pentru examenul de certificare a fost înregistrată cu succes.'}
-                        </p>
-                        <div className="appointment-details">
-                            <div className="detail-row">
-                                <span className="detail-label">Cod programare:</span>
-                                <span className="detail-value">{submittedAppointment?.appointmentCode || 'N/A'}</span>
-                            </div>
-                            <div className="detail-row">
-                                <span className="detail-label">Status:</span>
-                                <span className="detail-value">În așteptare confirmare</span>
-                            </div>
-                            <div className="detail-row">
-                                <span className="detail-label">Candidat:</span>
-                                <span className="detail-value">{formData.fullName}</span>
-                            </div>
-                            <div className="detail-row">
-                                <span className="detail-label">Data:</span>
-                                <span className="detail-value">
-                  {formData.selectedDate && `${getDayName(formData.selectedDate)}, ${formatDate(formData.selectedDate)}`}
-                </span>
-                            </div>
-                            <div className="detail-row">
-                                <span className="detail-label">Ora:</span>
-                                <span className="detail-value">
-                  {formData.selectedSlot && `${formData.selectedSlot.startTime} - ${formData.selectedSlot.endTime}`}
-                </span>
-                            </div>
-                            <div className="detail-row">
-                                <span className="detail-label">Locație:</span>
-                                <span className="detail-value">{examSettings.appointmentLocation}, {examSettings.appointmentRoom}</span>
-                            </div>
-                        </div>
-                        <div className="appointment-next-steps">
-                            <h4>Pași următori</h4>
-                            <ul>
-                                <li>Verifică dashboard-ul pentru aprobarea sau respingerea cererii.</li>
-                                <li>Poți anula sau reprograma cererea direct din dashboard (în limitele permise).</li>
-                                <li>Vei primi notificări în aplicație la schimbarea statusului.</li>
-                            </ul>
-                        </div>
-                        <div className="success-actions">
-                            <button className="success-btn success-btn-primary" onClick={handleNewAppointment}>
-                                Programare Nouă
-                            </button>
-                            <button className="success-btn success-btn-secondary" onClick={() => window.print()}>
-                                Printează Confirmare
-                            </button>
-                        </div>
-                        <p className="success-note">
-                            <strong>Notă:</strong> Vă rugăm să vă prezentați cu 15 minute înainte de ora programării
-                            cu actul de identitate. Dacă apar schimbări, statusul se actualizează în dashboard.
-                        </p>
-                    </div>
-                </div>
-            </div>
+            <AppointmentStep5Confirm
+                submitMessage={submitMessage}
+                submittedAppointment={submittedAppointment}
+                formData={formData}
+                appointmentLocation={examSettings.appointmentLocation}
+                appointmentRoom={examSettings.appointmentRoom}
+                getDayName={getDayName}
+                formatDate={formatDate}
+                onNewAppointment={handleNewAppointment}
+            />
         );
     }
 
@@ -832,13 +713,12 @@ const AppointmentPage: React.FC = () => {
                             'Date personale',
                             'Confirmare',
                         ].map((label, index) => (
-                            <div
+                            <AppointmentStepperItem
                                 key={label}
-                                className={`step-item ${currentStep > index + 1 ? 'done' : ''} ${currentStep === index + 1 ? 'active' : ''}`}
-                            >
-                                <span className="step-index">{index + 1}</span>
-                                <span className="step-label">{label}</span>
-                            </div>
+                                label={label}
+                                index={index}
+                                currentStep={currentStep}
+                            />
                         ))}
                     </div>
 
@@ -854,14 +734,13 @@ const AppointmentPage: React.FC = () => {
                         </div>
                     )}
 
-                    {/* Appointment Form */}
                     <form className="appointment-form" onSubmit={handleSubmit} autoComplete="off">
                         <div className="appointment-summary-card">
                             <div className="appointment-summary-header">
                                 <h3>Rezumat programare</h3>
                                 <span className={`summary-chip ${rescheduleSourceId ? 'reschedule' : ''}`}>
-                                {rescheduleSourceId ? 'Reprogramare' : 'Cerere nouă'}
-                            </span>
+                                    {rescheduleSourceId ? 'Reprogramare' : 'Cerere nouă'}
+                                </span>
                             </div>
                             <div className="appointment-summary-grid">
                                 <div><span>Data</span><strong>{formData.selectedDate ? formatDate(formData.selectedDate) : 'Neselectată'}</strong></div>
@@ -873,311 +752,60 @@ const AppointmentPage: React.FC = () => {
                             </div>
                         </div>
                         <div className="form-grid">
-                            {/* Date Selection Card */}
-                            <div className="form-card">
-                                <div className="card-icon">
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                                        <line x1="16" y1="2" x2="16" y2="6" />
-                                        <line x1="8" y1="2" x2="8" y2="6" />
-                                        <line x1="3" y1="10" x2="21" y2="10" />
-                                    </svg>
-                                </div>
-                                <h3>Selectați Data</h3>
-                                <p className="card-description">
-                                    Puteți programa examenul doar în zilele de <strong>Luni, Miercuri și Vineri</strong>.
-                                </p>
+                            <AppointmentStep1Calendar
+                                isCalendarOpen={isCalendarOpen}
+                                calendarPickerRef={calendarPickerRef}
+                                onToggleCalendar={toggleCalendar}
+                                calendarMonth={calendarMonth}
+                                canNavigatePrevMonth={canNavigatePrevMonth}
+                                canNavigateNextMonth={canNavigateNextMonth}
+                                onPrevMonth={goToPreviousMonth}
+                                onNextMonth={goToNextMonth}
+                                calendarDays={calendarDays}
+                                selectedDate={formData.selectedDate}
+                                selectedDateLabel={selectedDateLabel}
+                                selectedBlockedEntry={selectedBlockedEntry}
+                                availabilityPreviewDays={availabilityPreviewDays}
+                                selectedDateKey={selectedDateKey}
+                                leadTimeHours={examSettings.appointmentLeadTimeHours}
+                                minDate={minDate}
+                                maxDate={maxDate}
+                                error={errors.date}
+                                onDaySelect={handleCalendarDaySelect}
+                                onAvailabilitySelect={handleDateValueChange}
+                                getMonthName={getMonthName}
+                                getDayName={getDayName}
+                                formatDate={formatDate}
+                                allowedWeekdayNames={allowedWeekdayNames}
+                            />
 
-                                <div className="form-group">
-                                    <label htmlFor="examDate">
-                                        Alege Data <span className="required">*</span>
-                                    </label>
-                                    <div className={`custom-date-picker ${errors.date ? 'error' : ''} ${isCalendarOpen ? 'open' : ''}`} ref={calendarPickerRef}>
-                                        <button
-                                            type="button"
-                                            id="examDate"
-                                            className={`date-trigger ${isCalendarOpen ? 'open' : ''}`}
-                                            onClick={toggleCalendar}
-                                            aria-haspopup="dialog"
-                                            aria-expanded={isCalendarOpen}
-                                            aria-controls="appointment-calendar-popover"
-                                        >
-                                            <span className={formData.selectedDate ? 'date-trigger-value' : 'date-trigger-placeholder'}>
-                                                {formData.selectedDate ? selectedDateLabel : 'Selectați data programării'}
-                                            </span>
-                                            <svg className={`calendar-chevron ${isCalendarOpen ? 'open' : ''}`} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                <polyline points="6 9 12 15 18 9" />
-                                            </svg>
-                                        </button>
+                            <AppointmentStep3Slots
+                                availableSlots={availableSlots}
+                                slotFilter={slotFilter}
+                                selectedSlotId={formData.selectedSlot?.id}
+                                recommendedSlot={recommendedSlot}
+                                remainingAppointmentsForDay={remainingAppointmentsForDay}
+                                currentDayCapacity={currentDayCapacity}
+                                selectedDate={formData.selectedDate}
+                                error={errors.slot}
+                                onFilterChange={setSlotFilter}
+                                onSlotSelect={handleSlotSelect}
+                            />
 
-                                        {isCalendarOpen && (
-                                            <div
-                                                className="calendar-popover"
-                                                id="appointment-calendar-popover"
-                                                role="dialog"
-                                                aria-label="Calendar selecție dată"
-                                            >
-                                                <div className="calendar-popover-header">
-                                                    <button
-                                                        type="button"
-                                                        className="calendar-nav-btn"
-                                                        onClick={goToPreviousMonth}
-                                                        disabled={!canNavigatePrevMonth}
-                                                        aria-label="Luna anterioară"
-                                                    >
-                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                                            <polyline points="15 18 9 12 15 6" />
-                                                        </svg>
-                                                    </button>
-
-                                                    <strong className="calendar-month-label">
-                                                        {getMonthName(calendarMonth)} {calendarMonth.getFullYear()}
-                                                    </strong>
-
-                                                    <button
-                                                        type="button"
-                                                        className="calendar-nav-btn"
-                                                        onClick={goToNextMonth}
-                                                        disabled={!canNavigateNextMonth}
-                                                        aria-label="Luna următoare"
-                                                    >
-                                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                                            <polyline points="9 18 15 12 9 6" />
-                                                        </svg>
-                                                    </button>
-                                                </div>
-
-                                                <div className="calendar-week-row" aria-hidden="true">
-                                                    {CALENDAR_WEEK_DAYS.map((dayLabel) => (
-                                                        <span key={dayLabel}>{dayLabel}</span>
-                                                    ))}
-                                                </div>
-
-                                                <div className="calendar-grid" role="grid">
-                                                    {calendarDays.map((day) => {
-                                                        const occupancyRatio = day.capacity > 0
-                                                            ? (day.capacity - day.remaining) / day.capacity
-                                                            : 1;
-                                                        let statusClass = 'status-open';
-
-                                                        if (day.isBlocked) statusClass = 'status-blocked';
-                                                        else if (day.isFull) statusClass = 'status-full';
-                                                        else if (!day.isAllowedWeekday || !day.isLeadTimeMet || !day.isWithinRange) statusClass = 'status-muted';
-                                                        else if (occupancyRatio >= 0.8) statusClass = 'status-tight';
-
-                                                        const tooltip = day.isBlocked
-                                                            ? 'Zi blocată pentru programări.'
-                                                            : !day.isWithinRange
-                                                                ? `Alegeți între ${formatDate(minDate)} și ${formatDate(maxDate)}.`
-                                                                : !day.isAllowedWeekday
-                                                                    ? 'Programările sunt doar luni, miercuri și vineri.'
-                                                                    : !day.isLeadTimeMet
-                                                                        ? `Este necesar un lead time de ${examSettings.appointmentLeadTimeHours} ore.`
-                                                                        : day.isFull
-                                                                            ? `Zi complet rezervată (${day.capacity}/${day.capacity}).`
-                                                                            : `${day.remaining}/${day.capacity} locuri libere.`;
-
-                                                        return (
-                                                            <button
-                                                                key={day.dateKey}
-                                                                type="button"
-                                                                className={`calendar-day-cell ${day.inCurrentMonth ? '' : 'outside'} ${day.isToday ? 'today' : ''} ${day.isSelected ? 'selected' : ''} ${statusClass}`}
-                                                                onClick={() => handleCalendarDaySelect(day.dateKey)}
-                                                                disabled={!day.selectable}
-                                                                title={tooltip}
-                                                                aria-label={`Selectează ${getDayName(day.date)} ${day.date.getDate()} ${getMonthName(day.date)} ${day.date.getFullYear()}`}
-                                                                aria-selected={day.isSelected}
-                                                            >
-                                                                <span>{day.date.getDate()}</span>
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
-
-                                                <div className="calendar-legend" aria-hidden="true">
-                                                    <span><i className="legend-dot legend-open" />Disponibilă</span>
-                                                    <span><i className="legend-dot legend-tight" />Aproape plină</span>
-                                                    <span><i className="legend-dot legend-full" />Completă</span>
-                                                    <span><i className="legend-dot legend-blocked" />Blocată</span>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                    {errors.date && <span className="error-message">{errors.date}</span>}
-                                    {formData.selectedDate && (
-                                        <div className="selected-date-display">
-                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                <polyline points="20 6 9 17 4 12" />
-                                            </svg>
-                                            {getDayName(formData.selectedDate)}, {formData.selectedDate.getDate()} {getMonthName(formData.selectedDate)} {formData.selectedDate.getFullYear()}
-                                        </div>
-                                    )}
-                                    {selectedBlockedEntry && (
-                                        <span className="error-message">
-                                        Zi blocată{selectedBlockedEntry.note ? `: ${selectedBlockedEntry.note}` : '.'}
-                                    </span>
-                                    )}
-                                </div>
-
-                                <div className="availability-preview">
-                                    <div className="availability-preview-header">
-                                        <strong>Zile disponibile (preview)</strong>
-                                        <span>următoarele {availabilityPreviewDays.length}</span>
-                                    </div>
-                                    <div className="availability-preview-grid">
-                                        {availabilityPreviewDays.map((day) => {
-                                            const ratio = day.capacity > 0 ? day.occupied / day.capacity : 0;
-                                            const statusClass = day.blocked
-                                                ? 'blocked'
-                                                : day.remaining === 0
-                                                    ? 'full'
-                                                    : ratio >= 0.8
-                                                        ? 'tight'
-                                                        : 'open';
-                                            return (
-                                                <button
-                                                    key={day.dateKey}
-                                                    type="button"
-                                                    className={`availability-day ${statusClass} ${selectedDateKey === day.dateKey ? 'selected' : ''}`}
-                                                    onClick={() => handleDateValueChange(day.dateKey)}
-                                                    title={
-                                                        day.blocked
-                                                            ? `Blocată${day.blockedNote ? `: ${day.blockedNote}` : ''}`
-                                                            : `${day.remaining}/${day.capacity} locuri libere`
-                                                    }
-                                                >
-                                                    <span>{new Date(day.date).toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit' })}</span>
-                                                    <small>{day.blocked ? 'blocată' : `${day.remaining} lib.`}</small>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Time Slot Selection Card */}
-                            <div className="form-card">
-                                <div className="card-icon">
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <circle cx="12" cy="12" r="10" />
-                                        <polyline points="12 6 12 12 16 14" />
-                                    </svg>
-                                </div>
-                                <h3>Selectați Intervalul Orar</h3>
-                                <p className="card-description">
-                                    Alegeți intervalul orar care vi se potrivește pentru examen.
-                                </p>
-                                {formData.selectedDate && (
-                                    <p className="card-description">
-                                        Locuri rămase în ziua selectată: <strong>{remainingAppointmentsForDay}</strong> / {currentDayCapacity}
-                                    </p>
-                                )}
-
-                                <div className="slot-filter-row">
-                                    <div className="slot-filter-group" role="tablist" aria-label="Filtru intervale">
-                                        <button type="button" className={slotFilter === 'all' ? 'active' : ''} onClick={() => setSlotFilter('all')}>Toate</button>
-                                        <button type="button" className={slotFilter === 'midday' ? 'active' : ''} onClick={() => setSlotFilter('midday')}>Prânz</button>
-                                        <button type="button" className={slotFilter === 'afternoon' ? 'active' : ''} onClick={() => setSlotFilter('afternoon')}>După-amiază</button>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        className="slot-suggest-btn"
-                                        onClick={() => recommendedSlot && handleSlotSelect(recommendedSlot.id)}
-                                        disabled={!recommendedSlot}
-                                    >
-                                        Sugerează primul slot liber
-                                    </button>
-                                </div>
-
-                                <div className="time-slots">
-                                    {availableSlots.length === 0 && (
-                                        <div className="slot-empty-note">
-                                            Nu există intervale în filtrul selectat. Încearcă „Toate”.
-                                        </div>
-                                    )}
-                                    {availableSlots.map((slot) => (
-                                        <button
-                                            key={slot.id}
-                                            type="button"
-                                            className={`time-slot ${formData.selectedSlot?.id === slot.id ? 'selected' : ''} ${!slot.available ? 'disabled' : ''}`}
-                                            onClick={() => handleSlotSelect(slot.id)}
-                                            disabled={!slot.available}
-                                        >
-                                            <div className="slot-time">
-                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                    <circle cx="12" cy="12" r="10" />
-                                                    <polyline points="12 6 12 12 16 14" />
-                                                </svg>
-                                                <span>{slot.startTime} - {slot.endTime}</span>
-                                            </div>
-                                            {formData.selectedSlot?.id === slot.id && (
-                                                <div className="check-icon">
-                                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                                                        <polyline points="20 6 9 17 4 12" />
-                                                    </svg>
-                                                </div>
-                                            )}
-                                        </button>
-                                    ))}
-                                </div>
-                                {errors.slot && <span className="error-message">{errors.slot}</span>}
-                            </div>
-
-                            {/* Personal Information Card */}
-                            <div className="form-card full-width">
-                                <div className="card-icon">
-                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                                        <circle cx="12" cy="7" r="4" />
-                                    </svg>
-                                </div>
-                                <h3>Informații Personale</h3>
-                                <p className="card-description">
-                                    Introduceți datele dumneavoastră personale pentru confirmare.
-                                </p>
-
-                                <div className="form-row">
-                                    <div className="form-group">
-                                        <label htmlFor="fullName">
-                                            Nume Complet <span className="required">*</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="fullName"
-                                            className={`text-input ${errors.fullName ? 'error' : ''}`}
-                                            placeholder="Ex: Ion Popescu"
-                                            value={formData.fullName}
-                                            onChange={(e) => {
-                                                setFormData({ ...formData, fullName: e.target.value });
-                                                setErrors({ ...errors, fullName: undefined });
-                                            }}
-                                        />
-                                        {errors.fullName && <span className="error-message">{errors.fullName}</span>}
-                                    </div>
-
-                                    <div className="form-group">
-                                        <label htmlFor="idOrPhone">
-                                            Număr de Telefon <span className="required">*</span>
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="idOrPhone"
-                                            className={`text-input ${errors.idOrPhone ? 'error' : ''}`}
-                                            placeholder="Ex: 691234567"
-                                            inputMode="numeric"
-                                            pattern="\d{9}"
-                                            maxLength={9}
-                                            value={formData.idOrPhone}
-                                            onChange={(e) => {
-                                                const onlyDigits = e.target.value.replace(/\D/g, '').slice(0, 9);
-                                                setFormData({ ...formData, idOrPhone: onlyDigits });
-                                                setErrors({ ...errors, idOrPhone: undefined });
-                                            }}
-                                        />
-                                        {errors.idOrPhone && <span className="error-message">{errors.idOrPhone}</span>}
-                                    </div>
-                                </div>
-                            </div>
+                            <AppointmentStep4Form
+                                fullName={formData.fullName}
+                                idOrPhone={formData.idOrPhone}
+                                fullNameError={errors.fullName}
+                                idOrPhoneError={errors.idOrPhone}
+                                onFullNameChange={(value) => {
+                                    setFormData({ ...formData, fullName: value });
+                                    setErrors({ ...errors, fullName: undefined });
+                                }}
+                                onIdOrPhoneChange={(value) => {
+                                    setFormData({ ...formData, idOrPhone: value });
+                                    setErrors({ ...errors, idOrPhone: undefined });
+                                }}
+                            />
                         </div>
 
                         {/* Important Information */}

@@ -1,10 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useStorageSync } from '../../../hooks/useStorageSync';
+import { formatDateTimeLong } from '../../../utils/dateUtils';
+import { appointmentStatusLabelMasculine } from '../../../utils/appointmentUtils';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../hooks/useAuth';
 import type { UpdateUserProfileInput } from '../../../types/user';
 import { readAppointments, readExamSettings, readQuizHistory, STORAGE_KEYS, writeAppointments } from '../../../features/admin/storage';
 import type { AdminAppointmentRecord } from '../../../features/admin/types';
 import { notifyAdmins, notifyUser } from '../../../utils/appEventNotifications';
+import UserAppointmentItem from './UserAppointmentItem';
+import UserPackagePerformanceColumn from './UserPackagePerformanceColumn';
 import './UserDashboard.css';
 
 const APPOINTMENT_RESCHEDULE_KEY = 'appointmentRescheduleDraft';
@@ -30,45 +35,13 @@ const UserDashboard: React.FC = () => {
     const [isProfileSaving, setIsProfileSaving] = useState(false);
     const [isProfileEditorOpen, setIsProfileEditorOpen] = useState(false);
 
-    useEffect(() => {
-        const refreshDashboardData = () => {
-            setQuizHistory(readQuizHistory());
-            const settings = readExamSettings();
-            setExamSettings(settings);
-            setPassThreshold(settings.passingThreshold);
-            setAppointments(readAppointments());
-        };
-
-        const handleStorage = (event: StorageEvent) => {
-            if (
-                event.key === STORAGE_KEYS.quizHistory ||
-                event.key === STORAGE_KEYS.settings ||
-                event.key === STORAGE_KEYS.appointments
-            ) {
-                refreshDashboardData();
-            }
-        };
-
-        const handleAppStorageUpdated = (event: Event) => {
-            const customEvent = event as CustomEvent<{ key?: string }>;
-            const key = customEvent.detail?.key;
-            if (
-                key === STORAGE_KEYS.quizHistory ||
-                key === STORAGE_KEYS.settings ||
-                key === STORAGE_KEYS.appointments
-            ) {
-                refreshDashboardData();
-            }
-        };
-
-        window.addEventListener('storage', handleStorage);
-        window.addEventListener('app-storage-updated', handleAppStorageUpdated as EventListener);
-
-        return () => {
-            window.removeEventListener('storage', handleStorage);
-            window.removeEventListener('app-storage-updated', handleAppStorageUpdated as EventListener);
-        };
-    }, []);
+    useStorageSync([STORAGE_KEYS.quizHistory, STORAGE_KEYS.settings, STORAGE_KEYS.appointments], () => {
+        setQuizHistory(readQuizHistory());
+        const settings = readExamSettings();
+        setExamSettings(settings);
+        setPassThreshold(settings.passingThreshold);
+        setAppointments(readAppointments());
+    });
 
     useEffect(() => {
         if (!user) {
@@ -108,13 +81,6 @@ const UserDashboard: React.FC = () => {
             .filter((appointment) => appointment.userEmail === user.email)
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }, [appointments, user?.email]);
-
-    const appointmentStatusLabel = (status: string) => {
-        if (status === 'approved') return 'Aprobat';
-        if (status === 'rejected') return 'Respins';
-        if (status === 'cancelled') return 'Anulat';
-        return 'În așteptare';
-    };
 
     const canCancelAppointment = (status: string) => status === 'pending' || status === 'approved';
     const canRescheduleAppointment = (appointment: any) =>
@@ -164,16 +130,6 @@ const UserDashboard: React.FC = () => {
         navigate(`/appointment?reschedule=${encodeURIComponent(appointmentId)}`);
     };
 
-    const formatDate = (dateString: string) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString('ro-RO', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    };
 
     const packagePerformance = useMemo(() => {
         const grouped = new Map<string, { name: string; attempts: number; totalScore: number; passed: number }>();
@@ -350,7 +306,7 @@ const UserDashboard: React.FC = () => {
                                 <span className="role-badge">Candidat</span>
                             </p>
                             <p className="profile-date">
-                                Înregistrat: {user?.createdAt ? formatDate(user.createdAt.toString()) : 'N/A'}
+                                Înregistrat: {user?.createdAt ? formatDateTimeLong(user.createdAt.toString()) : 'N/A'}
                             </p>
                         </div>
                         <div className="profile-primary-actions">
@@ -501,51 +457,17 @@ const UserDashboard: React.FC = () => {
                     <div className="history-list">
                         {userAppointments.length > 0 ? (
                             userAppointments.slice(0, 4).map((appointment) => (
-                                <div key={appointment.id} className="history-item">
-                                    <div className="history-content">
-                                        <h4>{formatDate(appointment.date)}</h4>
-                                        <p>
-                                            Interval: {appointment.slotStart} - {appointment.slotEnd}
-                                        </p>
-                                        {appointment.appointmentCode && <p>Cod: {appointment.appointmentCode}</p>}
-                                        {appointment.statusReason && (
-                                            <p className={`appointment-reason ${appointment.status}`}>
-                                                Motiv: {appointment.statusReason}
-                                            </p>
-                                        )}
-                                        {appointment.adminNote && (
-                                            <p className="appointment-admin-note">
-                                                Notă admin: {appointment.adminNote}
-                                            </p>
-                                        )}
-                                        <div className="appointment-item-actions">
-                                            <button
-                                                type="button"
-                                                className="dashboard-mini-btn"
-                                                disabled={!canRescheduleAppointment(appointment)}
-                                                onClick={() => handleRescheduleAppointment(appointment.id)}
-                                                title={
-                                                    canRescheduleAppointment(appointment)
-                                                        ? 'Reprogramează'
-                                                        : `Limita de ${examSettings.maxReschedulesPerUser} reprogramări a fost atinsă`
-                                                }
-                                            >
-                                                Reprogramează
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="dashboard-mini-btn danger"
-                                                disabled={!canCancelAppointment(appointment.status)}
-                                                onClick={() => handleCancelAppointment(appointment.id)}
-                                            >
-                                                Anulează
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div className={`appointment-status ${appointment.status}`}>
-                                        {appointmentStatusLabel(appointment.status)}
-                                    </div>
-                                </div>
+                                <UserAppointmentItem
+                                    key={appointment.id}
+                                    appointment={appointment}
+                                    examSettingsMaxReschedules={examSettings.maxReschedulesPerUser}
+                                    formatDate={formatDateTimeLong}
+                                    appointmentStatusLabel={appointmentStatusLabelMasculine}
+                                    canReschedule={canRescheduleAppointment(appointment)}
+                                    canCancel={canCancelAppointment(appointment.status)}
+                                    onReschedule={handleRescheduleAppointment}
+                                    onCancel={handleCancelAppointment}
+                                />
                             ))
                         ) : (
                             <div className="empty-state">
@@ -587,24 +509,15 @@ const UserDashboard: React.FC = () => {
                             <div className="dashboard-package-chart" role="img" aria-label="Performanță pe pachete de întrebări">
                                 <div className="dashboard-package-grid">
                                     {packagePerformance.map((pack) => (
-                                        <div
+                                        <UserPackagePerformanceColumn
                                             key={pack.name}
-                                            className="dashboard-package-column"
-                                            title={`${pack.name}: medie ${pack.averageScore}%, promovare ${pack.passRate}% (${pack.attempts} încercări)`}
-                                            style={{ '--package-bar-color': '#f1c40f' } as React.CSSProperties}
-                                        >
-                                            <span className={`dashboard-package-value ${pack.isGood ? 'good' : 'needs-work'}`}>
-                                                {pack.averageScore}%
-                                            </span>
-                                            <div className="dashboard-package-rail" aria-hidden="true">
-                                                <div
-                                                    className={`dashboard-package-fill ${pack.isGood ? 'good' : 'needs-work'}`}
-                                                    style={{ height: `${Math.max(8, Math.min(100, pack.averageScore))}%` }}
-                                                />
-                                            </div>
-                                            <span className="dashboard-package-name">{pack.shortName}</span>
-                                            <span className="dashboard-package-meta">{pack.passRate}% | {pack.attempts} înc.</span>
-                                        </div>
+                                            name={pack.name}
+                                            shortName={pack.shortName}
+                                            averageScore={pack.averageScore}
+                                            passRate={pack.passRate}
+                                            attempts={pack.attempts}
+                                            isGood={pack.isGood}
+                                        />
                                     ))}
                                 </div>
                             </div>

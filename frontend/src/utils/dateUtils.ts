@@ -1,25 +1,34 @@
-/**
- * Check if a date is Monday, Wednesday, or Friday
- */
-export const isAllowedDay = (date: Date): boolean => {
-  const day = date.getDay();
-  return day === 1 || day === 3 || day === 5; // Monday=1, Wednesday=3, Friday=5
-};
+export const WEEKDAY_OPTIONS: { value: number; label: string }[] = [
+    { value: 1, label: "Luni" }, { value: 2, label: "Marți" }, { value: 3, label: "Miercuri" },
+    { value: 4, label: "Joi" }, { value: 5, label: "Vineri" }, { value: 6, label: "Sâmbătă" }, { value: 0, label: "Duminică" },
+];
+
+export const formatAllowedWeekdayNames = (allowedWeekdays: number[]): string =>
+    allowedWeekdays
+        .map((d) => WEEKDAY_OPTIONS.find((o) => o.value === d)?.label ?? '')
+        .filter(Boolean)
+        .join(', ');
 
 /**
- * Get the next available appointment date (next Monday, Wednesday, or Friday)
+ * Check if a date falls on one of the allowed weekdays (default: Mon/Wed/Fri)
  */
-export const getNextAvailableDate = (fromDate: Date = new Date()): Date => {
+export const isAllowedDay = (date: Date, allowedWeekdays: number[] = [1, 3, 5]): boolean =>
+    allowedWeekdays.includes(date.getDay());
+
+/**
+ * Get the next available appointment date based on allowed weekdays
+ */
+export const getNextAvailableDate = (fromDate: Date = new Date(), allowedWeekdays: number[] = [1, 3, 5]): Date => {
   const date = new Date(fromDate);
   date.setHours(0, 0, 0, 0);
-  
+
   // Start checking from tomorrow
   date.setDate(date.getDate() + 1);
-  
-  while (!isAllowedDay(date)) {
+
+  while (!isAllowedDay(date, allowedWeekdays)) {
     date.setDate(date.getDate() + 1);
   }
-  
+
   return date;
 };
 
@@ -60,4 +69,40 @@ export const getMonthName = (date: Date): string => {
     'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie'
   ];
   return months[date.getMonth()];
+};
+
+/**
+ * Format a Date as a short DD.MM Romanian date: "14.03"
+ */
+export const formatDayMonth = (date: Date): string =>
+    date.toLocaleDateString("ro-RO", { day: "2-digit", month: "2-digit" });
+
+/**
+ * Format an ISO date string as a long Romanian date: "14 martie 2026"
+ */
+export const formatDateLong = (value: string): string =>
+    new Date(value).toLocaleDateString("ro-RO", { day: "2-digit", month: "long", year: "numeric" });
+
+/**
+ * Format an ISO date string as a short Romanian date: "14 mar. 2026"
+ */
+export const formatDateShort = (value: string): string => {
+  return new Date(value).toLocaleDateString("ro-RO", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+/**
+ * Format an ISO date string as a long Romanian date+time: "14 martie 2026, 10:30"
+ */
+export const formatDateTimeLong = (value: string): string => {
+  return new Date(value).toLocaleDateString("ro-RO", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 };

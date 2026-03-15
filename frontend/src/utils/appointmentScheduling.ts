@@ -136,7 +136,7 @@ export const getNextEligibleDates = (
     }> = [];
 
     while (cursor <= maxDate && results.length < count) {
-        if (isAllowedDay(cursor)) {
+        if (isAllowedDay(cursor, settings.allowedWeekdays)) {
             const dateKey = toDateKey(cursor);
             const capacity = getDailyCapacity(settings, dateKey);
             const occupied = getAppointmentsForDate(appointments, dateKey, { activeOnly: true }).length;

@@ -1,5 +1,6 @@
-import React from 'react';
-import type { Question } from '../../types/quiz';
+import React from "react";
+import type { Question } from "../../types/quiz";
+import QuestionNavigationButton from "./QuestionNavigationButton";
 
 type Props = {
     questions: Question[];
@@ -16,27 +17,21 @@ const QuestionNavigationGrid: React.FC<Props> = ({
     currentQuestionIndex,
     onSelectQuestion,
     gridRef,
-    keyPrefix = 'nav',
+    keyPrefix = "nav",
 }) => {
     return (
         <div className="question-grid" ref={gridRef}>
-            {questions.map((question, index) => {
-                const isCurrent = index === currentQuestionIndex;
-                const userAnswer = answers[index];
-                const isAnswered = userAnswer !== null;
-                const isCorrectAnswer = isAnswered && userAnswer === question.correctAnswer;
-                const stateClass = !isAnswered ? 'empty' : isCorrectAnswer ? 'correct' : 'incorrect';
-                return (
-                    <button
-                        key={`${keyPrefix}-${question.id || index}`}
-                        type="button"
-                        onClick={() => onSelectQuestion(index)}
-                        className={`grid-btn ${stateClass} ${isCurrent ? 'current' : ''}`.trim()}
-                    >
-                        {index + 1}
-                    </button>
-                );
-            })}
+            {questions.map((question, index) => (
+                <QuestionNavigationButton
+                    key={`${keyPrefix}-${question.id || index}`}
+                    question={question}
+                    index={index}
+                    answer={answers[index]}
+                    isCurrent={index === currentQuestionIndex}
+                    keyPrefix={keyPrefix}
+                    onSelectQuestion={onSelectQuestion}
+                />
+            ))}
         </div>
     );
 };

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth";
+import AdminPanelNavLink from "./AdminPanelNavLink";
 import "../styles/admin-panel.css";
 
 const navItems = [
@@ -77,13 +78,7 @@ const AdminPanelLayout: React.FC = () => {
 
                     <nav className="admin-app-header-nav" aria-label="Admin quick navigation">
                         {navItems.map((item) => (
-                            <NavLink
-                                key={item.to}
-                                to={item.to}
-                                className={({ isActive }) => `admin-app-header-link ${isActive ? "is-active" : ""}`}
-                            >
-                                {item.label}
-                            </NavLink>
+                            <AdminPanelNavLink key={item.to} to={item.to} label={item.label} variant="header" />
                         ))}
                     </nav>
 
@@ -107,10 +102,7 @@ const AdminPanelLayout: React.FC = () => {
 
             <section className="admin-panel-page">
                 <div className="admin-panel-shell">
-                    <aside
-                        id="admin-mobile-sidebar"
-                        className={`admin-sidebar ${isMobileSidebarOpen ? "is-open" : ""}`}
-                    >
+                    <aside id="admin-mobile-sidebar" className={`admin-sidebar ${isMobileSidebarOpen ? "is-open" : ""}`}>
                         <div className="admin-sidebar-top">
                             <div className="admin-sidebar-top-row">
                                 <div>
@@ -121,7 +113,7 @@ const AdminPanelLayout: React.FC = () => {
                                     type="button"
                                     className="admin-sidebar-close"
                                     onClick={closeMobileSidebar}
-                                    aria-label="Inchide meniul"
+                                    aria-label="Închide meniul"
                                 >
                                     <i className="fas fa-times" aria-hidden="true"></i>
                                 </button>
@@ -130,25 +122,26 @@ const AdminPanelLayout: React.FC = () => {
 
                         <nav className="admin-nav">
                             {navItems.map((item) => (
-                                <NavLink
+                                <AdminPanelNavLink
                                     key={item.to}
                                     to={item.to}
+                                    label={item.label}
+                                    iconClass={item.iconClass}
                                     onClick={closeMobileSidebar}
-                                    className={({ isActive }) =>
-                                        `admin-nav-item ${isActive ? "is-active" : ""}`
-                                    }
-                                >
-                                    <i className={item.iconClass}></i>
-                                    <span>{item.label}</span>
-                                </NavLink>
+                                    variant="sidebar"
+                                />
                             ))}
                         </nav>
 
                         <div className="admin-sidebar-quick">
                             <h4>Acțiuni rapide</h4>
                             <div className="admin-sidebar-quick-actions">
-                                <Link to="/" className="admin-btn ghost" onClick={closeMobileSidebar}>Site public</Link>
-                                <Link to="/support" className="admin-btn secondary" onClick={closeMobileSidebar}>Suport</Link>
+                                <Link to="/" className="admin-btn ghost" onClick={closeMobileSidebar}>
+                                    Site public
+                                </Link>
+                                <Link to="/support" className="admin-btn secondary" onClick={closeMobileSidebar}>
+                                    Suport
+                                </Link>
                             </div>
                         </div>
                     </aside>
@@ -163,4 +156,3 @@ const AdminPanelLayout: React.FC = () => {
 };
 
 export default AdminPanelLayout;
-

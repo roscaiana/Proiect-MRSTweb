@@ -1,21 +1,14 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
+import { useStorageSync } from "../../../hooks/useStorageSync";
 import { Link } from "react-router-dom";
 import { readExamSettings, readQuizHistory, STORAGE_KEYS } from "../../../features/admin/storage";
+import { formatDateTimeLong } from "../../../utils/dateUtils";
 import type { QuizHistoryRecord } from "../../../features/admin/types";
 import { useAuth } from "../../../hooks/useAuth";
 import { APP_ROUTES } from "../../../routes/appRoutes";
+import TestHistoryEntryCard from "./TestHistoryEntryCard";
 import "./TestHistoryPage.css";
 
-const formatDateTime = (value: string): string => {
-    const date = new Date(value);
-    return date.toLocaleDateString("ro-RO", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-    });
-};
 
 const getShortPackageName = (value: string): string => {
     if (value.length <= 44) {
@@ -29,37 +22,16 @@ const TestHistoryPage: React.FC = () => {
     const [history, setHistory] = useState<QuizHistoryRecord[]>(() => readQuizHistory());
     const [passThreshold, setPassThreshold] = useState<number>(() => readExamSettings().passingThreshold);
 
-    useEffect(() => {
-        const refreshData = (): void => {
-            setHistory(readQuizHistory());
-            setPassThreshold(readExamSettings().passingThreshold);
-        };
-
-        const handleStorage = (event: StorageEvent): void => {
-            if (event.key === STORAGE_KEYS.quizHistory || event.key === STORAGE_KEYS.settings) {
-                refreshData();
-            }
-        };
-
-        const handleAppStorageUpdated = (event: Event): void => {
-            const customEvent = event as CustomEvent<{ key?: string }>;
-            if (customEvent.detail?.key === STORAGE_KEYS.quizHistory || customEvent.detail?.key === STORAGE_KEYS.settings) {
-                refreshData();
-            }
-        };
-
-        window.addEventListener("storage", handleStorage);
-        window.addEventListener("app-storage-updated", handleAppStorageUpdated as EventListener);
-        return () => {
-            window.removeEventListener("storage", handleStorage);
-            window.removeEventListener("app-storage-updated", handleAppStorageUpdated as EventListener);
-        };
-    }, []);
+    useStorageSync([STORAGE_KEYS.quizHistory, STORAGE_KEYS.settings], () => {
+        setHistory(readQuizHistory());
+        setPassThreshold(readExamSettings().passingThreshold);
+    });
 
     const userHistory = useMemo(() => {
         if (!user?.email) {
             return [];
         }
+
         return history
             .filter((entry) => entry.userEmail === user.email)
             .sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime());
@@ -73,10 +45,7 @@ const TestHistoryPage: React.FC = () => {
         return Math.round(total / userHistory.length);
     }, [userHistory]);
 
-    const passedCount = useMemo(
-        () => userHistory.filter((entry) => entry.score >= passThreshold).length,
-        [userHistory, passThreshold],
-    );
+    const passedCount = useMemo(() => userHistory.filter((entry) => entry.score >= passThreshold).length, [passThreshold, userHistory]);
 
     const passRate = useMemo(() => {
         if (userHistory.length === 0) {
@@ -123,28 +92,16 @@ const TestHistoryPage: React.FC = () => {
                 </div>
             ) : (
                 <div className="test-history-page__list">
-                    {userHistory.map((entry, index) => {
-                        const isPassed = entry.score >= passThreshold;
-                        return (
-                            <article key={`${entry.completedAt}-${entry.categoryId}-${index}`} className="test-history-page__item">
-                                <div className="test-history-page__item-main">
-                                    <h3>{getShortPackageName(entry.categoryTitle || "Test general")}</h3>
-                                    <p>{formatDateTime(entry.completedAt)}</p>
-                                </div>
-                                <div className="test-history-page__item-badges">
-                                    <span className={`test-history-page__badge ${isPassed ? "passed" : "failed"}`}>
-                                        {isPassed ? "Promovat" : "Nepromovat"}
-                                    </span>
-                                    <span className="test-history-page__score">{entry.score}%</span>
-                                </div>
-                                <div className="test-history-page__item-meta">
-                                    <span>Corecte: {entry.correctAnswers ?? "-"}</span>
-                                    <span>Total: {entry.totalQuestions ?? "-"}</span>
-                                    <span>Timp: {entry.timeTaken ?? entry.durationSeconds ?? "-"} sec</span>
-                                </div>
-                            </article>
-                        );
-                    })}
+                    {userHistory.map((entry, index) => (
+                        <TestHistoryEntryCard
+                            key={`${entry.completedAt}-${entry.categoryId}-${index}`}
+                            entry={entry}
+                            index={index}
+                            passThreshold={passThreshold}
+                            formatDateTime={formatDateTimeLong}
+                            getShortPackageName={getShortPackageName}
+                        />
+                    ))}
                 </div>
             )}
         </section>

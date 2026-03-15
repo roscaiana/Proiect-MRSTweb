@@ -1,5 +1,6 @@
 import { quizCategories, questionBanks } from "../../data/quizData";
 import { assertNoSimulatedServerError } from "../../utils/serverErrorSimulation";
+import { emitStorageUpdate } from "../../utils/storageEvents";
 import type {
     AdminAppointmentRecord,
     AdminNewsArticle,
@@ -25,12 +26,6 @@ const ensureNoSimulatedServerError = (): void => {
     assertNoSimulatedServerError();
 };
 
-const emitStorageUpdate = (key: string): void => {
-    if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("app-storage-updated", { detail: { key } }));
-    }
-};
-
 const DEFAULT_SETTINGS: ExamSettings = {
     testDurationMinutes: 30,
     passingThreshold: 70,
@@ -40,6 +35,7 @@ const DEFAULT_SETTINGS: ExamSettings = {
     rejectionCooldownDays: 2,
     appointmentLocation: "Centrul de Instruire Continuă",
     appointmentRoom: "Sală A-12",
+    allowedWeekdays: [1, 3, 5], // Mon, Wed, Fri
     blockedDates: [],
     capacityOverrides: [],
     slotOverrides: [],
@@ -160,6 +156,12 @@ export const readExamSettings = (): ExamSettings => {
                 typeof parsed.appointmentRoom === "string" && parsed.appointmentRoom.trim()
                     ? parsed.appointmentRoom.trim()
                     : DEFAULT_SETTINGS.appointmentRoom,
+            allowedWeekdays:
+                Array.isArray(parsed.allowedWeekdays) && parsed.allowedWeekdays.length > 0
+                    ? (parsed.allowedWeekdays as number[]).filter(
+                          (d) => Number.isInteger(d) && d >= 0 && d <= 6
+                      )
+                    : DEFAULT_SETTINGS.allowedWeekdays,
             blockedDates: Array.isArray(parsed.blockedDates)
                 ? parsed.blockedDates
                       .map((item: any) => ({

@@ -1,13 +1,10 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
-import {
-    BookOpenText,
-    ChevronDown,
-    CircleAlert,
-    Gavel,
-    ShieldCheck,
-} from "lucide-react";
+import { BookOpenText, CircleAlert, Gavel, ShieldCheck } from "lucide-react";
+import TermsAccordionItem from "./TermsAccordionItem";
+import TermsLegalChip from "./TermsLegalChip";
+import TermsPrincipleCard from "./TermsPrincipleCard";
 import { APP_ROUTES } from "../../routes/appRoutes";
 import "./TermsAndConditions.css";
 
@@ -166,81 +163,36 @@ export default function TermsAndConditions() {
 
             <main className="container terms-main">
                 <section className="terms-principles" aria-label="Principii esențiale">
-                    {TERMS_PRINCIPLES.map((principle) => {
-                        const Icon = principle.icon;
-                        return (
-                            <article key={principle.title} className="terms-principle-card">
-                                <span className="terms-principle-icon" aria-hidden="true">
-                                    <Icon size={18} />
-                                </span>
-                                <h2>{principle.title}</h2>
-                                <p>{principle.description}</p>
-                            </article>
-                        );
-                    })}
+                    {TERMS_PRINCIPLES.map((principle) => (
+                        <TermsPrincipleCard
+                            key={principle.title}
+                            title={principle.title}
+                            description={principle.description}
+                            icon={principle.icon}
+                        />
+                    ))}
                 </section>
 
                 <section className="terms-legal-box" aria-label="Bază legală relevantă">
                     <h2>Bază legală relevantă în Republica Moldova</h2>
                     <div className="terms-legal-chips">
                         {LEGAL_REFERENCES.map((reference) => (
-                            <span key={reference} className="terms-legal-chip">
-                                {reference}
-                            </span>
+                            <TermsLegalChip key={reference} reference={reference} />
                         ))}
                     </div>
                 </section>
 
                 <section className="terms-accordion-wrapper" aria-label="Detalii termeni">
                     <h2 className="terms-accordion-heading">Detalii de utilizare</h2>
-
                     <div className="terms-accordion">
-                        {TERMS_SECTIONS.map((section) => {
-                            const isOpen = openSectionId === section.id;
-                            const triggerId = `terms-trigger-${section.id}`;
-                            const panelId = `terms-panel-${section.id}`;
-
-                            return (
-                                <article
-                                    key={section.id}
-                                    id={`terms-item-${section.id}`}
-                                    className={`terms-accordion-item ${isOpen ? "is-open" : ""}`}
-                                >
-                                    <button
-                                        id={triggerId}
-                                        type="button"
-                                        className="terms-accordion-trigger"
-                                        aria-expanded={isOpen}
-                                        aria-controls={panelId}
-                                        onClick={() => toggleSection(section.id)}
-                                    >
-                                        <span className="terms-accordion-title-group">
-                                            <span className="terms-accordion-title">{section.title}</span>
-                                            <span className="terms-accordion-summary">{section.summary}</span>
-                                        </span>
-                                        <span className="terms-accordion-chevron" aria-hidden="true">
-                                            <ChevronDown size={18} />
-                                        </span>
-                                    </button>
-
-                                    <div
-                                        id={panelId}
-                                        role="region"
-                                        aria-labelledby={triggerId}
-                                        className="terms-accordion-panel"
-                                    >
-                                        <div className="terms-accordion-panel-inner">
-                                            <ul className="terms-bullet-list">
-                                                {section.points.map((point) => (
-                                                    <li key={point}>{point}</li>
-                                                ))}
-                                            </ul>
-                                            {section.note ? <p className="terms-note">{section.note}</p> : null}
-                                        </div>
-                                    </div>
-                                </article>
-                            );
-                        })}
+                        {TERMS_SECTIONS.map((section) => (
+                            <TermsAccordionItem
+                                key={section.id}
+                                section={section}
+                                isOpen={openSectionId === section.id}
+                                onToggle={toggleSection}
+                            />
+                        ))}
                     </div>
                 </section>
 

@@ -1,9 +1,10 @@
-﻿import "./Info.css";
+import "./Info.css";
 import { useMemo, useState } from "react";
+import InfoStepItem, { type InfoStep } from "./InfoStepItem";
 
 export default function Info() {
     const steps = useMemo(
-        () => [
+        (): InfoStep[] => [
             { nr: "01", title: "Înregistrare", desc: "Crearea contului de candidat" },
             { nr: "02", title: "Instruire", desc: "Parcurgerea modulelor" },
             { nr: "03", title: "Certificare", desc: "Susținerea examenului final" },
@@ -30,14 +31,8 @@ export default function Info() {
             <div className="container split-layout">
                 <div className="process-visual-card" onMouseMove={onMove} onMouseLeave={onLeave}>
                     <div className="timeline-inner">
-                        {steps.map((s, i) => (
-                            <div className={`step-item ${activeIndex === i ? "active-step" : ""}`} key={s.nr}>
-                                <div className="step-number">{s.nr}</div>
-                                <div className="step-details">
-                                    <h5>{s.title}</h5>
-                                    <p>{s.desc}</p>
-                                </div>
-                            </div>
+                        {steps.map((step, index) => (
+                            <InfoStepItem key={step.nr} step={step} isActive={activeIndex === index} />
                         ))}
                     </div>
                 </div>
@@ -49,7 +44,8 @@ export default function Info() {
                     <p>
                         Certificarea funcționarilor electorali este un pas esențial în asigurarea
                         unor alegeri libere și corecte. Platforma e-Electoral oferă cadrul necesar pentru:
-                        <br /><br />
+                        <br />
+                        <br />
                     </p>
 
                     <ul className="styled-list">

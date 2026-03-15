@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import AdminTestRow from "../components/AdminTestRow";
 import TestForm from "../components/TestForm";
 import { useAdminPanel } from "../hooks/useAdminPanel";
 import type { AdminTest, ExamSettings } from "../types";
@@ -23,14 +24,10 @@ const AdminTestsPage: React.FC = () => {
     }, [editingTestId, state.tests]);
 
     const handleDeleteTest = (test: AdminTest) => {
-        const confirmed = window.confirm(
-            `Sigur vrei să ștergi testul "${test.title}"? Această acțiune nu poate fi anulată.`
-        );
-
+        const confirmed = window.confirm(`Sigur vrei să ștergi testul "${test.title}"? Această acțiune nu poate fi anulată.`);
         if (!confirmed) {
             return;
         }
-
         deleteTest(test.id);
     };
 
@@ -77,10 +74,7 @@ const AdminTestsPage: React.FC = () => {
                             max={180}
                             value={settingsDraft.testDurationMinutes}
                             onChange={(event) =>
-                                setSettingsDraft((prev) => ({
-                                    ...prev,
-                                    testDurationMinutes: Number(event.target.value) || 0,
-                                }))
+                                setSettingsDraft((prev) => ({ ...prev, testDurationMinutes: Number(event.target.value) || 0 }))
                             }
                         />
                     </label>
@@ -93,10 +87,7 @@ const AdminTestsPage: React.FC = () => {
                             max={100}
                             value={settingsDraft.passingThreshold}
                             onChange={(event) =>
-                                setSettingsDraft((prev) => ({
-                                    ...prev,
-                                    passingThreshold: Number(event.target.value) || 0,
-                                }))
+                                setSettingsDraft((prev) => ({ ...prev, passingThreshold: Number(event.target.value) || 0 }))
                             }
                         />
                     </label>
@@ -109,10 +100,7 @@ const AdminTestsPage: React.FC = () => {
                             max={500}
                             value={settingsDraft.appointmentsPerDay}
                             onChange={(event) =>
-                                setSettingsDraft((prev) => ({
-                                    ...prev,
-                                    appointmentsPerDay: Number(event.target.value) || 0,
-                                }))
+                                setSettingsDraft((prev) => ({ ...prev, appointmentsPerDay: Number(event.target.value) || 0 }))
                             }
                         />
                     </label>
@@ -125,10 +113,7 @@ const AdminTestsPage: React.FC = () => {
                             max={720}
                             value={settingsDraft.appointmentLeadTimeHours}
                             onChange={(event) =>
-                                setSettingsDraft((prev) => ({
-                                    ...prev,
-                                    appointmentLeadTimeHours: Number(event.target.value) || 0,
-                                }))
+                                setSettingsDraft((prev) => ({ ...prev, appointmentLeadTimeHours: Number(event.target.value) || 0 }))
                             }
                         />
                     </label>
@@ -141,10 +126,7 @@ const AdminTestsPage: React.FC = () => {
                             max={20}
                             value={settingsDraft.maxReschedulesPerUser}
                             onChange={(event) =>
-                                setSettingsDraft((prev) => ({
-                                    ...prev,
-                                    maxReschedulesPerUser: Number(event.target.value) || 0,
-                                }))
+                                setSettingsDraft((prev) => ({ ...prev, maxReschedulesPerUser: Number(event.target.value) || 0 }))
                             }
                         />
                     </label>
@@ -157,10 +139,7 @@ const AdminTestsPage: React.FC = () => {
                             max={365}
                             value={settingsDraft.rejectionCooldownDays}
                             onChange={(event) =>
-                                setSettingsDraft((prev) => ({
-                                    ...prev,
-                                    rejectionCooldownDays: Number(event.target.value) || 0,
-                                }))
+                                setSettingsDraft((prev) => ({ ...prev, rejectionCooldownDays: Number(event.target.value) || 0 }))
                             }
                         />
                     </label>
@@ -170,12 +149,7 @@ const AdminTestsPage: React.FC = () => {
                         <input
                             type="text"
                             value={settingsDraft.appointmentLocation}
-                            onChange={(event) =>
-                                setSettingsDraft((prev) => ({
-                                    ...prev,
-                                    appointmentLocation: event.target.value,
-                                }))
-                            }
+                            onChange={(event) => setSettingsDraft((prev) => ({ ...prev, appointmentLocation: event.target.value }))}
                         />
                     </label>
 
@@ -184,12 +158,7 @@ const AdminTestsPage: React.FC = () => {
                         <input
                             type="text"
                             value={settingsDraft.appointmentRoom}
-                            onChange={(event) =>
-                                setSettingsDraft((prev) => ({
-                                    ...prev,
-                                    appointmentRoom: event.target.value,
-                                }))
-                            }
+                            onChange={(event) => setSettingsDraft((prev) => ({ ...prev, appointmentRoom: event.target.value }))}
                         />
                     </label>
 
@@ -251,36 +220,15 @@ const AdminTestsPage: React.FC = () => {
                         </thead>
                         <tbody>
                             {state.tests.map((test) => (
-                                <tr key={test.id}>
-                                    <td>
-                                        <strong>{test.title}</strong>
-                                        <p>{test.description}</p>
-                                    </td>
-                                    <td>{test.questions.length}</td>
-                                    <td>{test.durationMinutes} min</td>
-                                    <td>{test.passingScore}%</td>
-                                    <td>
-                                        <div className="admin-actions-row">
-                                            <button
-                                                className="admin-text-btn"
-                                                type="button"
-                                                onClick={() => {
-                                                    setEditingTestId(test.id);
-                                                    setCreating(false);
-                                                }}
-                                            >
-                                                Editează
-                                            </button>
-                                            <button
-                                                className="admin-text-btn danger"
-                                                type="button"
-                                                onClick={() => handleDeleteTest(test)}
-                                            >
-                                                Șterge
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
+                                <AdminTestRow
+                                    key={test.id}
+                                    test={test}
+                                    onEdit={(testId) => {
+                                        setEditingTestId(testId);
+                                        setCreating(false);
+                                    }}
+                                    onDelete={handleDeleteTest}
+                                />
                             ))}
                         </tbody>
                     </table>

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import type { AdminQuestion, AdminTest, AdminTestInput } from "../types";
-import AdminSingleSelect from "./AdminSingleSelect";
+import TestFormQuestionCard from "./TestFormQuestionCard";
 
 type Props = {
     mode: "create" | "edit";
@@ -40,10 +40,7 @@ const TestForm: React.FC<Props> = ({ mode, initialValue, onSubmit, onCancel }) =
     const [form, setForm] = useState<AdminTestInput>(() => buildInitialState(initialValue));
     const [error, setError] = useState("");
 
-    const submitLabel = useMemo(
-        () => (mode === "create" ? "Creează test" : "Salvează modificările"),
-        [mode]
-    );
+    const submitLabel = useMemo(() => (mode === "create" ? "Creează test" : "Salvează modificările"), [mode]);
 
     const addQuestion = () => {
         setForm((prev) => ({
@@ -124,10 +121,7 @@ const TestForm: React.FC<Props> = ({ mode, initialValue, onSubmit, onCancel }) =
                 return `Întrebarea ${index + 1} trebuie să aibă toate opțiunile completate.`;
             }
 
-            if (
-                question.correctAnswer < 0 ||
-                question.correctAnswer >= question.options.length
-            ) {
+            if (question.correctAnswer < 0 || question.correctAnswer >= question.options.length) {
                 return `Selectează varianta corectă pentru întrebarea ${index + 1}.`;
             }
         }
@@ -185,9 +179,7 @@ const TestForm: React.FC<Props> = ({ mode, initialValue, onSubmit, onCancel }) =
                     <input
                         type="text"
                         value={form.title}
-                        onChange={(event) =>
-                            setForm((prev) => ({ ...prev, title: event.target.value }))
-                        }
+                        onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
                         placeholder="Ex: Simulare legislație"
                     />
                 </label>
@@ -200,10 +192,7 @@ const TestForm: React.FC<Props> = ({ mode, initialValue, onSubmit, onCancel }) =
                         max={180}
                         value={form.durationMinutes}
                         onChange={(event) =>
-                            setForm((prev) => ({
-                                ...prev,
-                                durationMinutes: Number(event.target.value) || 0,
-                            }))
+                            setForm((prev) => ({ ...prev, durationMinutes: Number(event.target.value) || 0 }))
                         }
                         onBlur={handleDurationBlur}
                     />
@@ -217,10 +206,7 @@ const TestForm: React.FC<Props> = ({ mode, initialValue, onSubmit, onCancel }) =
                         max={100}
                         value={form.passingScore}
                         onChange={(event) =>
-                            setForm((prev) => ({
-                                ...prev,
-                                passingScore: Number(event.target.value) || 0,
-                            }))
+                            setForm((prev) => ({ ...prev, passingScore: Number(event.target.value) || 0 }))
                         }
                     />
                 </label>
@@ -229,9 +215,7 @@ const TestForm: React.FC<Props> = ({ mode, initialValue, onSubmit, onCancel }) =
                     <span>Descriere</span>
                     <textarea
                         value={form.description}
-                        onChange={(event) =>
-                            setForm((prev) => ({ ...prev, description: event.target.value }))
-                        }
+                        onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
                         rows={3}
                         placeholder="Descriere scurtă a testului"
                     />
@@ -247,65 +231,16 @@ const TestForm: React.FC<Props> = ({ mode, initialValue, onSubmit, onCancel }) =
 
             <div className="admin-questions-list">
                 {form.questions.map((question, questionIndex) => (
-                    <article className="admin-question-card" key={`${question.id}-${questionIndex}`}>
-                        <div className="admin-question-card-header">
-                            <h5>Întrebarea {questionIndex + 1}</h5>
-                            {form.questions.length > 1 && (
-                                <button
-                                    type="button"
-                                    className="admin-text-btn danger"
-                                    onClick={() => removeQuestion(questionIndex)}
-                                >
-                                    Șterge
-                                </button>
-                            )}
-                        </div>
-
-                        <label className="admin-field">
-                            <span>Text întrebare</span>
-                            <textarea
-                                value={question.text}
-                                onChange={(event) =>
-                                    updateQuestionText(questionIndex, event.target.value)
-                                }
-                                rows={2}
-                            />
-                        </label>
-
-                        <div className="admin-options-grid">
-                            {question.options.map((option, optionIndex) => (
-                                <label className="admin-field" key={optionIndex}>
-                                    <span>Opțiunea {optionIndex + 1}</span>
-                                    <input
-                                        type="text"
-                                        value={option}
-                                        onChange={(event) =>
-                                            updateQuestionOption(
-                                                questionIndex,
-                                                optionIndex,
-                                                event.target.value
-                                            )
-                                        }
-                                    />
-                                </label>
-                            ))}
-                        </div>
-
-                        <label className="admin-field">
-                            <span>Varianta corectă</span>
-                            <AdminSingleSelect
-                                ariaLabel={`Selectare varianta corecta pentru intrebarea ${questionIndex + 1}`}
-                                options={question.options.map((_, optionIndex) => ({
-                                    value: String(optionIndex),
-                                    label: `Opțiunea ${optionIndex + 1}`,
-                                }))}
-                                value={String(question.correctAnswer)}
-                                onChange={(value) =>
-                                    updateQuestionCorrectAnswer(questionIndex, Number(value))
-                                }
-                            />
-                        </label>
-                    </article>
+                    <TestFormQuestionCard
+                        key={`${question.id}-${questionIndex}`}
+                        question={question}
+                        questionIndex={questionIndex}
+                        canRemove={form.questions.length > 1}
+                        onRemove={removeQuestion}
+                        onTextChange={updateQuestionText}
+                        onOptionChange={updateQuestionOption}
+                        onCorrectAnswerChange={updateQuestionCorrectAnswer}
+                    />
                 ))}
             </div>
 

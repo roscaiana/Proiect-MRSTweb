@@ -1,3 +1,5 @@
+import { emitNotificationsUpdated } from "./storageEvents";
+
 export type NotificationRole = "admin" | "user";
 
 export type AppNotification = {
@@ -50,11 +52,5 @@ export const appendNotification = (storageKey: string, notification: AppNotifica
     }
     const next = [notification, ...existing].slice(0, 100);
     saveNotifications(storageKey, next);
-    if (typeof window !== "undefined") {
-        window.dispatchEvent(
-            new CustomEvent("notifications-updated", {
-                detail: { storageKey },
-            })
-        );
-    }
+    emitNotificationsUpdated(storageKey);
 };
