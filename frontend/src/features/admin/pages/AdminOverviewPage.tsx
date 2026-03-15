@@ -22,8 +22,7 @@ const AdminOverviewPage: React.FC = () => {
     const { unreadCount } = useNotifications({ isAuthenticated, isAdmin, user });
     const [periodDays, setPeriodDays] = useState<1 | 7 | 30>(7);
 
-    const now = new Date();
-    const periodStart = useMemo(() => new Date(now.getTime() - periodDays * DAY_MS), [now, periodDays]);
+    const periodStart = useMemo(() => new Date(Date.now() - periodDays * DAY_MS), [periodDays]);
 
     const appointmentsInPeriod = useMemo(
         () => state.appointments.filter((appointment) => new Date(appointment.createdAt) >= periodStart),
@@ -99,15 +98,15 @@ const AdminOverviewPage: React.FC = () => {
     const newUsersLast24h = useMemo(
         () =>
             state.users.filter(
-                (userRecord) => userRecord.role === "user" && new Date(userRecord.createdAt) >= new Date(now.getTime() - DAY_MS)
+                (userRecord) => userRecord.role === "user" && new Date(userRecord.createdAt) >= new Date(Date.now() - DAY_MS)
             ).length,
-        [now, state.users]
+        [state.users]
     );
 
     const pendingToday = useMemo(() => {
-        const todayKey = now.toDateString();
+        const todayKey = new Date().toDateString();
         return pendingAppointments.filter((appointment) => new Date(appointment.date).toDateString() === todayKey).length;
-    }, [now, pendingAppointments]);
+    }, [pendingAppointments]);
 
     const cancelledLast7Days = useMemo(
         () =>
@@ -115,9 +114,9 @@ const AdminOverviewPage: React.FC = () => {
                 (a) =>
                     a.status === "cancelled" &&
                     a.cancelledBy === "user" &&
-                    new Date(a.updatedAt || a.createdAt) >= new Date(now.getTime() - 7 * DAY_MS)
+                    new Date(a.updatedAt || a.createdAt) >= new Date(Date.now() - 7 * DAY_MS)
             ).length,
-        [now, state.appointments]
+        [state.appointments]
     );
 
     return (

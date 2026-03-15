@@ -139,15 +139,15 @@ export const readExamSettings = (): ExamSettings => {
             passingThreshold: Number(parsed.passingThreshold) || DEFAULT_SETTINGS.passingThreshold,
             appointmentsPerDay:
                 Number(parsed.appointmentsPerDay) || DEFAULT_SETTINGS.appointmentsPerDay,
-            appointmentLeadTimeHours:
-                Math.max(0, Number(parsed.appointmentLeadTimeHours)) ||
-                DEFAULT_SETTINGS.appointmentLeadTimeHours,
-            maxReschedulesPerUser:
-                Math.max(0, Number(parsed.maxReschedulesPerUser)) ||
-                DEFAULT_SETTINGS.maxReschedulesPerUser,
-            rejectionCooldownDays:
-                Math.max(0, Number(parsed.rejectionCooldownDays)) ||
-                DEFAULT_SETTINGS.rejectionCooldownDays,
+            appointmentLeadTimeHours: Number.isFinite(Number(parsed.appointmentLeadTimeHours))
+                ? Math.max(0, Number(parsed.appointmentLeadTimeHours))
+                : DEFAULT_SETTINGS.appointmentLeadTimeHours,
+            maxReschedulesPerUser: Number.isFinite(Number(parsed.maxReschedulesPerUser))
+                ? Math.max(0, Number(parsed.maxReschedulesPerUser))
+                : DEFAULT_SETTINGS.maxReschedulesPerUser,
+            rejectionCooldownDays: Number.isFinite(Number(parsed.rejectionCooldownDays))
+                ? Math.max(0, Number(parsed.rejectionCooldownDays))
+                : DEFAULT_SETTINGS.rejectionCooldownDays,
             appointmentLocation:
                 typeof parsed.appointmentLocation === "string" && parsed.appointmentLocation.trim()
                     ? parsed.appointmentLocation.trim()
