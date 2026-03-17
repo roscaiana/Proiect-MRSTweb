@@ -1,6 +1,7 @@
 export const APP_ROUTES = {
     home: "/",
-    news: "/news",
+    news: "/noutati",
+    newsAlias: "/news",
     support: "/support",
     contact: "/contact",
     tests: "/tests",

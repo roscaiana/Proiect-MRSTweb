@@ -7,9 +7,9 @@
 
 export const PUBLIC_PAGES: SitePage[] = [
     { label: "Acasă", path: "/", icon: "fas fa-home", keywords: ["acasă", "home", "început"] },
+    { label: "Noutăți", path: "/noutati", icon: "fas fa-newspaper", keywords: ["noutăți", "știri", "news"] },
     { label: "Teste", path: "/tests", icon: "fas fa-clipboard-check", keywords: ["teste", "quiz", "grilă"] },
     { label: "Înscriere", path: "/appointment", icon: "fas fa-user-plus", keywords: ["înscriere", "programare", "appointment"] },
-    { label: "Noutăți", path: "/news", icon: "fas fa-newspaper", keywords: ["noutăți", "știri", "news"] },
     { label: "Suport", path: "/support", icon: "fas fa-life-ring", keywords: ["suport", "ajutor", "help"] },
     { label: "Contact", path: "/contact", icon: "fas fa-address-book", keywords: ["contact", "telefon", "email"] },
 ];
