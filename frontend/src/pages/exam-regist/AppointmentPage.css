@@ -126,7 +126,7 @@
 .appointment-page-form .appointment-content-panel {
     border: 1px solid #e3ebf4;
     border-radius: 22px;
-    background: linear-gradient(180deg, rgba(255,255,255,0.97) 0%, #ffffff 100%);
+    background: #ffffff;
     box-shadow: 0 24px 52px rgba(0, 34, 68, 0.1);
     padding: 16px;
 }
@@ -148,6 +148,10 @@
     gap: 22px;
     margin-bottom: 26px;
     align-items: stretch;
+}
+
+.appointment-page .form-grid.wizard-single-tab {
+    grid-template-columns: 1fr;
 }
 
 .appointment-page .form-card {
@@ -667,6 +671,36 @@
     justify-content: center;
 }
 
+.appointment-page .form-actions.wizard-actions {
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.appointment-page .btn-back {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #c8d5e6;
+    border-radius: 12px;
+    padding: 13px 22px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #1f3555;
+    background: #edf3fb;
+    cursor: pointer;
+    transition: background-color 0.18s ease, transform 0.18s ease;
+}
+
+.appointment-page .btn-back:hover:not(:disabled) {
+    background: #e3ecf9;
+    transform: translateY(-1px);
+}
+
+.appointment-page .btn-back:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
 .appointment-page .btn-submit {
     display: inline-flex;
     align-items: center;
@@ -830,6 +864,7 @@
 }
 
 .appointment-page .step-item {
+    width: 100%;
     border: 1px solid #dbe4f0;
     background: #f8fbff;
     border-radius: 12px;
@@ -838,6 +873,15 @@
     align-items: center;
     gap: 10px;
     min-width: 0;
+    appearance: none;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
+}
+
+.appointment-page .step-item:hover:not(:disabled) {
+    border-color: #c9d5e6;
+    box-shadow: 0 4px 12px rgba(0, 38, 77, 0.08);
 }
 
 .appointment-page .step-item.done {
@@ -848,6 +892,15 @@
 .appointment-page .step-item.active {
     border-color: #ffcc00;
     background: #fff9db;
+}
+
+.appointment-page .step-item.locked {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.appointment-page .step-item:disabled {
+    pointer-events: none;
 }
 
 .appointment-page .step-index {
@@ -1226,6 +1279,17 @@
 
     .appointment-page .step-label {
         font-size: 12px;
+    }
+
+    .appointment-page .form-actions.wizard-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+    }
+
+    .appointment-page .btn-back,
+    .appointment-page .btn-submit {
+        width: 100%;
+        justify-content: center;
     }
 
     .appointment-page .appointment-summary-card {

@@ -7,6 +7,13 @@ type AppointmentStep4FormProps = {
     onIdOrPhoneChange: (value: string) => void;
 };
 
+const ALLOWED_PHONE_PREFIXES = ['068', '069', '078', '079'];
+
+const isAllowedPhonePrefixProgress = (value: string) => {
+    if (!value) return true;
+    return ALLOWED_PHONE_PREFIXES.some((prefix) => prefix.startsWith(value) || value.startsWith(prefix));
+};
+
 export default function AppointmentStep4Form({
     fullName,
     idOrPhone,
@@ -25,7 +32,7 @@ export default function AppointmentStep4Form({
             </div>
             <h3>Informații Personale</h3>
             <p className="card-description">
-                Introduceți datele dumneavoastră personale pentru confirmare.
+                Introduceți datele personale pentru confirmare.
             </p>
 
             <div className="form-row">
@@ -52,13 +59,17 @@ export default function AppointmentStep4Form({
                         type="text"
                         id="idOrPhone"
                         className={`text-input ${idOrPhoneError ? 'error' : ''}`}
-                        placeholder="Ex: 691234567"
+                        placeholder="Ex: 069123456"
                         inputMode="numeric"
-                        pattern="\d{9}"
+                        pattern="0(68|69|78|79)[0-9]{6}"
+                        title="Numărul trebuie să înceapă cu 068, 069, 078 sau 079 și să aibă 9 cifre."
                         maxLength={9}
                         value={idOrPhone}
                         onChange={(e) => {
                             const onlyDigits = e.target.value.replace(/\D/g, '').slice(0, 9);
+                            if (!isAllowedPhonePrefixProgress(onlyDigits)) {
+                                return;
+                            }
                             onIdOrPhoneChange(onlyDigits);
                         }}
                     />

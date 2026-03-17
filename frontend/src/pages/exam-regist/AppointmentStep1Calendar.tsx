@@ -1,8 +1,8 @@
-import React from 'react';
-import { WEEK_DAYS } from '../../utils/calendarUtils';
-import AppointmentCalendarWeekday from './AppointmentCalendarWeekday';
-import AppointmentCalendarDayButton, { type CalendarDayCell } from './AppointmentCalendarDayButton';
-import AppointmentAvailabilityDayButton, { type AvailabilityPreviewDay } from './AppointmentAvailabilityDayButton';
+import type React from 'react';
+import { type CalendarDayCell } from './AppointmentCalendarDayButton';
+import { type AvailabilityPreviewDay } from './AppointmentAvailabilityDayButton';
+import AppointmentCalendarPopover from './AppointmentCalendarPopover';
+import AppointmentAvailabilityPreview from './AppointmentAvailabilityPreview';
 
 type AppointmentStep1CalendarProps = {
     isCalendarOpen: boolean;
@@ -94,73 +94,22 @@ export default function AppointmentStep1Calendar({
                         </svg>
                     </button>
 
-                    {isCalendarOpen && (
-                        <div
-                            className="calendar-popover"
-                            id="appointment-calendar-popover"
-                            role="dialog"
-                            aria-label="Calendar selecție dată"
-                        >
-                            <div className="calendar-popover-header">
-                                <button
-                                    type="button"
-                                    className="calendar-nav-btn"
-                                    onClick={onPrevMonth}
-                                    disabled={!canNavigatePrevMonth}
-                                    aria-label="Luna anterioară"
-                                >
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                        <polyline points="15 18 9 12 15 6" />
-                                    </svg>
-                                </button>
-
-                                <strong className="calendar-month-label">
-                                    {getMonthName(calendarMonth)} {calendarMonth.getFullYear()}
-                                </strong>
-
-                                <button
-                                    type="button"
-                                    className="calendar-nav-btn"
-                                    onClick={onNextMonth}
-                                    disabled={!canNavigateNextMonth}
-                                    aria-label="Luna următoare"
-                                >
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                                        <polyline points="9 18 15 12 9 6" />
-                                    </svg>
-                                </button>
-                            </div>
-
-                            <div className="calendar-week-row" aria-hidden="true">
-                                {WEEK_DAYS.map((dayLabel) => (
-                                    <AppointmentCalendarWeekday key={dayLabel} label={dayLabel} />
-                                ))}
-                            </div>
-
-                            <div className="calendar-grid" role="grid">
-                                {calendarDays.map((day) => (
-                                    <AppointmentCalendarDayButton
-                                        key={day.dateKey}
-                                        day={day}
-                                        minDate={minDate}
-                                        maxDate={maxDate}
-                                        leadTimeHours={leadTimeHours}
-                                        onSelect={onDaySelect}
-                                        getDayName={getDayName}
-                                        getMonthName={getMonthName}
-                                        formatDate={formatDate}
-                                    />
-                                ))}
-                            </div>
-
-                            <div className="calendar-legend" aria-hidden="true">
-                                <span><i className="legend-dot legend-open" />Disponibilă</span>
-                                <span><i className="legend-dot legend-tight" />Aproape plină</span>
-                                <span><i className="legend-dot legend-full" />Completă</span>
-                                <span><i className="legend-dot legend-blocked" />Blocată</span>
-                            </div>
-                        </div>
-                    )}
+                    <AppointmentCalendarPopover
+                        isOpen={isCalendarOpen}
+                        calendarMonth={calendarMonth}
+                        canNavigatePrevMonth={canNavigatePrevMonth}
+                        canNavigateNextMonth={canNavigateNextMonth}
+                        onPrevMonth={onPrevMonth}
+                        onNextMonth={onNextMonth}
+                        calendarDays={calendarDays}
+                        minDate={minDate}
+                        maxDate={maxDate}
+                        leadTimeHours={leadTimeHours}
+                        onDaySelect={onDaySelect}
+                        getMonthName={getMonthName}
+                        getDayName={getDayName}
+                        formatDate={formatDate}
+                    />
                 </div>
                 {error && <span className="error-message">{error}</span>}
                 {selectedDate && (
@@ -178,22 +127,11 @@ export default function AppointmentStep1Calendar({
                 )}
             </div>
 
-            <div className="availability-preview">
-                <div className="availability-preview-header">
-                    <strong>Zile disponibile (preview)</strong>
-                    <span>următoarele {availabilityPreviewDays.length}</span>
-                </div>
-                <div className="availability-preview-grid">
-                    {availabilityPreviewDays.map((day) => (
-                        <AppointmentAvailabilityDayButton
-                            key={day.dateKey}
-                            day={day}
-                            isSelected={selectedDateKey === day.dateKey}
-                            onSelect={onAvailabilitySelect}
-                        />
-                    ))}
-                </div>
-            </div>
+            <AppointmentAvailabilityPreview
+                availabilityPreviewDays={availabilityPreviewDays}
+                selectedDateKey={selectedDateKey}
+                onAvailabilitySelect={onAvailabilitySelect}
+            />
         </div>
     );
 }
