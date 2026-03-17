@@ -95,8 +95,8 @@ export default function Header({ onOpenSidebar, isSidebarOpen }: Props) {
             }
         };
 
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        window.addEventListener("mousedown", handleClickOutside);
+        return () => window.removeEventListener("mousedown", handleClickOutside);
     }, [searchOpen]);
 
     useLayoutEffect(() => {
@@ -120,8 +120,8 @@ export default function Header({ onOpenSidebar, isSidebarOpen }: Props) {
             }
         };
 
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
+        window.addEventListener("mousedown", handleClickOutside);
+        return () => window.removeEventListener("mousedown", handleClickOutside);
     }, [notificationsOpen]);
 
     const navPages = isAuthenticated ? HEADER_AUTH_PAGES : PUBLIC_PAGES;

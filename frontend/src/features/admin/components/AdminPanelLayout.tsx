@@ -32,9 +32,10 @@ const AdminPanelLayout: React.FC = () => {
     }, [location.pathname]);
 
     useEffect(() => {
-        document.body.classList.toggle("no-scroll", isMobileSidebarOpen);
+        const body = globalThis["document"]?.body;
+        body?.classList.toggle("no-scroll", isMobileSidebarOpen);
         return () => {
-            document.body.classList.remove("no-scroll");
+            body?.classList.remove("no-scroll");
         };
     }, [isMobileSidebarOpen]);
 

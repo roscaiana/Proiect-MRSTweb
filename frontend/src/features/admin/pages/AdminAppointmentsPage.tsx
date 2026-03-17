@@ -310,7 +310,12 @@ const AdminAppointmentsPage: React.FC = () => {
 
         const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
         const url = URL.createObjectURL(blob);
-        const anchor = document.createElement("a");
+        const anchor = globalThis["document"]?.createElement("a");
+        if (!anchor) {
+            URL.revokeObjectURL(url);
+            setFeedback("Export CSV indisponibil în acest context.");
+            return;
+        }
         anchor.href = url;
         anchor.download = `admin-programări-${new Date().toISOString().slice(0, 10)}.csv`;
         anchor.click();

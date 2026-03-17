@@ -41,11 +41,11 @@ export const useAppointmentControllerCalendarEffects = ({
             if (event.key === 'Escape') setIsCalendarOpen(false);
         };
 
-        document.addEventListener('mousedown', handleOutsideClick);
-        document.addEventListener('keydown', handleEscape);
+        window.addEventListener('mousedown', handleOutsideClick);
+        window.addEventListener('keydown', handleEscape);
         return () => {
-            document.removeEventListener('mousedown', handleOutsideClick);
-            document.removeEventListener('keydown', handleEscape);
+            window.removeEventListener('mousedown', handleOutsideClick);
+            window.removeEventListener('keydown', handleEscape);
         };
     }, [isCalendarOpen, calendarPickerRef, setIsCalendarOpen]);
 };
