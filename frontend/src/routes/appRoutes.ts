@@ -14,6 +14,7 @@ export const APP_ROUTES = {
     login: "/login",
     register: "/register",
     dashboard: "/dashboard",
+    userAppointments: "/programarile-mele",
     testHistory: "/test-history",
     admin: "/admin/*",
     unauthorized: "/401",

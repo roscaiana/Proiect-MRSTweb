@@ -25,10 +25,7 @@ export default function UserPackagePerformanceColumn({
         >
             <span className={`dashboard-package-value ${isGood ? "good" : "needs-work"}`}>{averageScore}%</span>
             <div className="dashboard-package-rail" aria-hidden="true">
-                <div
-                    className={`dashboard-package-fill ${isGood ? "good" : "needs-work"}`}
-                    style={{ height: `${Math.max(8, Math.min(100, averageScore))}%` }}
-                />
+                <div className={`dashboard-package-fill ${isGood ? "good" : "needs-work"}`} style={{ height: `${Math.max(8, Math.min(100, averageScore))}%` }} />
             </div>
             <span className="dashboard-package-name">{shortName}</span>
             <span className="dashboard-package-meta">{passRate}% | {attempts} înc.</span>

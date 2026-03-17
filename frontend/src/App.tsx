@@ -13,6 +13,7 @@ import TermsAndConditions from "./pages/terms/TermsAndConditions";
 import LoginPage from "./pages/auth/LoginPage/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage/RegisterPage";
 import UserDashboard from "./pages/auth/UserDashboard/UserDashboard";
+import UserAppointmentsPage from "./pages/auth/UserAppointmentsPage/UserAppointmentsPage";
 import TestHistoryPage from "./pages/auth/TestHistoryPage/TestHistoryPage";
 import AdminDashboard from "./pages/auth/AdminDashboard/AdminDashboard";
 import { AuthProvider } from "./context/AuthContext";
@@ -110,6 +111,14 @@ export default function App() {
                                 element={
                                     <ProtectedRoute>
                                         <UserDashboard />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path={APP_ROUTES.userAppointments}
+                                element={
+                                    <ProtectedRoute>
+                                        <UserAppointmentsPage />
                                     </ProtectedRoute>
                                 }
                             />
