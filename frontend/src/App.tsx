@@ -13,6 +13,7 @@ import TermsAndConditions from "./pages/terms/TermsAndConditions";
 import LoginPage from "./pages/auth/LoginPage/LoginPage";
 import RegisterPage from "./pages/auth/RegisterPage/RegisterPage";
 import UserDashboard from "./pages/auth/UserDashboard/UserDashboard";
+import UserAppointmentsPage from "./pages/auth/UserAppointmentsPage/UserAppointmentsPage";
 import TestHistoryPage from "./pages/auth/TestHistoryPage/TestHistoryPage";
 import AdminDashboard from "./pages/auth/AdminDashboard/AdminDashboard";
 import { AuthProvider } from "./context/AuthContext";
@@ -83,6 +84,7 @@ export default function App() {
                         <Route element={<Layout />}>
                             <Route path={APP_ROUTES.home} element={<HomePage />} />
                             <Route path={APP_ROUTES.news} element={<News />} />
+                            <Route path={APP_ROUTES.newsAlias} element={<Navigate to={APP_ROUTES.news} replace />} />
                             <Route path={APP_ROUTES.support} element={<Support />} />
                             <Route path={APP_ROUTES.contact} element={<Contact />} />
                             <Route
@@ -109,6 +111,14 @@ export default function App() {
                                 element={
                                     <ProtectedRoute>
                                         <UserDashboard />
+                                    </ProtectedRoute>
+                                }
+                            />
+                            <Route
+                                path={APP_ROUTES.userAppointments}
+                                element={
+                                    <ProtectedRoute>
+                                        <UserAppointmentsPage />
                                     </ProtectedRoute>
                                 }
                             />

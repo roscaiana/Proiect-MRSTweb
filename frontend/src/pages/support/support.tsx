@@ -87,9 +87,10 @@ const Support: React.FC = () => {
     }, [activeCategory, searchQuery]);
 
     useEffect(() => {
-        document.body.classList.toggle("no-scroll", sidebarOpen);
+        const body = globalThis["document"]?.body;
+        body?.classList.toggle("no-scroll", sidebarOpen);
         return () => {
-            document.body.classList.remove("no-scroll");
+            body?.classList.remove("no-scroll");
         };
     }, [sidebarOpen]);
 

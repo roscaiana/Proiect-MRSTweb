@@ -1,6 +1,7 @@
 export const APP_ROUTES = {
     home: "/",
-    news: "/news",
+    news: "/noutati",
+    newsAlias: "/news",
     support: "/support",
     contact: "/contact",
     tests: "/tests",
@@ -13,6 +14,7 @@ export const APP_ROUTES = {
     login: "/login",
     register: "/register",
     dashboard: "/dashboard",
+    userAppointments: "/programarile-mele",
     testHistory: "/test-history",
     admin: "/admin/*",
     unauthorized: "/401",

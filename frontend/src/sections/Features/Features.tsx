@@ -45,7 +45,7 @@ export default function Features() {
                         </div>
                         <h3>Noutăți Electorale</h3>
                         <p>Cele mai recente informații despre desfășurarea alegerilor și actualizări legislative.</p>
-                        <Link to="/news" className="link-arrow">Vezi Noutăți &rarr;</Link>
+                            <Link to="/noutati" className="link-arrow">Vezi Noutăți &rarr;</Link>
                     </div>
                 </div>
             </div>

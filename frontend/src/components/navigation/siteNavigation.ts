@@ -7,9 +7,9 @@
 
 export const PUBLIC_PAGES: SitePage[] = [
     { label: "Acasă", path: "/", icon: "fas fa-home", keywords: ["acasă", "home", "început"] },
+    { label: "Noutăți", path: "/noutati", icon: "fas fa-newspaper", keywords: ["noutăți", "știri", "news"] },
     { label: "Teste", path: "/tests", icon: "fas fa-clipboard-check", keywords: ["teste", "quiz", "grilă"] },
     { label: "Înscriere", path: "/appointment", icon: "fas fa-user-plus", keywords: ["înscriere", "programare", "appointment"] },
-    { label: "Noutăți", path: "/news", icon: "fas fa-newspaper", keywords: ["noutăți", "știri", "news"] },
     { label: "Suport", path: "/support", icon: "fas fa-life-ring", keywords: ["suport", "ajutor", "help"] },
     { label: "Contact", path: "/contact", icon: "fas fa-address-book", keywords: ["contact", "telefon", "email"] },
 ];
@@ -23,6 +23,7 @@ export const GUEST_PAGES: SitePage[] = [
 
 export const USER_PAGES: SitePage[] = [
     { label: "Profilul meu", path: "/dashboard", icon: "fas fa-gauge-high", keywords: ["dashboard", "profil", "cont"] },
+    { label: "Programările mele", path: "/programarile-mele", icon: "fas fa-calendar-days", keywords: ["programări", "programari", "appointments"] },
     { label: "Istoric teste", path: "/test-history", icon: "fas fa-chart-column", keywords: ["istoric", "teste", "rezultate"] },
 ];
 

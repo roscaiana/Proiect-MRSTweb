@@ -27,9 +27,7 @@ export default function UserAppointmentItem({
                 <h4>{formatDate(appointment.date)}</h4>
                 <p>Interval: {appointment.slotStart} - {appointment.slotEnd}</p>
                 {appointment.appointmentCode && <p>Cod: {appointment.appointmentCode}</p>}
-                {appointment.statusReason && (
-                    <p className={`appointment-reason ${appointment.status}`}>Motiv: {appointment.statusReason}</p>
-                )}
+                {appointment.statusReason && <p className={`appointment-reason ${appointment.status}`}>Motiv: {appointment.statusReason}</p>}
                 {appointment.adminNote && <p className="appointment-admin-note">Notă admin: {appointment.adminNote}</p>}
                 <div className="appointment-item-actions">
                     <button
@@ -37,20 +35,11 @@ export default function UserAppointmentItem({
                         className="dashboard-mini-btn"
                         disabled={!canReschedule}
                         onClick={() => onReschedule(appointment.id)}
-                        title={
-                            canReschedule
-                                ? "Reprogramează"
-                                : `Limita de ${examSettingsMaxReschedules} reprogramări a fost atinsă`
-                        }
+                        title={canReschedule ? "Reprogramează" : `Limita de ${examSettingsMaxReschedules} reprogramări a fost atinsă`}
                     >
                         Reprogramează
                     </button>
-                    <button
-                        type="button"
-                        className="dashboard-mini-btn danger"
-                        disabled={!canCancel}
-                        onClick={() => onCancel(appointment.id)}
-                    >
+                    <button type="button" className="dashboard-mini-btn danger" disabled={!canCancel} onClick={() => onCancel(appointment.id)}>
                         Anulează
                     </button>
                 </div>
