@@ -722,6 +722,12 @@
     box-shadow: 0 12px 24px rgba(255, 204, 0, 0.36);
 }
 
+.appointment-page .btn-submit.is-muted {
+    background: #e2e8f0;
+    color: #64748b;
+    box-shadow: none;
+}
+
 .appointment-page .btn-submit:disabled {
     opacity: 0.7;
     cursor: not-allowed;
@@ -853,6 +859,144 @@
 
 .appointment-page .success-note strong {
     color: #0f2c52;
+}
+
+.appointment-page .screen-only {
+    display: block;
+}
+
+.appointment-page .print-only {
+    display: none;
+}
+
+.appointment-page .print-sheet {
+    border: 1px solid #d7deea;
+    border-radius: 16px;
+    padding: 24px;
+    background: #ffffff;
+    color: #111827;
+}
+
+.appointment-page .print-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 14px;
+    margin-bottom: 18px;
+}
+
+.appointment-page .print-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.appointment-page .print-logo {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: #003366;
+    color: #ffffff;
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    font-size: 18px;
+}
+
+.appointment-page .print-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.appointment-page .print-subtitle {
+    font-size: 13px;
+    color: #475569;
+    font-weight: 600;
+}
+
+.appointment-page .print-meta {
+    text-align: right;
+    font-size: 13px;
+    color: #334155;
+    display: grid;
+    gap: 6px;
+}
+
+.appointment-page .print-meta span {
+    color: #64748b;
+}
+
+.appointment-page .print-details {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 18px;
+}
+
+.appointment-page .print-row {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px dashed #d7deea;
+}
+
+.appointment-page .print-row span {
+    color: #64748b;
+    font-weight: 600;
+}
+
+.appointment-page .print-row strong {
+    color: #0f172a;
+    font-weight: 700;
+}
+
+.appointment-page .print-note {
+    border-radius: 12px;
+    background: #f8fafc;
+    padding: 12px 14px;
+    color: #1f2937;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+@media print {
+    @page {
+        margin: 14mm;
+    }
+
+    body {
+        background: #ffffff !important;
+    }
+
+    .top-bar,
+    .main-header,
+    .main-footer,
+    .sidebar,
+    .appointment-hero-simple,
+    .appointment-next-steps,
+    .success-actions {
+        display: none !important;
+    }
+
+    .appointment-page {
+        padding: 0 !important;
+    }
+
+    .appointment-page .screen-only {
+        display: none !important;
+    }
+
+    .appointment-page .print-only {
+        display: block !important;
+    }
+
+    .appointment-page .print-sheet {
+        box-shadow: none !important;
+        border-color: #cbd5f5;
+    }
 }
 
 .appointment-page .appointment-stepper {

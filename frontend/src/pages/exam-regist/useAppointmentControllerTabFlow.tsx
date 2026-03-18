@@ -77,7 +77,9 @@ export const useAppointmentControllerTabFlow = ({
             if (!formData.fullName.trim()) personalInfoErrors.fullName = 'Numele complet este obligatoriu';
             else if (formData.fullName.trim().length < 3) personalInfoErrors.fullName = 'Numele trebuie să conțină cel puțin 3 caractere';
             if (!formData.idOrPhone.trim()) personalInfoErrors.idOrPhone = 'Numărul de telefon este obligatoriu';
-            else if (!PHONE_NUMBER_PATTERN.test(formData.idOrPhone.trim())) personalInfoErrors.idOrPhone = 'Număr invalid. Folosește 9 cifre și prefix: 068, 069, 078 sau 079.';
+            else if (!PHONE_NUMBER_PATTERN.test(formData.idOrPhone.trim())) {
+                personalInfoErrors.idOrPhone = 'Număr invalid. Folosește formatul +373 urmat de 8 cifre.';
+            }
             if (Object.keys(personalInfoErrors).length > 0) setErrors((prev) => ({ ...prev, ...personalInfoErrors }));
             else {
                 setErrors((prev) => ({ ...prev, fullName: undefined, idOrPhone: undefined }));

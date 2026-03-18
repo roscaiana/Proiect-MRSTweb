@@ -5,7 +5,9 @@ type AppointmentWizardActionsProps = {
 };
 
 export default function AppointmentWizardActions({ controller }: AppointmentWizardActionsProps) {
-    const { activeTab, canGoBack, canGoNext, isSubmitting, rescheduleSourceId, goToPreviousTab } = controller;
+    const { activeTab, canGoBack, canGoNext, isSubmitting, rescheduleSourceId, goToPreviousTab, isPhoneValid } = controller;
+    const isPhoneStep = activeTab === 3;
+    const shouldMuteContinue = isPhoneStep && !isPhoneValid;
 
     return (
         <div className="form-actions wizard-actions">
@@ -15,7 +17,11 @@ export default function AppointmentWizardActions({ controller }: AppointmentWiza
                 </button>
             )}
 
-            <button type="submit" className="btn-submit" disabled={activeTab < 4 ? !canGoNext : isSubmitting}>
+            <button
+                type="submit"
+                className={`btn-submit${shouldMuteContinue ? " is-muted" : ""}`}
+                disabled={activeTab < 4 ? !canGoNext : isSubmitting}
+            >
                 {activeTab === 4 && isSubmitting ? (
                     <>
                         <span className="spinner"></span>

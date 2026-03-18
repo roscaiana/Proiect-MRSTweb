@@ -11,6 +11,8 @@ export const APP_ROUTES = {
     termsAlt: "/termeni-si-conditii",
     termsEn: "/terms-and-conditions",
     appointment: "/appointment",
+    appointmentConfirmationBase: "/appointment/confirmare",
+    appointmentConfirmation: "/appointment/confirmare/:appointmentId",
     login: "/login",
     register: "/register",
     dashboard: "/dashboard",

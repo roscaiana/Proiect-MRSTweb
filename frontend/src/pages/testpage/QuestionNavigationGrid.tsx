@@ -7,7 +7,7 @@ type Props = {
     answers: Array<number | null>;
     currentQuestionIndex: number;
     onSelectQuestion: (index: number) => void;
-    gridRef?: React.Ref<HTMLDivElement>;
+    currentButtonRef?: React.RefObject<HTMLButtonElement | null>;
     keyPrefix?: string;
 };
 
@@ -16,11 +16,11 @@ const QuestionNavigationGrid: React.FC<Props> = ({
     answers,
     currentQuestionIndex,
     onSelectQuestion,
-    gridRef,
+    currentButtonRef,
     keyPrefix = "nav",
 }) => {
     return (
-        <div className="question-grid" ref={gridRef}>
+        <div className="question-grid">
             {questions.map((question, index) => (
                 <QuestionNavigationButton
                     key={`${keyPrefix}-${question.id || index}`}
@@ -30,6 +30,7 @@ const QuestionNavigationGrid: React.FC<Props> = ({
                     isCurrent={index === currentQuestionIndex}
                     keyPrefix={keyPrefix}
                     onSelectQuestion={onSelectQuestion}
+                    currentButtonRef={currentButtonRef}
                 />
             ))}
         </div>

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { formatDateTimeLong } from "../../../utils/dateUtils";
+import { formatDateLong } from "../../../utils/dateUtils";
 import { appointmentStatusLabelMasculine } from "../../../utils/appointmentUtils";
 import type { AdminAppointmentRecord } from "../../../features/admin/types";
 import { APP_ROUTES } from "../../../routes/appRoutes";
@@ -43,10 +43,11 @@ export default function UserAppointmentsCard({
                             key={appointment.id}
                             appointment={appointment}
                             examSettingsMaxReschedules={maxReschedulesPerUser}
-                            formatDate={formatDateTimeLong}
+                            formatDate={formatDateLong}
                             appointmentStatusLabel={appointmentStatusLabelMasculine}
                             canReschedule={canReschedule(appointment)}
                             canCancel={canCancel(appointment.status)}
+                            confirmationPath={`${APP_ROUTES.appointmentConfirmationBase}/${appointment.id}`}
                             onReschedule={onReschedule}
                             onCancel={onCancel}
                         />

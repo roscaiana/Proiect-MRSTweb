@@ -23,7 +23,7 @@ const getDefaultNotifications = (isAdmin: boolean): AppNotification[] => {
             {
                 id: "admin-notif-1",
                 title: "Panou administrator",
-                message: "Ai acces la functiile de administrare.",
+                message: "Ai acces la funcțiile de administrare.",
                 createdAt: now,
                 read: false,
             },
@@ -34,7 +34,7 @@ const getDefaultNotifications = (isAdmin: boolean): AppNotification[] => {
         {
             id: "user-notif-1",
             title: "Bine ai venit",
-            message: "Contul tau este activ.",
+            message: "Contul tău este activ.",
             createdAt: now,
             read: false,
         },
@@ -73,7 +73,7 @@ const pushUpcomingAppointmentReminders = (notificationStorageKey: string, user: 
             appendNotification(notificationStorageKey, {
                 id: `reminder-24-${appointment.id}`,
                 title: "Reminder examen (24h)",
-                message: `Programarea ${appointment.appointmentCode || ""} este in mai putin de 24h.`,
+                message: `Programarea ${appointment.appointmentCode || ""} este în mai puțin de 24h.`,
                 createdAt: now.toISOString(),
                 read: false,
                 link: "/dashboard",
@@ -85,7 +85,7 @@ const pushUpcomingAppointmentReminders = (notificationStorageKey: string, user: 
             appendNotification(notificationStorageKey, {
                 id: `reminder-2-${appointment.id}`,
                 title: "Reminder examen (2h)",
-                message: `Programarea ${appointment.appointmentCode || ""} incepe curand.`,
+                message: `Programarea ${appointment.appointmentCode || ""} începe curând.`,
                 createdAt: now.toISOString(),
                 read: false,
                 link: "/dashboard",
