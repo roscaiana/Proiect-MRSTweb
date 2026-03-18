@@ -1,3 +1,4 @@
+import type { MouseEvent } from "react";
 import type { AdminAppointmentRecord, AppointmentStatus } from "../types";
 import CompactDatePicker from "../../../components/CompactDatePicker/CompactDatePicker";
 import AdminMultiSelect, { type AdminMultiSelectOption } from "./AdminMultiSelect";
@@ -30,6 +31,8 @@ type AdminAppointmentsTableProps = {
     slotFilters: string[];
     slotOptions: string[];
     sortBy: AppointmentSortBy;
+    csvUrl: string;
+    csvFileName: string;
     onSearchChange: (value: string) => void;
     onStatusFiltersChange: (values: AppointmentStatus[]) => void;
     onDateFilterChange: (value: string) => void;
@@ -61,6 +64,8 @@ export default function AdminAppointmentsTable({
     slotFilters,
     slotOptions,
     sortBy,
+    csvUrl,
+    csvFileName,
     onSearchChange,
     onStatusFiltersChange,
     onDateFilterChange,
@@ -81,13 +86,26 @@ export default function AdminAppointmentsTable({
     formatDateTimeLabel,
     statusLabel,
 }: AdminAppointmentsTableProps) {
+    const handleExportClick = (event: MouseEvent<HTMLAnchorElement>) => {
+        if (!csvUrl) {
+            event.preventDefault();
+        }
+        onExportCsv();
+    };
+
     return (
         <section className="admin-panel-card">
             <div className="admin-card-header">
                 <h3><i className="fas fa-list admin-card-header-icon"></i> Programări</h3>
-                <button className="admin-btn secondary" type="button" onClick={onExportCsv}>
+                <a
+                    className={`admin-btn secondary${csvUrl ? "" : " is-disabled"}`}
+                    href={csvUrl || undefined}
+                    download={csvFileName}
+                    onClick={handleExportClick}
+                    aria-disabled={!csvUrl}
+                >
                     Export CSV
-                </button>
+                </a>
             </div>
 
             <div className="admin-toolbar admin-toolbar-appointments">
