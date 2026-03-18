@@ -7,4 +7,4 @@ export const WIZARD_TAB_LABELS = [
     'Confirmare',
 ] as const;
 
-export const PHONE_NUMBER_PATTERN = /^0(?:68|69|78|79)\d{6}$/;
+export const PHONE_NUMBER_PATTERN = /^\+373\d{8}$/;

@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import type { AdminAppointmentRecord } from "../../../features/admin/types";
 
 type UserAppointmentItemProps = {
@@ -7,6 +8,7 @@ type UserAppointmentItemProps = {
     appointmentStatusLabel: (status: string) => string;
     canReschedule: boolean;
     canCancel: boolean;
+    confirmationPath?: string;
     onReschedule: (id: string) => void;
     onCancel: (id: string) => void;
 };
@@ -18,9 +20,14 @@ export default function UserAppointmentItem({
     appointmentStatusLabel,
     canReschedule,
     canCancel,
+    confirmationPath,
     onReschedule,
     onCancel,
 }: UserAppointmentItemProps) {
+    const canViewConfirmation =
+        Boolean(confirmationPath) &&
+        (appointment.status === "pending" || appointment.status === "approved");
+
     return (
         <div className="history-item">
             <div className="history-content">
@@ -30,6 +37,11 @@ export default function UserAppointmentItem({
                 {appointment.statusReason && <p className={`appointment-reason ${appointment.status}`}>Motiv: {appointment.statusReason}</p>}
                 {appointment.adminNote && <p className="appointment-admin-note">Notă admin: {appointment.adminNote}</p>}
                 <div className="appointment-item-actions">
+                    {canViewConfirmation && (
+                        <Link className="dashboard-mini-btn" to={confirmationPath}>
+                            Vezi confirmare
+                        </Link>
+                    )}
                     <button
                         type="button"
                         className="dashboard-mini-btn"

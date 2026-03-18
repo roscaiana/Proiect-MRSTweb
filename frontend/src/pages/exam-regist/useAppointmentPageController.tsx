@@ -8,6 +8,7 @@ import { useAppointmentControllerSubmit } from './useAppointmentControllerSubmit
 import { useAppointmentControllerTabFlow } from './useAppointmentControllerTabFlow';
 import { useAppointmentControllerUserData } from './useAppointmentControllerUserData';
 import { useAppointmentControllerValidation } from './useAppointmentControllerValidation';
+import { PHONE_NUMBER_PATTERN } from './appointmentController.constants';
 export { WIZARD_TAB_LABELS, type AppointmentWizardTab } from './appointmentController.constants';
 export const useAppointmentPageController = () => {
     const state = useAppointmentControllerState();
@@ -105,6 +106,9 @@ export const useAppointmentPageController = () => {
         setSubmittedAppointment: state.setSubmittedAppointment,
         setIsSubmitted: state.setIsSubmitted,
     });
+
+    const isPhoneValid = PHONE_NUMBER_PATTERN.test(state.formData.idOrPhone.trim());
+
     return {
         activeTab: state.activeTab,
         highestUnlockedTab: tabFlow.highestUnlockedTab,
@@ -115,6 +119,7 @@ export const useAppointmentPageController = () => {
         submitMessage: state.submitMessage,
         submittedAppointment: state.submittedAppointment,
         formData: state.formData,
+        isPhoneValid,
         errors: state.errors,
         examSettings: state.examSettings,
         rescheduleSourceId: state.rescheduleSourceId,

@@ -36,7 +36,9 @@ export const useAppointmentControllerValidation = ({
         else if (formData.fullName.trim().length < 3) newErrors.fullName = 'Numele trebuie să conțină cel puțin 3 caractere';
 
         if (!formData.idOrPhone.trim()) newErrors.idOrPhone = 'Numărul de telefon este obligatoriu';
-        else if (!PHONE_NUMBER_PATTERN.test(formData.idOrPhone.trim())) newErrors.idOrPhone = 'Număr invalid. Folosește 9 cifre și prefix: 068, 069, 078 sau 079.';
+        else if (!PHONE_NUMBER_PATTERN.test(formData.idOrPhone.trim())) {
+            newErrors.idOrPhone = 'Număr invalid. Folosește formatul +373 urmat de 8 cifre.';
+        }
 
         if (!formData.selectedDate) newErrors.date = 'Vă rugăm să selectați o dată';
         else {
