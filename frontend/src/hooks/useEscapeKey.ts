@@ -19,7 +19,7 @@ export function useEscapeKey(onEscape: () => void, enabled: boolean): void {
             }
         };
 
-        document.addEventListener("keydown", handleKeyDown);
-        return () => document.removeEventListener("keydown", handleKeyDown);
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
     }, [enabled]);
 }

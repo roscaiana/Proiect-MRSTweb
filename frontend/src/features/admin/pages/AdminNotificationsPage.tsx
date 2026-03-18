@@ -48,7 +48,7 @@ const NOTIFICATION_TEMPLATES: NotificationTemplate[] = [
 ];
 
 const NOTIFICATION_TARGET_FILTER_OPTIONS: ReadonlyArray<AdminMultiSelectOption<NotificationTarget>> = [
-    { value: "all", label: "all (platforma)" },
+    { value: "all", label: "all (platformă)" },
     { value: "users", label: "users" },
     { value: "admins", label: "admins" },
     { value: "email", label: "email" },

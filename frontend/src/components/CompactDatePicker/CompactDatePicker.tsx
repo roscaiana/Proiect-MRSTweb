@@ -109,11 +109,11 @@ const CompactDatePicker: React.FC<CompactDatePickerProps> = ({
             }
         };
 
-        document.addEventListener("mousedown", handleMouseDown);
-        document.addEventListener("keydown", handleKeyDown);
+        window.addEventListener("mousedown", handleMouseDown);
+        window.addEventListener("keydown", handleKeyDown);
         return () => {
-            document.removeEventListener("mousedown", handleMouseDown);
-            document.removeEventListener("keydown", handleKeyDown);
+            window.removeEventListener("mousedown", handleMouseDown);
+            window.removeEventListener("keydown", handleKeyDown);
         };
     }, [isOpen]);
 

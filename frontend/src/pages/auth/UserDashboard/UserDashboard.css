@@ -164,6 +164,14 @@ body {
     color: var(--accent-gold-hover);
 }
 
+.card-action-button {
+    border: none;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    font-family: inherit;
+}
+
 .badge {
     padding: 4px 12px;
     background-color: var(--gray-100);

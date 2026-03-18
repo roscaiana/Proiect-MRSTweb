@@ -1,32 +1,22 @@
 import React, { useMemo, useState } from "react";
 import { Calendar, Newspaper, Search } from "lucide-react";
+import type { NewsDisplayItem } from "../../features/admin/types";
+import { readAdminNews, STORAGE_KEYS } from "../../features/admin/storage";
 import { useEscapeKey } from "../../hooks/useEscapeKey";
 import { useStorageSync } from "../../hooks/useStorageSync";
-import NewsCard from "./NewsCard";
-import type { NewsDisplayItem } from "../../features/admin/types";
 import { formatDateLong } from "../../utils/dateUtils";
+import NewsCard from "./NewsCard";
 import "./News.css";
 
 function loadNewsFromStorage(): NewsDisplayItem[] {
-    try {
-        const raw = localStorage.getItem("adminNews");
-        if (raw) {
-            const parsed = JSON.parse(raw) as any[];
-            if (Array.isArray(parsed) && parsed.length > 0) {
-                return parsed.map((item, i) => ({
-                    id: item.id || String(i),
-                    title: item.title || "",
-                    description: item.description || "",
-                    category: item.category || "",
-                    image: item.image || "cert",
-                    publishedAt: item.publishedAt || new Date().toISOString(),
-                }));
-            }
-        }
-    } catch {
-        // ignore
-    }
-    return [];
+    return readAdminNews().map((item) => ({
+        id: item.id,
+        title: item.title,
+        description: item.description,
+        category: item.category,
+        image: item.image,
+        publishedAt: item.publishedAt,
+    }));
 }
 
 const News: React.FC = () => {
@@ -34,14 +24,16 @@ const News: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [activeItem, setActiveItem] = useState<NewsDisplayItem | null>(null);
 
-    useStorageSync(["adminNews"], () => setNews(loadNewsFromStorage()));
+    useStorageSync([STORAGE_KEYS.news], () => setNews(loadNewsFromStorage()));
 
     const filteredNews = useMemo(() => {
+        const query = searchQuery.trim().toLowerCase();
+        if (!query) return news;
         return news.filter(
             (item) =>
-                item.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                item.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                item.category.toLowerCase().includes(searchQuery.toLowerCase())
+                item.title.toLowerCase().includes(query) ||
+                item.description.toLowerCase().includes(query) ||
+                item.category.toLowerCase().includes(query)
         );
     }, [news, searchQuery]);
 
@@ -108,9 +100,7 @@ const News: React.FC = () => {
                         <h2>{activeItem.title}</h2>
                         <div className="news-modal-date">
                             <Calendar className="w-4 h-4" />
-                            <span>
-                                {formatDateLong(activeItem.publishedAt)}
-                            </span>
+                            <span>{formatDateLong(activeItem.publishedAt)}</span>
                         </div>
                         <p>{activeItem.description}</p>
                     </div>

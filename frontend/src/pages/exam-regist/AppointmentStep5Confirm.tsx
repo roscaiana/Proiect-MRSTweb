@@ -22,10 +22,21 @@ export default function AppointmentStep5Confirm({
     formatDate,
     onNewAppointment,
 }: AppointmentStep5ConfirmProps) {
+    const confirmationDate =
+        formData.selectedDate ?? (submittedAppointment ? new Date(submittedAppointment.date) : null);
+    const confirmationInterval = formData.selectedSlot
+        ? `${formData.selectedSlot.startTime} - ${formData.selectedSlot.endTime}`
+        : submittedAppointment
+            ? `${submittedAppointment.slotStart} - ${submittedAppointment.slotEnd}`
+            : "";
+    const confirmationCode = submittedAppointment?.appointmentCode || "N/A";
+    const confirmationStatus = "În așteptare confirmare";
+    const confirmationLocation = `${appointmentLocation}, ${appointmentRoom}`;
+
     return (
         <div className="appointment-page">
             <div className="container">
-                <div className="success-card">
+                <div className="success-card screen-only">
                     <div className="success-icon">
                         <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
                             <circle cx="12" cy="12" r="10" stroke="#FFCC00" strokeWidth="2" />
@@ -39,11 +50,11 @@ export default function AppointmentStep5Confirm({
                     <div className="appointment-details">
                         <div className="detail-row">
                             <span className="detail-label">Cod programare:</span>
-                            <span className="detail-value">{submittedAppointment?.appointmentCode || 'N/A'}</span>
+                            <span className="detail-value">{confirmationCode}</span>
                         </div>
                         <div className="detail-row">
                             <span className="detail-label">Status:</span>
-                            <span className="detail-value">În așteptare confirmare</span>
+                            <span className="detail-value">{confirmationStatus}</span>
                         </div>
                         <div className="detail-row">
                             <span className="detail-label">Candidat:</span>
@@ -52,17 +63,20 @@ export default function AppointmentStep5Confirm({
                         <div className="detail-row">
                             <span className="detail-label">Data:</span>
                             <span className="detail-value">
-                                {formData.selectedDate ? `${getDayName(formData.selectedDate)}, ${formatDate(formData.selectedDate)}` : "N/A"}
-                            </span>                        </div>
+                                {confirmationDate
+                                    ? `${getDayName(confirmationDate)}, ${formatDate(confirmationDate)}`
+                                    : "N/A"}
+                            </span>
+                        </div>
                         <div className="detail-row">
                             <span className="detail-label">Ora:</span>
                             <span className="detail-value">
-                                {formData.selectedSlot && `${formData.selectedSlot.startTime} - ${formData.selectedSlot.endTime}`}
+                                {confirmationInterval || "N/A"}
                             </span>
                         </div>
                         <div className="detail-row">
                             <span className="detail-label">Locație:</span>
-                            <span className="detail-value">{appointmentLocation}, {appointmentRoom}</span>
+                            <span className="detail-value">{confirmationLocation}</span>
                         </div>
                     </div>
                     <div className="appointment-next-steps">
@@ -85,6 +99,50 @@ export default function AppointmentStep5Confirm({
                         <strong>Notă:</strong> Vă rugăm să vă prezentați cu 15 minute înainte de ora programării
                         cu actul de identitate. Dacă apar schimbări, statusul se actualizează în dashboard.
                     </p>
+                </div>
+
+                <div className="print-sheet print-only" aria-hidden="true">
+                    <div className="print-header">
+                        <div className="print-brand">
+                            <div className="print-logo">E</div>
+                            <div>
+                                <div className="print-title">e-Electoral</div>
+                                <div className="print-subtitle">Confirmare programare examen</div>
+                            </div>
+                        </div>
+                        <div className="print-meta">
+                            <div><span>Cod:</span> <strong>{confirmationCode}</strong></div>
+                            <div><span>Status:</span> <strong>{confirmationStatus}</strong></div>
+                        </div>
+                    </div>
+
+                    <div className="print-details">
+                        <div className="print-row">
+                            <span>Candidat</span>
+                            <strong>{formData.fullName}</strong>
+                        </div>
+                        <div className="print-row">
+                            <span>Data</span>
+                            <strong>
+                                {confirmationDate
+                                    ? `${getDayName(confirmationDate)}, ${formatDate(confirmationDate)}`
+                                    : "N/A"}
+                            </strong>
+                        </div>
+                        <div className="print-row">
+                            <span>Ora</span>
+                            <strong>{confirmationInterval || "N/A"}</strong>
+                        </div>
+                        <div className="print-row">
+                            <span>Locație</span>
+                            <strong>{confirmationLocation}</strong>
+                        </div>
+                    </div>
+
+                    <div className="print-note">
+                        <strong>Notă:</strong> Vă rugăm să vă prezentați cu 15 minute înainte de ora programării,
+                        cu actul de identitate.
+                    </div>
                 </div>
             </div>
         </div>

@@ -1,580 +1,66 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useStorageSync } from '../../../hooks/useStorageSync';
-import { formatDateTimeLong } from '../../../utils/dateUtils';
-import { appointmentStatusLabelMasculine } from '../../../utils/appointmentUtils';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../../hooks/useAuth';
-import type { UpdateUserProfileInput } from '../../../types/user';
-import { readAppointments, readExamSettings, readQuizHistory, STORAGE_KEYS, writeAppointments } from '../../../features/admin/storage';
-import type { AdminAppointmentRecord } from '../../../features/admin/types';
-import { notifyAdmins, notifyUser } from '../../../utils/appEventNotifications';
-import UserAppointmentItem from './UserAppointmentItem';
-import UserPackagePerformanceColumn from './UserPackagePerformanceColumn';
-import './UserDashboard.css';
-
-const APPOINTMENT_RESCHEDULE_KEY = 'appointmentRescheduleDraft';
-const MAX_AVATAR_FILE_SIZE = 2 * 1024 * 1024;
+import React from "react";
+import UserAppointmentsCard from "./UserAppointmentsCard";
+import UserPackageStatsCard from "./UserPackageStatsCard";
+import UserProfileCard from "./UserProfileCard";
+import UserQuickActionsCard from "./UserQuickActionsCard";
+import UserStatsCard from "./UserStatsCard";
+import { useUserDashboardController } from "./useUserDashboardController";
+import "./UserDashboard.css";
 
 const UserDashboard: React.FC = () => {
-    const { user, updateProfile } = useAuth();
-    const navigate = useNavigate();
-    const avatarInputRef = useRef<HTMLInputElement | null>(null);
-    const [quizHistory, setQuizHistory] = useState(() => readQuizHistory());
-    const [examSettings, setExamSettings] = useState(() => readExamSettings());
-    const [passThreshold, setPassThreshold] = useState(() => readExamSettings().passingThreshold);
-    const [appointments, setAppointments] = useState(() => readAppointments());
-    const [profileDraft, setProfileDraft] = useState<UpdateUserProfileInput>({
-        fullName: '',
-        nickname: '',
-        email: '',
-        phoneNumber: '',
-        avatarDataUrl: '',
-    });
-    const [profileMessage, setProfileMessage] = useState('');
-    const [profileError, setProfileError] = useState('');
-    const [isProfileSaving, setIsProfileSaving] = useState(false);
-    const [isProfileEditorOpen, setIsProfileEditorOpen] = useState(false);
-
-    useStorageSync([STORAGE_KEYS.quizHistory, STORAGE_KEYS.settings, STORAGE_KEYS.appointments], () => {
-        setQuizHistory(readQuizHistory());
-        const settings = readExamSettings();
-        setExamSettings(settings);
-        setPassThreshold(settings.passingThreshold);
-        setAppointments(readAppointments());
-    });
-
-    useEffect(() => {
-        if (!user) {
-            return;
-        }
-
-        setProfileDraft({
-            fullName: user.fullName || '',
-            nickname: user.nickname || '',
-            email: user.email || '',
-            phoneNumber: user.phoneNumber || '',
-            avatarDataUrl: user.avatarDataUrl || '',
-        });
-        setProfileMessage('');
-        setProfileError('');
-        setIsProfileEditorOpen(false);
-    }, [user]);
-
-    const userQuizHistory = useMemo(() => {
-        if (!user?.email) {
-            return [];
-        }
-
-        return quizHistory.filter((entry) => entry.userEmail === user.email);
-    }, [quizHistory, user?.email]);
-
-    const sortedUserQuizHistory = useMemo(() => {
-        return [...userQuizHistory].sort((a, b) => new Date(b.completedAt).getTime() - new Date(a.completedAt).getTime());
-    }, [userQuizHistory]);
-
-    const userAppointments = useMemo(() => {
-        if (!user?.email) {
-            return [];
-        }
-
-        return appointments
-            .filter((appointment) => appointment.userEmail === user.email)
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    }, [appointments, user?.email]);
-
-    const canCancelAppointment = (status: string) => status === 'pending' || status === 'approved';
-    const canRescheduleAppointment = (appointment: any) =>
-        (appointment.status === 'pending' || appointment.status === 'approved') &&
-        (appointment.rescheduleCount || 0) < examSettings.maxReschedulesPerUser;
-
-    const handleCancelAppointment = (appointmentId: string) => {
-        const target = appointments.find((appointment) => appointment.id === appointmentId);
-        if (!target) {
-            return;
-        }
-
-        const updatedAt = new Date().toISOString();
-        const nextAppointments: AdminAppointmentRecord[] = appointments.map((appointment) =>
-            appointment.id === appointmentId
-                ? {
-                      ...appointment,
-                      status: 'cancelled',
-                      cancelledBy: 'user',
-                      statusReason: 'Anulată din dashboard de utilizator',
-                      updatedAt,
-                  }
-                : appointment
-        );
-
-        writeAppointments(nextAppointments);
-        setAppointments(nextAppointments);
-        notifyUser(user?.email, {
-            title: 'Programare anulată',
-            message: `Programarea ${target.appointmentCode || ''} a fost anulată din dashboard.`,
-            link: '/dashboard',
-            tag: `appointment-cancelled-user-${appointmentId}-${updatedAt}`,
-        });
-        notifyAdmins({
-            title: 'Programare anulată de utilizator',
-            message: `Cererea ${target.appointmentCode || ''} (${target.fullName}) a fost anulată din dashboard.`,
-            link: '/admin/appointments',
-            tag: `admin-appointment-cancelled-user-${appointmentId}-${updatedAt}`,
-        });
-    };
-
-    const handleRescheduleAppointment = (appointmentId: string) => {
-        localStorage.setItem(
-            APPOINTMENT_RESCHEDULE_KEY,
-            JSON.stringify({ appointmentId, createdAt: new Date().toISOString() })
-        );
-        navigate(`/appointment?reschedule=${encodeURIComponent(appointmentId)}`);
-    };
-
-
-    const packagePerformance = useMemo(() => {
-        const grouped = new Map<string, { name: string; attempts: number; totalScore: number; passed: number }>();
-
-        sortedUserQuizHistory.forEach((attempt: any) => {
-            const name = (attempt.categoryTitle || 'Test general').trim();
-            const current = grouped.get(name) || { name, attempts: 0, totalScore: 0, passed: 0 };
-            current.attempts += 1;
-            current.totalScore += attempt.score;
-            if (attempt.score >= passThreshold) {
-                current.passed += 1;
-            }
-            grouped.set(name, current);
-        });
-
-        return Array.from(grouped.values())
-            .map((item) => {
-                const averageScore = Math.round(item.totalScore / item.attempts);
-                const passRate = Math.round((item.passed / item.attempts) * 100);
-                return {
-                    name: item.name,
-                    shortName: item.name.length > 14 ? `${item.name.slice(0, 12)}...` : item.name,
-                    attempts: item.attempts,
-                    averageScore,
-                    passRate,
-                    isGood: averageScore >= passThreshold,
-                };
-            })
-            .sort((a, b) => b.averageScore - a.averageScore);
-    }, [sortedUserQuizHistory, passThreshold]);
-
-    const overallPassRate = useMemo(() => {
-        if (sortedUserQuizHistory.length === 0) {
-            return 0;
-        }
-        const passedAttempts = sortedUserQuizHistory.filter((attempt: any) => attempt.score >= passThreshold).length;
-        return Math.round((passedAttempts / sortedUserQuizHistory.length) * 100);
-    }, [sortedUserQuizHistory, passThreshold]);
-
-    const bestPackage = useMemo(() => {
-        if (packagePerformance.length === 0) {
-            return null;
-        }
-        return packagePerformance[packagePerformance.length - 1];
-    }, [packagePerformance]);
-
-    const profileDisplayName = (user?.nickname || user?.fullName || 'Utilizator').trim();
-    const profileAvatarPreview = (profileDraft.avatarDataUrl || user?.avatarDataUrl || '').trim();
-    const profileAvatarInitial = (profileDisplayName || user?.email || 'U').charAt(0).toUpperCase();
-
-    const handleProfileFieldChange = (field: keyof UpdateUserProfileInput, value: string) => {
-        setProfileError('');
-        setProfileMessage('');
-        setProfileDraft((prev) => ({
-            ...prev,
-            [field]: value,
-        }));
-    };
-
-    const resetProfileDraft = () => {
-        if (!user) {
-            return;
-        }
-
-        setProfileDraft({
-            fullName: user.fullName || '',
-            nickname: user.nickname || '',
-            email: user.email || '',
-            phoneNumber: user.phoneNumber || '',
-            avatarDataUrl: user.avatarDataUrl || '',
-        });
-        setProfileError('');
-        setProfileMessage('');
-
-        if (avatarInputRef.current) {
-            avatarInputRef.current.value = '';
-        }
-    };
-
-    const handleProfileAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file) {
-            return;
-        }
-
-        if (!file.type.startsWith('image/')) {
-            setProfileError('Selectează un fișier imagine valid');
-            event.target.value = '';
-            return;
-        }
-
-        if (file.size > MAX_AVATAR_FILE_SIZE) {
-            setProfileError('Imaginea este prea mare (maxim 2MB)');
-            event.target.value = '';
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = () => {
-            const result = typeof reader.result === 'string' ? reader.result : '';
-            handleProfileFieldChange('avatarDataUrl', result);
-        };
-        reader.onerror = () => {
-            setProfileError('Nu am putut încărca imaginea selectată');
-        };
-        reader.readAsDataURL(file);
-    };
-
-    const handleRemoveProfileAvatar = () => {
-        handleProfileFieldChange('avatarDataUrl', '');
-        if (avatarInputRef.current) {
-            avatarInputRef.current.value = '';
-        }
-    };
-
-    const handleProfileSave = async (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        if (!user) {
-            return;
-        }
-
-        setProfileError('');
-        setProfileMessage('');
-        setIsProfileSaving(true);
-
-        try {
-            await updateProfile({
-                fullName: profileDraft.fullName,
-                nickname: profileDraft.nickname,
-                email: profileDraft.email,
-                phoneNumber: profileDraft.phoneNumber,
-                avatarDataUrl: profileDraft.avatarDataUrl,
-            });
-            setProfileMessage('Profilul a fost actualizat.');
-            setIsProfileEditorOpen(false);
-            if (avatarInputRef.current) {
-                avatarInputRef.current.value = '';
-            }
-        } catch (error: any) {
-            setProfileError(error?.message || 'Nu am putut actualiza profilul.');
-        } finally {
-            setIsProfileSaving(false);
-        }
-    };
+    const controller = useUserDashboardController();
+    const averageScore = controller.sortedUserQuizHistory.length > 0
+        ? Math.round(controller.sortedUserQuizHistory.reduce((acc: number, q: any) => acc + q.score, 0) / controller.sortedUserQuizHistory.length)
+        : 0;
+    const passedTests = controller.sortedUserQuizHistory.filter((q: any) => q.score >= controller.passThreshold).length;
 
     return (
         <div className="dashboard-container">
             <div className="dashboard-header">
                 <h1>Profilul meu</h1>
-                <p>Bine ai revenit, {profileDisplayName}!</p>
+                <p>Bine ai revenit, {controller.profileDisplayName}!</p>
             </div>
 
             <div className="dashboard-grid">
-                <div className="dashboard-card profile-card">
-                    <div className="card-header">
-                        <h2>Profilul Meu</h2>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                            <circle cx="12" cy="7" r="4" />
-                        </svg>
-                    </div>
-                    <div className="profile-info">
-                        <div className="profile-avatar profile-avatar-editable">
-                            {profileAvatarPreview ? (
-                                <img src={profileAvatarPreview} alt="Poza de profil" className="profile-avatar-image" />
-                            ) : (
-                                <span>{profileAvatarInitial}</span>
-                            )}
-                        </div>
-                        <div className="profile-details">
-                            <h3>{profileDisplayName}</h3>
-                            <p className="profile-email">{user?.email}</p>
-                            <p className="profile-role">
-                                <span className="role-badge">Candidat</span>
-                            </p>
-                            <p className="profile-date">
-                                Înregistrat: {user?.createdAt ? formatDateTimeLong(user.createdAt.toString()) : 'N/A'}
-                            </p>
-                        </div>
-                        <div className="profile-primary-actions">
-                            <button
-                                type="button"
-                                className="profile-toggle-btn"
-                                onClick={() => {
-                                    if (isProfileEditorOpen) {
-                                        resetProfileDraft();
-                                        setIsProfileEditorOpen(false);
-                                        return;
-                                    }
-
-                                    setProfileError('');
-                                    setProfileMessage('');
-                                    setIsProfileEditorOpen(true);
-                                }}
-                            >
-                                {isProfileEditorOpen ? 'Închide editorul' : 'Editează profilul'}
-                            </button>
-                        </div>
-
-                        {isProfileEditorOpen && (
-                        <form className="profile-form" onSubmit={handleProfileSave}>
-                            <input
-                                ref={avatarInputRef}
-                                type="file"
-                                accept="image/*"
-                                className="profile-avatar-file-input"
-                                onChange={handleProfileAvatarChange}
-                            />
-                            <div className="profile-avatar-actions">
-                                <button
-                                    type="button"
-                                    className="dashboard-mini-btn"
-                                    onClick={() => avatarInputRef.current?.click()}
-                                >
-                                    Schimbă poza
-                                </button>
-                                <button
-                                    type="button"
-                                    className="dashboard-mini-btn"
-                                    onClick={handleRemoveProfileAvatar}
-                                    disabled={!profileDraft.avatarDataUrl && !user?.avatarDataUrl}
-                                >
-                                    Elimină poza
-                                </button>
-                            </div>
-
-                            <div className="profile-form-grid">
-                                <label className="profile-form-field">
-                                    <span>Poreclă / Nickname</span>
-                                    <input
-                                        type="text"
-                                        value={profileDraft.nickname || ''}
-                                        onChange={(event) => handleProfileFieldChange('nickname', event.target.value)}
-                                        placeholder="Ex: Ionel"
-                                    />
-                                </label>
-                                <label className="profile-form-field">
-                                    <span>Nume complet</span>
-                                    <input
-                                        type="text"
-                                        value={profileDraft.fullName}
-                                        onChange={(event) => handleProfileFieldChange('fullName', event.target.value)}
-                                        placeholder="Ex: Ion Popescu"
-                                        required
-                                    />
-                                </label>
-                                <label className="profile-form-field">
-                                    <span>Email</span>
-                                    <input
-                                        type="email"
-                                        value={profileDraft.email}
-                                        onChange={(event) => handleProfileFieldChange('email', event.target.value)}
-                                        placeholder="utilizator@exemplu.com"
-                                        required
-                                    />
-                                </label>
-                                <label className="profile-form-field">
-                                    <span>Telefon</span>
-                                    <input
-                                        type="tel"
-                                        value={profileDraft.phoneNumber || ''}
-                                        onChange={(event) => handleProfileFieldChange('phoneNumber', event.target.value)}
-                                        placeholder="+373 69 000 000"
-                                    />
-                                </label>
-                            </div>
-
-                            {(profileError || profileMessage) && (
-                                <p className={`profile-form-feedback ${profileError ? 'error' : 'success'}`}>
-                                    {profileError || profileMessage}
-                                </p>
-                            )}
-
-                            <div className="profile-form-actions">
-                                <button
-                                    type="button"
-                                    className="dashboard-mini-btn"
-                                    onClick={resetProfileDraft}
-                                    disabled={isProfileSaving}
-                                >
-                                    Resetează
-                                </button>
-                                <button type="submit" className="profile-save-btn" disabled={isProfileSaving}>
-                                    {isProfileSaving ? 'Se salvează...' : 'Salvează profilul'}
-                                </button>
-                            </div>
-                        </form>
-                        )}
-                    </div>
-                </div>
-
-                <div className="dashboard-card stats-card">
-                    <div className="card-header">
-                        <h2>Statistici</h2>
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <line x1="12" y1="20" x2="12" y2="10" />
-                            <line x1="18" y1="20" x2="18" y2="4" />
-                            <line x1="6" y1="20" x2="6" y2="16" />
-                        </svg>
-                    </div>
-                    <div className="stats-grid">
-                        <div className="stat-item">
-                            <div className="stat-value">{userQuizHistory.length}</div>
-                            <div className="stat-label">Teste Completate</div>
-                        </div>
-                        <div className="stat-item">
-                            <div className="stat-value">
-                                {sortedUserQuizHistory.length > 0
-                                    ? Math.round(sortedUserQuizHistory.reduce((acc: number, q: any) => acc + q.score, 0) / sortedUserQuizHistory.length)
-                                    : 0}%
-                            </div>
-                            <div className="stat-label">Scor Mediu</div>
-                        </div>
-                        <div className="stat-item">
-                            <div className="stat-value">
-                                {sortedUserQuizHistory.filter((q: any) => q.score >= passThreshold).length}
-                            </div>
-                            <div className="stat-label">Teste Promovate</div>
-                        </div>
-                    </div>
-                </div><div className="dashboard-card appointments-card">
-                    <div className="card-header">
-                        <h2>Programările Mele</h2>
-                    </div>
-                    <div className="history-list">
-                        {userAppointments.length > 0 ? (
-                            userAppointments.slice(0, 4).map((appointment) => (
-                                <UserAppointmentItem
-                                    key={appointment.id}
-                                    appointment={appointment}
-                                    examSettingsMaxReschedules={examSettings.maxReschedulesPerUser}
-                                    formatDate={formatDateTimeLong}
-                                    appointmentStatusLabel={appointmentStatusLabelMasculine}
-                                    canReschedule={canRescheduleAppointment(appointment)}
-                                    canCancel={canCancelAppointment(appointment.status)}
-                                    onReschedule={handleRescheduleAppointment}
-                                    onCancel={handleCancelAppointment}
-                                />
-                            ))
-                        ) : (
-                            <div className="empty-state">
-                                <p>Nu ai programări înregistrate.</p>
-                                <Link to="/appointment" className="btn-primary">
-                                    Creează programare
-                                </Link>
-                            </div>
-                        )}
-                    </div>
-                </div>
-
-                
-
-                <div className="dashboard-card history-card">
-                    <div className="card-header">
-                        <h2>Statistică pe pachete</h2>
-                        <Link to="/test-history" className="card-action">
-                            Vezi toate -&gt;
-                        </Link>
-                    </div>
-                    {packagePerformance.length > 0 ? (
-                        <div className="dashboard-history-trend">
-                            <div className="dashboard-history-trend-header">
-                                <div>
-                                    <h3>Performanță pe pachete</h3>
-                                    <p className="dashboard-history-trend-subtitle">Media scorurilor pe fiecare pachet de întrebări</p>
-                                </div>
-                                <div className="dashboard-trend-summary">
-                                    <span className="dashboard-trend-chip">Pachete {packagePerformance.length}</span>
-                                    <span className="dashboard-trend-chip">Promovare {overallPassRate}%</span>
-                                    {bestPackage && (
-                                        <span className="dashboard-trend-chip package-best">
-                                            Top: {bestPackage.shortName} ({bestPackage.averageScore}%)
-                                        </span>
-                                    )}
-                                </div>
-                            </div>
-                            <div className="dashboard-package-chart" role="img" aria-label="Performanță pe pachete de întrebări">
-                                <div className="dashboard-package-grid">
-                                    {packagePerformance.map((pack) => (
-                                        <UserPackagePerformanceColumn
-                                            key={pack.name}
-                                            name={pack.name}
-                                            shortName={pack.shortName}
-                                            averageScore={pack.averageScore}
-                                            passRate={pack.passRate}
-                                            attempts={pack.attempts}
-                                            isGood={pack.isGood}
-                                        />
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    ) : (
-                        <div className="empty-state">
-                            <p>Nu ai încă rezultate pentru statistică.</p>
-                            <Link to="/tests" className="btn-primary">
-                                Începe un test
-                            </Link>
-                        </div>
-                    )}
-                </div>
-
-                <div className="dashboard-card actions-card">
-                    <div className="card-header">
-                        <h2>Acțiuni Rapide</h2>
-                    </div>
-                    <div className="actions-list">
-                        <Link to="/tests" className="action-item">
-                            <div className="action-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                                    <polyline points="14 2 14 8 20 8" />
-                                </svg>
-                            </div>
-                            <div className="action-content">
-                                <h4>Teste de Certificare</h4>
-                                <p>Exersează cunoștințele tale</p>
-                            </div>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <polyline points="9 18 15 12 9 6" />
-                            </svg>
-                        </Link>
-                        <Link to="/appointment" className="action-item">
-                            <div className="action-icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                                    <line x1="16" y1="2" x2="16" y2="6" />
-                                    <line x1="8" y1="2" x2="8" y2="6" />
-                                    <line x1="3" y1="10" x2="21" y2="10" />
-                                </svg>
-                            </div>
-                            <div className="action-content">
-                                <h4>Programare Examen</h4>
-                                <p>Rezervă un loc pentru examen</p>
-                            </div>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <polyline points="9 18 15 12 9 6" />
-                            </svg>
-                        </Link>
-                    </div>
-                </div>
+                <UserProfileCard
+                    userEmail={controller.user?.email}
+                    userCreatedAt={controller.user?.createdAt}
+                    userAvatarDataUrl={controller.user?.avatarDataUrl}
+                    avatarInputRef={controller.avatarInputRef}
+                    profileDisplayName={controller.profileDisplayName}
+                    profileAvatarPreview={controller.profileAvatarPreview}
+                    profileAvatarInitial={controller.profileAvatarInitial}
+                    profileDraft={controller.profileDraft}
+                    profileError={controller.profileError}
+                    profileMessage={controller.profileMessage}
+                    isProfileSaving={controller.isProfileSaving}
+                    isProfileEditorOpen={controller.isProfileEditorOpen}
+                    onToggleEditor={() => {
+                        if (controller.isProfileEditorOpen) controller.resetProfileDraft();
+                        controller.setIsProfileEditorOpen((prev) => !prev);
+                    }}
+                    onFieldChange={controller.handleProfileFieldChange}
+                    onAvatarChange={controller.handleProfileAvatarChange}
+                    onAvatarRemove={controller.handleRemoveProfileAvatar}
+                    onReset={controller.resetProfileDraft}
+                    onSubmit={controller.handleProfileSave}
+                />
+                <UserStatsCard totalCompletedTests={controller.userQuizHistory.length} averageScore={averageScore} passedTests={passedTests} />
+                <UserAppointmentsCard
+                    appointments={controller.visibleAppointments}
+                    totalAppointmentsCount={controller.userAppointments.length}
+                    hasMoreAppointments={controller.hasMoreAppointments}
+                    maxReschedulesPerUser={controller.examSettings.maxReschedulesPerUser}
+                    canCancel={controller.canCancelAppointment}
+                    canReschedule={controller.canRescheduleAppointment}
+                    onReschedule={controller.handleRescheduleAppointment}
+                    onCancel={controller.handleCancelAppointment}
+                />
+                <UserPackageStatsCard packagePerformance={controller.packagePerformance} overallPassRate={controller.overallPassRate} bestPackage={controller.bestPackage} />
+                <UserQuickActionsCard />
             </div>
         </div>
     );
 };
 
 export default UserDashboard;
-

@@ -28,12 +28,23 @@ body {
     overflow-x: hidden;
 }
 
-body.no-scroll {
-    overflow: hidden;
+html,
+body {
+    min-height: 100%;
 }
 
 #root {
     width: 100%;
+    min-height: 100%;
+}
+
+.app-shell {
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.app-shell.scroll-locked {
+    overflow: hidden;
 }
 
 a {

@@ -7,6 +7,8 @@ type AppointmentStep4FormProps = {
     onIdOrPhoneChange: (value: string) => void;
 };
 
+const COUNTRY_PREFIX = '+373';
+
 export default function AppointmentStep4Form({
     fullName,
     idOrPhone,
@@ -25,7 +27,7 @@ export default function AppointmentStep4Form({
             </div>
             <h3>Informații Personale</h3>
             <p className="card-description">
-                Introduceți datele dumneavoastră personale pentru confirmare.
+                Introduceți datele personale pentru confirmare.
             </p>
 
             <div className="form-row">
@@ -52,14 +54,15 @@ export default function AppointmentStep4Form({
                         type="text"
                         id="idOrPhone"
                         className={`text-input ${idOrPhoneError ? 'error' : ''}`}
-                        placeholder="Ex: 691234567"
-                        inputMode="numeric"
-                        pattern="\d{9}"
-                        maxLength={9}
+                        placeholder="Ex: +37368123456"
+                        inputMode="tel"
+                        maxLength={12}
                         value={idOrPhone}
                         onChange={(e) => {
-                            const onlyDigits = e.target.value.replace(/\D/g, '').slice(0, 9);
-                            onIdOrPhoneChange(onlyDigits);
+                            const digits = e.target.value.replace(/\D/g, '');
+                            const localDigits = digits.startsWith('373') ? digits.slice(3) : digits;
+                            const trimmed = localDigits.slice(0, 8);
+                            onIdOrPhoneChange(trimmed ? `${COUNTRY_PREFIX}${trimmed}` : '');
                         }}
                     />
                     {idOrPhoneError && <span className="error-message">{idOrPhoneError}</span>}

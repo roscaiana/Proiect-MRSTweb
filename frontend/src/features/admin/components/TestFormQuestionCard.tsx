@@ -55,7 +55,7 @@ export default function TestFormQuestionCard({
             <label className="admin-field">
                 <span>Varianta corectă</span>
                 <AdminSingleSelect
-                    ariaLabel={`Selectare varianta corecta pentru intrebarea ${questionIndex + 1}`}
+                    ariaLabel={`Selectare variantă corectă pentru întrebarea ${questionIndex + 1}`}
                     options={question.options.map((_, optionIndex) => ({
                         value: String(optionIndex),
                         label: `Opțiunea ${optionIndex + 1}`,
