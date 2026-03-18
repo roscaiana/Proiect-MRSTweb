@@ -333,8 +333,9 @@ export const questionBanks: Record<string, Question[]> = {
 
 export const getQuestionsByCategory = (categoryId: string): Question[] => {
     const adminBank = getAdminQuestionBank();
-    if (adminBank[categoryId]) {
-        return adminBank[categoryId];
+    const adminQuestions = adminBank[categoryId];
+    if (adminQuestions && adminQuestions.length > 0) {
+        return adminQuestions;
     }
 
     return questionBanks[categoryId] || [];
@@ -367,13 +368,16 @@ const toDifficulty = (questionCount: number): QuizCategory["difficulty"] => {
     return "advanced";
 };
 
+const isValidAdminTest = (test: StoredAdminTest): boolean =>
+    Array.isArray(test.questions) && test.questions.length > 0;
+
 const getAdminTests = (): StoredAdminTest[] => {
     const raw = localStorage.getItem(ADMIN_TESTS_STORAGE_KEY);
     if (!raw) return [];
 
     try {
         const parsed = JSON.parse(raw) as StoredAdminTest[];
-        return Array.isArray(parsed) ? parsed : [];
+        return Array.isArray(parsed) ? parsed.filter(isValidAdminTest) : [];
     } catch {
         return [];
     }
