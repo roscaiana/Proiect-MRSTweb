@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Search, LifeBuoy, FileText, HelpCircle, Calculator } from "lucide-react";
 import { FaqItem, FaqCategory } from "@/types/support1.1";
 import Sidebar from "../../components/SideBar/SideBar";
@@ -14,66 +14,66 @@ const Support: React.FC = () => {
     const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
     const categories: FaqCategory[] = [
-        { id: "all", title: "Toate Г®ntrebДѓrile", icon: HelpCircle },
-        { id: "general", title: "InformaИ›ii Generale", icon: FileText },
-        { id: "exam", title: "Examen И™i Certificare", icon: Calculator },
+        { id: "all", title: "Toate întrebările", icon: HelpCircle },
+        { id: "general", title: "Informații Generale", icon: FileText },
+        { id: "exam", title: "Examen și Certificare", icon: Calculator },
         { id: "technical", title: "Suport Tehnic", icon: LifeBuoy },
     ];
 
     const faqs: (FaqItem & { category: string })[] = [
         {
             category: "general",
-            question: "Cine se poate Г®nscrie la cursurile e-Electoral?",
+            question: "Cine se poate înscrie la cursurile e-Electoral?",
             answer:
-                "La cursurile de pe platforma e-Electoral se pot Г®nscrie toИ›i candidaИ›ii care doresc sДѓ obИ›inДѓ certificarea Г®n domeniul electoral, inclusiv viitori funcИ›ionari, observatori sau reprezentanИ›i politici.",
+                "La cursurile de pe platforma e-Electoral se pot înscrie toți candidații care doresc să obțină certificarea în domeniul electoral, inclusiv viitori funcționari, observatori sau reprezentanți politici.",
         },
         {
             category: "exam",
-            question: "Cum pot accesa simulДѓrile de examen?",
+            question: "Cum pot accesa simulările de examen?",
             answer:
-                "SimulДѓrile de examen pot fi accesate din secИ›iunea Resources Studiu dupДѓ autentificare. Acestea imitДѓ formatul oficial al examenului de certificare.",
+                "Simulările de examen pot fi accesate din secțiunea Resources Studiu după autentificare. Acestea imită formatul oficial al examenului de certificare.",
         },
         {
             category: "general",
-            question: "Se oferДѓ sprijin post-certificare?",
+            question: "Se oferă sprijin post-certificare?",
             answer:
-                "Da, e-Electoral oferДѓ resurse de actualizare a cunoИ™tinИ›elor И™i dupДѓ promovarea examenului, pentru a fi la curent cu ultimele modificДѓri legislative.",
+                "Da, e-Electoral oferă resurse de actualizare a cunoștințelor și după promovarea examenului, pentru a fi la curent cu ultimele modificări legislative.",
         },
         {
             category: "exam",
-            question: "CГўt timp este valabil certificatul obИ›inut?",
+            question: "Cât timp este valabil certificatul obținut?",
             answer:
-                "Certificatul de calificare electoralДѓ este valabil pentru o perioadДѓ de 4 ani, dupДѓ care este necesarДѓ o nouДѓ evaluare pentru reconfirmarea competenИ›elor.",
+                "Certificatul de calificare electorală este valabil pentru o perioadă de 4 ani, după care este necesară o nouă evaluare pentru reconfirmarea competențelor.",
         },
         {
             category: "exam",
-            question: "Ce se Г®ntГўmplДѓ dacДѓ nu promovez examenul?",
+            question: "Ce se întâmplă dacă nu promovez examenul?",
             answer:
-                "ГЋn cazul Г®n care nu obИ›ineИ›i punctajul minim, aveИ›i dreptul la o reevaluare dupДѓ o perioadДѓ de studiu suplimentar. Platforma e-Electoral vДѓ va recomanda modulele pe care trebuie sДѓ le revizuiИ›i.",
+                "În cazul în care nu obțineți punctajul minim, aveți dreptul la o reevaluare după o perioadă de studiu suplimentar. Platforma e-Electoral vă va recomanda modulele pe care trebuie să le revizuiți.",
         },
         {
             category: "technical",
-            question: "Cum Г®mi pot recupera parola?",
+            question: "Cum îmi pot recupera parola?",
             answer:
-                "DacДѓ aИ›i uitat parola, utilizaИ›i funcИ›ia de recuperare de pe pagina de login. VeИ›i primi un e-mail cu instrucИ›iuni pentru setarea unei parole noi.",
+                "Dacă ați uitat parola, utilizați funcția de recuperare de pe pagina de login. Veți primi un e-mail cu instrucțiuni pentru setarea unei parole noi.",
         },
         {
             category: "technical",
             question: "Pot accesa cursurile de pe dispozitive mobile?",
             answer:
-                "Da, platforma e-Electoral este complet responsivДѓ И™i poate fi accesatДѓ de pe smartphone sau tabletДѓ, oferind o experienИ›Дѓ de Г®nvДѓИ›are optimizatДѓ pentru orice ecran.",
+                "Da, platforma e-Electoral este complet responsivă și poate fi accesată de pe smartphone sau tabletă, oferind o experiență de învățare optimizată pentru orice ecran.",
         },
         {
             category: "general",
-            question: "Care este durata medie a unui curs de pregДѓtire?",
+            question: "Care este durata medie a unui curs de pregătire?",
             answer:
-                "Durata variazДѓ Г®n funcИ›ie de complexitatea modulului, dar Г®n medie, un curs complet de pregДѓtire pentru certificare dureazДѓ Г®ntre 20 И™i 40 de ore de studiu individual.",
+                "Durata variază în funcție de complexitatea modulului, dar în medie, un curs complet de pregătire pentru certificare durează între 20 și 40 de ore de studiu individual.",
         },
         {
             category: "technical",
-            question: "Ce fac dacДѓ Г®ntГўmpin probleme tehnice Г®n timpul simulДѓrii?",
+            question: "Ce fac dacă întâmpin probleme tehnice în timpul simulării?",
             answer:
-                "DacДѓ Г®ntГўmpinaИ›i erori tehnice, vДѓ rugДѓm sДѓ contactaИ›i echipa de suport prin formularul de contact sau sДѓ utilizaИ›i chat-ul de asistenИ›Дѓ disponibil Г®n colИ›ul din dreapta jos al ecranului.",
+                "Dacă întâmpinați erori tehnice, vă rugăm să contactați echipa de suport prin formularul de contact sau să utilizați chat-ul de asistență disponibil în colțul din dreapta jos al ecranului.",
         },
     ];
 
@@ -109,14 +109,14 @@ const Support: React.FC = () => {
                             </div>
 
                             <h1 className="hero-title">
-                                Cum vДѓ putem <span className="hero-title-highlight">ajuta astДѓzi?</span>
+                                Cum vă putem <span className="hero-title-highlight">ajuta astăzi?</span>
                             </h1>
 
                             <div className="hero-search-wrapper">
                                 <Search className="search-icon" />
                                 <input
                                     type="text"
-                                    placeholder="CДѓutaИ›i Г®ntrebДѓri, cursuri sau ghiduri..."
+                                    placeholder="Căutați întrebări, cursuri sau ghiduri..."
                                     className="search-input"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -152,10 +152,10 @@ const Support: React.FC = () => {
                                             SUPORT DIRECT
                                         </h3>
                                         <p className="support-card-text">
-                                            Nu aИ›i gДѓsit rДѓspunsul? Echipa noastrДѓ este gata sДѓ vДѓ ajute.
+                                            Nu ați găsit răspunsul? Echipa noastră este gata să vă ajute.
                                         </p>
                                         <a href="/contact" className="contact-btn">
-                                            ContactaИ›i-ne
+                                            Contactați-ne
                                         </a>
                                     </div>
                                 </div>
@@ -179,9 +179,9 @@ const Support: React.FC = () => {
                                         <div className="no-results-icon">
                                             <Search className="w-12 h-12 text-slate-300" />
                                         </div>
-                                        <h3 className="no-results-title">Niciun rezultat gДѓsit</h3>
+                                        <h3 className="no-results-title">Niciun rezultat găsit</h3>
                                         <p className="no-results-text">
-                                            Nu am gДѓsit Г®ntrebДѓri care sДѓ corespundДѓ termenilor cДѓutaИ›i. ГЋncercaИ›i o altДѓ formulare.
+                                            Nu am găsit întrebări care să corespundă termenilor căutați. Încercați o altă formulare.
                                         </p>
                                         <button
                                             onClick={() => {
@@ -190,7 +190,7 @@ const Support: React.FC = () => {
                                             }}
                                             className="reset-btn"
                                         >
-                                            ReseteazДѓ filtrele
+                                            Resetează filtrele
                                         </button>
                                     </div>
                                 )}
@@ -204,4 +204,3 @@ const Support: React.FC = () => {
 };
 
 export default Support;
-

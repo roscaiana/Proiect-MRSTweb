@@ -58,7 +58,7 @@ const AdminUsersPage: React.FC = () => {
                     <label className="admin-field">
                         <span>Rol</span>
                         <AdminMultiSelect
-                            ariaLabel="Filtrare dupa rol utilizator"
+                            ariaLabel="Filtrare după rol utilizator"
                             options={USER_ROLE_OPTIONS}
                             selectedValues={roleFilters}
                             onChange={setRoleFilters}
@@ -69,7 +69,7 @@ const AdminUsersPage: React.FC = () => {
                     <label className="admin-field">
                         <span>Status cont</span>
                         <AdminMultiSelect
-                            ariaLabel="Filtrare dupa status cont"
+                            ariaLabel="Filtrare după status cont"
                             options={USER_STATUS_OPTIONS}
                             selectedValues={statusFilters}
                             onChange={setStatusFilters}
