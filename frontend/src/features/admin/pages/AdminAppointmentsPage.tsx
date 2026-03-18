@@ -39,7 +39,6 @@ const AdminAppointmentsPage: React.FC = () => {
     const [sortBy, setSortBy] = useState<AppointmentSortBy>("updated_desc");
     const [selectedAppointmentIds, setSelectedAppointmentIds] = useState<string[]>([]);
     const [feedback, setFeedback] = useState("");
-    const [csvUrl, setCsvUrl] = useState("");
 
     const [configDate, setConfigDate] = useState(() => toDateKey(new Date()));
     const [blockDate, setBlockDate] = useState(false);
@@ -182,51 +181,6 @@ const AdminAppointmentsPage: React.FC = () => {
             });
     }, [dateFilter, search, slotFilters, sortBy, state.appointments, statusFilters]);
 
-    const csvContent = useMemo(() => {
-        const rows = [
-            ["Cod", "Nume", "Email", "Telefon", "Data", "Interval", "Status", "Motiv", "Nota admin"],
-            ...filteredAppointments.map((appointment) => [
-                appointment.appointmentCode || "",
-                appointment.fullName,
-                appointment.userEmail || "",
-                appointment.idOrPhone,
-                toDateKey(appointment.date),
-                `${appointment.slotStart}-${appointment.slotEnd}`,
-                appointment.status,
-                appointment.statusReason || "",
-                appointment.adminNote || "",
-            ]),
-        ];
-
-        return rows
-            .map((row) =>
-                row
-                    .map((cell) => {
-                        const text = String(cell ?? "");
-                        return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
-                    })
-                    .join(",")
-            )
-            .join("\n");
-    }, [filteredAppointments]);
-
-    useEffect(() => {
-        if (!csvContent) {
-            setCsvUrl("");
-            return;
-        }
-
-        const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-        const url = URL.createObjectURL(blob);
-        setCsvUrl(url);
-
-        return () => {
-            URL.revokeObjectURL(url);
-        };
-    }, [csvContent]);
-
-    const csvFileName = `admin-programări-${new Date().toISOString().slice(0, 10)}.csv`;
-
     useEffect(() => {
         const availableIds = new Set(filteredAppointments.map((appointment) => appointment.id));
         setSelectedAppointmentIds((prev) => prev.filter((id) => availableIds.has(id)));
@@ -328,10 +282,44 @@ const AdminAppointmentsPage: React.FC = () => {
     };
 
     const handleExportCsv = () => {
-        if (!csvUrl) {
+        const rows = [
+            ["Cod", "Nume", "Email", "Telefon", "Data", "Interval", "Status", "Motiv", "Nota admin"],
+            ...filteredAppointments.map((appointment) => [
+                appointment.appointmentCode || "",
+                appointment.fullName,
+                appointment.userEmail || "",
+                appointment.idOrPhone,
+                toDateKey(appointment.date),
+                `${appointment.slotStart}-${appointment.slotEnd}`,
+                appointment.status,
+                appointment.statusReason || "",
+                appointment.adminNote || "",
+            ]),
+        ];
+
+        const csv = rows
+            .map((row) =>
+                row
+                    .map((cell) => {
+                        const text = String(cell ?? "");
+                        return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+                    })
+                    .join(",")
+            )
+            .join("\n");
+
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const url = URL.createObjectURL(blob);
+        const anchor = globalThis["document"]?.createElement("a");
+        if (!anchor) {
+            URL.revokeObjectURL(url);
             setFeedback("Export CSV indisponibil în acest context.");
             return;
         }
+        anchor.href = url;
+        anchor.download = `admin-programări-${new Date().toISOString().slice(0, 10)}.csv`;
+        anchor.click();
+        URL.revokeObjectURL(url);
         setFeedback("Export CSV generat.");
     };
 
@@ -606,8 +594,6 @@ const AdminAppointmentsPage: React.FC = () => {
                 slotFilters={slotFilters}
                 slotOptions={slotOptions}
                 sortBy={sortBy}
-                csvUrl={csvUrl}
-                csvFileName={csvFileName}
                 onSearchChange={setSearch}
                 onStatusFiltersChange={setStatusFilters}
                 onDateFilterChange={setDateFilter}

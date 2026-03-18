@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth";
-import { useScrollLock } from "../../../hooks/useScrollLock";
 import AdminPanelNavLink from "./AdminPanelNavLink";
 import "../styles/admin-panel.css";
 
@@ -32,7 +31,13 @@ const AdminPanelLayout: React.FC = () => {
         setIsMobileSidebarOpen(false);
     }, [location.pathname]);
 
-    useScrollLock(isMobileSidebarOpen);
+    useEffect(() => {
+        const body = globalThis["document"]?.body;
+        body?.classList.toggle("no-scroll", isMobileSidebarOpen);
+        return () => {
+            body?.classList.remove("no-scroll");
+        };
+    }, [isMobileSidebarOpen]);
 
     return (
         <>

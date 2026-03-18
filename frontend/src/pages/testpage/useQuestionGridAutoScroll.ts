@@ -5,17 +5,22 @@ type Options = {
     enabled: boolean;
     currentQuestionIndex: number | null;
     questionCount: number;
-    buttonRefs: Array<RefObject<HTMLButtonElement | null>>;
+    refs: Array<RefObject<HTMLDivElement | null>>;
 };
 
-export const useQuestionGridAutoScroll = ({ enabled, currentQuestionIndex, questionCount, buttonRefs }: Options) => {
+export const useQuestionGridAutoScroll = ({ enabled, currentQuestionIndex, questionCount, refs }: Options) => {
     useEffect(() => {
         if (!enabled || currentQuestionIndex === null) return;
 
+        const scrollCurrentButtonIntoView = (container: HTMLDivElement | null) => {
+            const currentButton = container?.querySelector<HTMLButtonElement>('.grid-btn.current');
+            currentButton?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        };
+
         const rafId = window.requestAnimationFrame(() => {
-            buttonRefs.forEach((ref) => ref.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }));
+            refs.forEach((ref) => scrollCurrentButtonIntoView(ref.current));
         });
 
         return () => window.cancelAnimationFrame(rafId);
-    }, [enabled, currentQuestionIndex, questionCount, buttonRefs]);
+    }, [enabled, currentQuestionIndex, questionCount, refs]);
 };

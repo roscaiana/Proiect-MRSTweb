@@ -1,8 +1,7 @@
-﻿import React, { useState, FormEvent } from 'react';
+﻿import React, { useState, FormEvent, useEffect } from 'react';
 import { Mail, Phone, MapPin, Send, MessageSquare, User, AtSign, CheckCircle2 } from 'lucide-react';
 import { ContactFormData } from '@/types/contact';
 import Sidebar from "../../components/SideBar/SideBar";
-import { useScrollLock } from "../../hooks/useScrollLock";
 import './Contact.css';
 
 const Contact: React.FC = () => {
@@ -57,7 +56,13 @@ const Contact: React.FC = () => {
         }
     };
 
-    useScrollLock(sidebarOpen);
+    useEffect(() => {
+        const body = globalThis["document"]?.body;
+        body?.classList.toggle("no-scroll", sidebarOpen);
+        return () => {
+            body?.classList.remove("no-scroll");
+        };
+    }, [sidebarOpen]);
 
     const openSidebar = () => setSidebarOpen(true);
     const closeSidebar = () => setSidebarOpen(false);
@@ -273,4 +278,3 @@ const Contact: React.FC = () => {
 };
 
 export default Contact;
-
