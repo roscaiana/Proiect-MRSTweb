@@ -48,7 +48,7 @@ const NOTIFICATION_TEMPLATES: NotificationTemplate[] = [
 ];
 
 const NOTIFICATION_TARGET_FILTER_OPTIONS: ReadonlyArray<AdminMultiSelectOption<NotificationTarget>> = [
-    { value: "all", label: "all (platforma)" },
+    { value: "all", label: "all (platformă)" },
     { value: "users", label: "users" },
     { value: "admins", label: "admins" },
     { value: "email", label: "email" },
@@ -310,7 +310,7 @@ const AdminNotificationsPage: React.FC = () => {
                         <label className="admin-field">
                             <span>Target</span>
                             <AdminMultiSelect
-                                ariaLabel="Filtrare istoric notificari dupa target"
+                                ariaLabel="Filtrare istoric notificări după target"
                                 options={NOTIFICATION_TARGET_FILTER_OPTIONS}
                                 selectedValues={historyTargetFilters}
                                 onChange={setHistoryTargetFilters}
@@ -319,11 +319,11 @@ const AdminNotificationsPage: React.FC = () => {
                         </label>
                         <label className="admin-field">
                             <span>De la</span>
-                            <CompactDatePicker value={historyFrom} onChange={setHistoryFrom} ariaLabel="Calendar filtrare notificari de la" />
+                            <CompactDatePicker value={historyFrom} onChange={setHistoryFrom} ariaLabel="Calendar filtrare notificări de la" />
                         </label>
                         <label className="admin-field">
                             <span>Până la</span>
-                            <CompactDatePicker value={historyTo} onChange={setHistoryTo} ariaLabel="Calendar filtrare notificari pana la" />
+                            <CompactDatePicker value={historyTo} onChange={setHistoryTo} ariaLabel="Calendar filtrare notificări până la" />
                         </label>
                     </div>
 
