@@ -122,7 +122,7 @@ export default function AdminAppointmentsTable({
                 <label className="admin-field">
                     <span>Status</span>
                     <AdminMultiSelect
-                        ariaLabel="Filtrare după status programări"
+                        ariaLabel="Filtrare dupa status programari"
                         options={APPOINTMENT_STATUS_FILTER_OPTIONS}
                         selectedValues={statusFilters}
                         onChange={onStatusFiltersChange}
@@ -135,14 +135,14 @@ export default function AdminAppointmentsTable({
                     <CompactDatePicker
                         value={dateFilter}
                         onChange={onDateFilterChange}
-                        ariaLabel="Calendar filtrare programări"
+                        ariaLabel="Calendar filtrare programari"
                     />
                 </label>
 
                 <label className="admin-field">
                     <span>Interval</span>
                     <AdminMultiSelect
-                        ariaLabel="Filtrare după interval programări"
+                        ariaLabel="Filtrare dupa interval programari"
                         options={slotOptions.map((value) => ({ value, label: value }))}
                         selectedValues={slotFilters}
                         onChange={onSlotFiltersChange}
@@ -153,7 +153,7 @@ export default function AdminAppointmentsTable({
                 <label className="admin-field">
                     <span>Sortare</span>
                     <AdminSingleSelect
-                        ariaLabel="Sortare programări"
+                        ariaLabel="Sortare programari"
                         options={APPOINTMENT_SORT_OPTIONS}
                         value={sortBy}
                         onChange={onSortChange}

@@ -69,9 +69,9 @@ const CompactDatePicker: React.FC<CompactDatePickerProps> = ({
     min,
     max,
     disabled = false,
-    placeholder = "Selectează data",
+    placeholder = "Selecteaza data",
     allowClear = true,
-    ariaLabel = "Selecție dată",
+    ariaLabel = "Selectie data",
     allowedWeekdays,
 }) => {
     const rootRef = useRef<HTMLDivElement | null>(null);
@@ -174,13 +174,13 @@ const CompactDatePicker: React.FC<CompactDatePickerProps> = ({
             {isOpen && (
                 <div className="compact-date-picker-popover" role="dialog" aria-label={ariaLabel}>
                     <div className="compact-date-picker-header">
-                        <button type="button" onClick={goPrevMonth} disabled={!canGoPrev} aria-label="Luna anterioară">
+                        <button type="button" onClick={goPrevMonth} disabled={!canGoPrev} aria-label="Luna anterioara">
                             <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
                                 <polyline points="15 18 9 12 15 6" fill="none" stroke="currentColor" strokeWidth="2.5" />
                             </svg>
                         </button>
                         <strong>{MONTHS[calendarMonth.getMonth()]} {calendarMonth.getFullYear()}</strong>
-                        <button type="button" onClick={goNextMonth} disabled={!canGoNext} aria-label="Luna următoare">
+                        <button type="button" onClick={goNextMonth} disabled={!canGoNext} aria-label="Luna urmatoare">
                             <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
                                 <polyline points="9 18 15 12 9 6" fill="none" stroke="currentColor" strokeWidth="2.5" />
                             </svg>
@@ -208,7 +208,7 @@ const CompactDatePicker: React.FC<CompactDatePickerProps> = ({
                                 setIsOpen(false);
                             }}
                         >
-                            Șterge data
+                            Sterge data
                         </button>
                     )}
                 </div>

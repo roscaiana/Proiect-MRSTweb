@@ -380,18 +380,18 @@ const AdminAppointmentsPage: React.FC = () => {
         if (action === "reject") {
             reason = (window.prompt("Motivul respingerii (vizibil utilizatorului):", "") || "").trim() || null;
             if (!reason) {
-                setFeedback("Respingerea bulk necesită un motiv.");
+                setFeedback("Respingerea bulk necesita un motiv.");
                 return;
             }
-            adminNote = (window.prompt("Notă internă admin (opțional):", "") || "").trim() || null;
+            adminNote = (window.prompt("Nota interna admin (optional):", "") || "").trim() || null;
         }
 
         if (action === "cancel") {
-            reason = (window.prompt("Motiv anulare (vizibil utilizatorului, opțional):", "") || "").trim() || null;
+            reason = (window.prompt("Motiv anulare (vizibil utilizatorului, optional):", "") || "").trim() || null;
         }
 
         if (action === "approve") {
-            adminNote = (window.prompt("Notă admin (opțional, aplicată tuturor):", "") || "").trim() || null;
+            adminNote = (window.prompt("Nota admin (optional, aplicata tuturor):", "") || "").trim() || null;
         }
 
         eligibleAppointments.forEach((appointment) => {
@@ -416,7 +416,7 @@ const AdminAppointmentsPage: React.FC = () => {
 
     const handleApprove = (appointmentId: string) => {
         if (!window.confirm("Confirmi aprobarea acestei programări?")) return;
-        const adminNote = window.prompt("Notă admin (opțional):", "") || "";
+        const adminNote = window.prompt("Nota admin (optional):", "") || "";
         updateAppointmentStatus(appointmentId, "approved", {
             reason: null,
             adminNote: adminNote.trim() || null,
@@ -432,7 +432,7 @@ const AdminAppointmentsPage: React.FC = () => {
             return;
         }
 
-        const adminNote = window.prompt("Notă internă admin (opțional):", "") || "";
+        const adminNote = window.prompt("Nota interna admin (optional):", "") || "";
         updateAppointmentStatus(appointmentId, "rejected", {
             reason: reason.trim(),
             adminNote: adminNote.trim() || null,
