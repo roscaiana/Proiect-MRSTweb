@@ -1,11 +1,13 @@
-﻿export type FaqCategory = {
+import type { LucideIcon } from "lucide-react";
+
+export type FaqCategory = {
     id: string;
     title: string;
-    icon: any;
+    icon: LucideIcon;
 };
 
 export type FaqItem = {
-    category: string;   
+    category: string;
     question: string;
     answer: string;
 };

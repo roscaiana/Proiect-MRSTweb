@@ -1,3 +1,5 @@
+import type { ComponentType, SVGProps } from 'react';
+
 export type Role = 'admin' | 'user';
 
 export interface User {
@@ -15,7 +17,7 @@ export interface FaqItem {
 export interface FaqCategory {
     id: string;
     title: string;
-    icon: any;
+    icon: ComponentType<SVGProps<SVGSVGElement>>;
 }
 
 export interface ContactFormData {
