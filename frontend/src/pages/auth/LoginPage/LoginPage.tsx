@@ -1,65 +1,59 @@
-﻿import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AuthCredentials, AuthError } from '../../../types/user';
-import { validateLogin, mockLogin } from '../../../utils/authUtils';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'react-hot-toast';
+import { mockLogin } from '../../../utils/authUtils';
 import { useAuth } from '../../../hooks/useAuth';
+import { loginSchema, type LoginFormValues } from '../../../schemas/authSchemas';
 import './LoginPage.css';
 
-const LoginPage: React.FC = () => {
+const LoginPage = () => {
     const navigate = useNavigate();
     const { login } = useAuth();
     const [showPassword, setShowPassword] = useState(false);
-    const [credentials, setCredentials] = useState<AuthCredentials>({
-        email: '',
-        password: ''
-    });
-    const [errors, setErrors] = useState<AuthError[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [generalError, setGeneralError] = useState<string>('');
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const {
+        register,
+        handleSubmit,
+        formState: { errors },
+    } = useForm<LoginFormValues>({
+        resolver: zodResolver(loginSchema),
+        defaultValues: {
+            email: '',
+            password: '',
+        },
+        reValidateMode: 'onChange',
+    });
+
+    const onSubmit = async (data: LoginFormValues) => {
         setGeneralError('');
-
-        // Validate form
-        const validationErrors = validateLogin(credentials);
-        if (validationErrors.length > 0) {
-            setErrors(validationErrors);
-            return;
-        }
-
         setIsLoading(true);
-        setErrors([]);
 
         try {
-            // Mock login
-            const user = await mockLogin(credentials);
-
-            // Use AuthContext to store auth state
+            const user = await mockLogin({ email: data.email, password: data.password });
             const mockToken = `token-${Date.now()}`;
             login(user, mockToken);
 
-            // Redirect based on role
             if (user.role === 'admin') {
                 navigate('/admin');
             } else {
                 navigate('/dashboard');
             }
-        } catch (error: any) {
-            setGeneralError(error.message || 'Eroare la autentificare');
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Eroare la autentificare';
+            setGeneralError(message);
+            toast.error(message);
         } finally {
             setIsLoading(false);
         }
     };
 
-    const getFieldError = (field: string): string | undefined => {
-        return errors.find(e => e.field === field)?.message;
-    };
-
     return (
         <div className="auth-page">
             <div className="auth-container">
-                {/* Logo Section */}
                 <div className="auth-header">
                     <Link to="/" className="auth-logo">
                         <div className="hexagon">
@@ -72,14 +66,12 @@ const LoginPage: React.FC = () => {
                     </Link>
                 </div>
 
-                {/* Login Card */}
                 <div className="auth-card">
                     <div className="auth-card-header">
                         <h2>Autentificare</h2>
                         <p>Conectați-vă la contul dumneavoastră</p>
                     </div>
 
-                    {/* General Error */}
                     {generalError && (
                         <div className="alert alert-error">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -91,8 +83,7 @@ const LoginPage: React.FC = () => {
                         </div>
                     )}
 
-                    {/* Login Form */}
-                    <form className="auth-form" onSubmit={handleSubmit}>
+                    <form className="auth-form" onSubmit={handleSubmit(onSubmit)}>
                         <div className="form-group">
                             <label htmlFor="email">
                                 Email <span className="required">*</span>
@@ -100,16 +91,12 @@ const LoginPage: React.FC = () => {
                             <input
                                 type="email"
                                 id="email"
-                                className={`text-input ${getFieldError('email') ? 'error' : ''}`}
+                                className={`text-input ${errors.email ? 'error' : ''}`}
                                 placeholder="utilizator@exemplu.com"
-                                value={credentials.email}
-                                onChange={(e) => {
-                                    setCredentials({ ...credentials, email: e.target.value });
-                                    setErrors(errors.filter(err => err.field !== 'email'));
-                                }}
+                                {...register('email', { onChange: () => setGeneralError('') })}
                             />
-                            {getFieldError('email') && (
-                                <span className="error-message">{getFieldError('email')}</span>
+                            {errors.email && (
+                                <span className="error-message">{errors.email.message}</span>
                             )}
                         </div>
 
@@ -121,13 +108,9 @@ const LoginPage: React.FC = () => {
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     id="password"
-                                    className={`text-input ${getFieldError('password') ? 'error' : ''}`}
+                                    className={`text-input ${errors.password ? 'error' : ''}`}
                                     placeholder="••••••••"
-                                    value={credentials.password}
-                                    onChange={(e) => {
-                                        setCredentials({ ...credentials, password: e.target.value });
-                                        setErrors(errors.filter(err => err.field !== 'password'));
-                                    }}
+                                    {...register('password', { onChange: () => setGeneralError('') })}
                                 />
                                 <button
                                     type="button"
@@ -148,8 +131,8 @@ const LoginPage: React.FC = () => {
                                     )}
                                 </button>
                             </div>
-                            {getFieldError('password') && (
-                                <span className="error-message">{getFieldError('password')}</span>
+                            {errors.password && (
+                                <span className="error-message">{errors.password.message}</span>
                             )}
                         </div>
 
@@ -173,7 +156,6 @@ const LoginPage: React.FC = () => {
                         </div>
                     </form>
 
-                    {/* Register Link */}
                     <div className="auth-footer">
                         <p>
                             Nu aveți un cont?{' '}
@@ -183,7 +165,6 @@ const LoginPage: React.FC = () => {
                         </p>
                     </div>
 
-                    {/* Admin Hint */}
                     <div className="auth-hint">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <circle cx="12" cy="12" r="10" />
@@ -194,7 +175,6 @@ const LoginPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Back to Home */}
                 <div className="auth-back">
                     <Link to="/" className="back-link">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

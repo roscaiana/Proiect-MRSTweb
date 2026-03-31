@@ -1,10 +1,14 @@
 import React, { useMemo, useState } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import toast from "react-hot-toast";
 import CompactDatePicker from "../../../components/CompactDatePicker/CompactDatePicker";
 import AdminMultiSelect, { type AdminMultiSelectOption } from "../components/AdminMultiSelect";
 import AdminNotificationHistoryRow from "../components/AdminNotificationHistoryRow";
 import AdminSingleSelect, { type AdminSingleSelectOption } from "../components/AdminSingleSelect";
 import { useAdminPanel } from "../hooks/useAdminPanel";
 import type { NotificationTarget } from "../types";
+import { adminNotificationSchema, type AdminNotificationFormValues } from "../../../schemas/adminSchemas";
 
 type NotificationsView = "compose" | "history";
 
@@ -89,16 +93,32 @@ const toInputDate = (value?: string): string => {
 const AdminNotificationsPage: React.FC = () => {
     const { state, sendNotification } = useAdminPanel();
     const [activeView, setActiveView] = useState<NotificationsView>("compose");
-    const [target, setTarget] = useState<NotificationTarget>("all");
-    const [targetEmail, setTargetEmail] = useState("");
-    const [title, setTitle] = useState("");
-    const [message, setMessage] = useState("");
-    const [feedback, setFeedback] = useState("");
     const [selectedTemplateKey, setSelectedTemplateKey] = useState("");
     const [historyTargetFilters, setHistoryTargetFilters] = useState<NotificationTarget[]>([]);
     const [historySearch, setHistorySearch] = useState("");
     const [historyFrom, setHistoryFrom] = useState("");
     const [historyTo, setHistoryTo] = useState("");
+
+    const {
+        control,
+        register,
+        handleSubmit,
+        setValue,
+        reset,
+        watch,
+        formState: { errors, isSubmitting },
+    } = useForm<AdminNotificationFormValues>({
+        resolver: zodResolver(adminNotificationSchema),
+        defaultValues: {
+            target: "all",
+            targetEmail: "",
+            title: "",
+            message: "",
+        },
+    });
+
+    const target = watch("target");
+    const targetEmail = watch("targetEmail") ?? "";
 
     const estimatedRecipients = useMemo(() => {
         if (target === "all") return state.users.length + 1;
@@ -139,43 +159,41 @@ const AdminNotificationsPage: React.FC = () => {
             return;
         }
 
-        setTarget(template.target);
-        setTitle(template.title);
-        setMessage(template.message);
+        setValue("target", template.target, { shouldValidate: true });
+        setValue("title", template.title, { shouldValidate: true });
+        setValue("message", template.message, { shouldValidate: true });
         if (template.target !== "email") {
-            setTargetEmail("");
+            setValue("targetEmail", "");
         }
-        setFeedback(`Template aplicat: ${template.label}`);
+        toast.success(`Template aplicat: ${template.label}`);
     };
 
-    const handleSubmit = (event: React.FormEvent) => {
-        event.preventDefault();
-        if (!title.trim() || !message.trim()) {
-            setFeedback("Completează titlul și mesajul notificării.");
-            return;
-        }
-
-        if (target === "email" && !targetEmail.trim()) {
-            setFeedback("Adaugă emailul destinatarului.");
-            return;
-        }
-
+    const handleComposeSubmit = (data: AdminNotificationFormValues) => {
         const sentCount = sendNotification({
-            target,
-            title: title.trim(),
-            message: message.trim(),
-            targetEmail: target === "email" ? targetEmail.trim() : undefined,
+            target: data.target,
+            title: data.title.trim(),
+            message: data.message.trim(),
+            targetEmail: data.target === "email" ? data.targetEmail?.trim() : undefined,
         });
 
-        setFeedback(`Notificare trimisă către ${sentCount} destinatar(i).`);
-        setTitle("");
-        setMessage("");
+        toast.success(`Notificare trimisă către ${sentCount} destinatar(i).`);
+        reset({
+            target: data.target,
+            targetEmail: data.target === "email" ? "" : data.targetEmail || "",
+            title: "",
+            message: "",
+        });
         setSelectedTemplateKey("");
-        if (target === "email") {
-            setTargetEmail("");
-        }
         setActiveView("history");
         setHistoryFrom(toInputDate(new Date().toISOString()));
+    };
+
+    const handleComposeInvalid = () => {
+        const firstError =
+            errors.title?.message ||
+            errors.message?.message ||
+            errors.targetEmail?.message;
+        toast.error(firstError || "Completează titlul și mesajul notificării.");
     };
 
     return (
@@ -237,14 +255,20 @@ const AdminNotificationsPage: React.FC = () => {
                         </div>
                     </div>
 
-                    <form className="admin-form-grid" onSubmit={handleSubmit}>
+                    <form className="admin-form-grid" onSubmit={handleSubmit(handleComposeSubmit, handleComposeInvalid)}>
                         <label className="admin-field">
                             <span>Target</span>
-                            <AdminSingleSelect
-                                ariaLabel="Selectare target notificare"
-                                options={NOTIFICATION_TARGET_COMPOSE_OPTIONS}
-                                value={target}
-                                onChange={setTarget}
+                            <Controller
+                                control={control}
+                                name="target"
+                                render={({ field }) => (
+                                    <AdminSingleSelect
+                                        ariaLabel="Selectare target notificare"
+                                        options={NOTIFICATION_TARGET_COMPOSE_OPTIONS}
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                    />
+                                )}
                             />
                         </label>
 
@@ -253,10 +277,12 @@ const AdminNotificationsPage: React.FC = () => {
                                 <span>Email destinatar</span>
                                 <input
                                     type="email"
-                                    value={targetEmail}
-                                    onChange={(event) => setTargetEmail(event.target.value)}
+                                    {...register("targetEmail")}
                                     placeholder="utilizator@email.com"
                                 />
+                                {errors.targetEmail?.message && (
+                                    <span className="admin-field-error" role="alert">{errors.targetEmail.message}</span>
+                                )}
                             </label>
                         )}
 
@@ -264,29 +290,32 @@ const AdminNotificationsPage: React.FC = () => {
                             <span>Titlu</span>
                             <input
                                 type="text"
-                                value={title}
-                                onChange={(event) => setTitle(event.target.value)}
+                                {...register("title")}
                                 placeholder="Titlu notificare"
                             />
+                            {errors.title?.message && (
+                                <span className="admin-field-error" role="alert">{errors.title.message}</span>
+                            )}
                         </label>
 
                         <label className="admin-field admin-field-full">
                             <span>Mesaj</span>
                             <textarea
                                 rows={4}
-                                value={message}
-                                onChange={(event) => setMessage(event.target.value)}
+                                {...register("message")}
                                 placeholder="Mesajul care va fi trimis"
                             />
+                            {errors.message?.message && (
+                                <span className="admin-field-error" role="alert">{errors.message.message}</span>
+                            )}
                         </label>
 
                         <div className="admin-form-actions">
-                            <button className="admin-btn primary" type="submit">
-                                Trimite notificarea
+                            <button className="admin-btn primary" type="submit" disabled={isSubmitting}>
+                                {isSubmitting ? "Se trimite..." : "Trimite notificarea"}
                             </button>
                         </div>
                     </form>
-                    {feedback && <p className="admin-muted-text">{feedback}</p>}
                 </section>
             )}
 
