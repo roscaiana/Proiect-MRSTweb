@@ -1,4 +1,3 @@
-import type { RefObject } from "react";
 import type { Question } from "../../types/quiz";
 
 type QuestionNavigationButtonProps = {
@@ -8,7 +7,6 @@ type QuestionNavigationButtonProps = {
     isCurrent: boolean;
     keyPrefix: string;
     onSelectQuestion: (index: number) => void;
-    currentButtonRef?: RefObject<HTMLButtonElement | null>;
 };
 
 export default function QuestionNavigationButton({
@@ -25,7 +23,6 @@ export default function QuestionNavigationButton({
 
     return (
         <button
-            ref={isCurrent ? currentButtonRef : undefined}
             type="button"
             onClick={() => onSelectQuestion(index)}
             className={`grid-btn ${stateClass} ${isCurrent ? "current" : ""}`.trim()}

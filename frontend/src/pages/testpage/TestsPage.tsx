@@ -28,9 +28,9 @@ const TestsPage: React.FC = () => {
     const [canForceSubmit, setCanForceSubmit] = useState(false);
     const [completionReason, setCompletionReason] = useState<'manual' | 'timeout' | null>(null);
     const quizUserRef = React.useRef<{ email?: string; fullName?: string } | null>(null);
-    const mobileCurrentButtonRef = React.useRef<HTMLButtonElement | null>(null);
-    const sidebarCurrentButtonRef = React.useRef<HTMLButtonElement | null>(null);
-    const currentButtonRefs = useMemo(() => [mobileCurrentButtonRef, sidebarCurrentButtonRef], []);
+    const mobileQuestionGridRef = React.useRef<HTMLDivElement | null>(null);
+    const sidebarQuestionGridRef = React.useRef<HTMLDivElement | null>(null);
+    const questionGridRefs = useMemo(() => [mobileQuestionGridRef, sidebarQuestionGridRef], []);
     const testsView = quizResult ? 'result' : quizSession ? 'session' : 'home';
 
     useEffect(() => {
@@ -197,7 +197,7 @@ const TestsPage: React.FC = () => {
         enabled: Boolean(quizSession),
         currentQuestionIndex: quizSession?.currentQuestionIndex ?? null,
         questionCount: quizSession?.questions.length ?? 0,
-        buttonRefs: currentButtonRefs,
+        refs: questionGridRefs,
     });
 
     const currentQuestion = useMemo(() => quizSession ? quizSession.questions[quizSession.currentQuestionIndex] : null, [quizSession]);
@@ -349,7 +349,7 @@ const TestsPage: React.FC = () => {
                                 answers={quizSession.answers}
                                 currentQuestionIndex={quizSession.currentQuestionIndex}
                                 onSelectQuestion={goToQuestion}
-                                currentButtonRef={mobileCurrentButtonRef}
+                                gridRef={mobileQuestionGridRef}
                                 keyPrefix="mobile-nav"
                             />
                         </div>
@@ -405,7 +405,7 @@ const TestsPage: React.FC = () => {
                                 answers={quizSession.answers}
                                 currentQuestionIndex={quizSession.currentQuestionIndex}
                                 onSelectQuestion={goToQuestion}
-                                currentButtonRef={sidebarCurrentButtonRef}
+                                gridRef={sidebarQuestionGridRef}
                                 keyPrefix="sidebar-nav"
                             />
                             <div className="legend">

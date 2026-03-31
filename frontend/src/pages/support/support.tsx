@@ -1,8 +1,7 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Search, LifeBuoy, FileText, HelpCircle, Calculator } from "lucide-react";
 import { FaqItem, FaqCategory } from "@/types/support1.1";
 import Sidebar from "../../components/SideBar/SideBar";
-import { useScrollLock } from "../../hooks/useScrollLock";
 import SupportCategoryButton from "./SupportCategoryButton";
 import SupportFaqItem from "./SupportFaqItem";
 import "./support.css";
@@ -87,7 +86,13 @@ const Support: React.FC = () => {
         });
     }, [activeCategory, searchQuery]);
 
-    useScrollLock(sidebarOpen);
+    useEffect(() => {
+        const body = globalThis["document"]?.body;
+        body?.classList.toggle("no-scroll", sidebarOpen);
+        return () => {
+            body?.classList.remove("no-scroll");
+        };
+    }, [sidebarOpen]);
 
     const closeSidebar = () => setSidebarOpen(false);
 

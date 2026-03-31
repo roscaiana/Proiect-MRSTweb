@@ -181,7 +181,7 @@ export default function AdminCalendarDayConfig({
                         </div>
                         <input
                             type="text"
-                            placeholder="Motiv (opțional)"
+                            placeholder="Motiv (optional)"
                             value={blockNote}
                             disabled={!blockDate}
                             onChange={(event) => onBlockNoteChange(event.target.value)}
