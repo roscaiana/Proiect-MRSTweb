@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <RootNamespace>e_ElectoralWeb.BusinessLayer</RootNamespace>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\e_ElectoralWeb.DataAccessLayer\e_ElectoralWeb.DataAccessLayer.csproj" />
+      <ProjectReference Include="..\e_ElectoralWeb.Domain\e_ElectoralWeb.Domain.csproj" />
+    </ItemGroup>
+
+</Project>

@@ -38,7 +38,7 @@ export default function UserAppointmentItem({
                 {appointment.adminNote && <p className="appointment-admin-note">Notă admin: {appointment.adminNote}</p>}
                 <div className="appointment-item-actions">
                     {canViewConfirmation && (
-                        <Link className="dashboard-mini-btn" to={confirmationPath}>
+                        <Link className="dashboard-mini-btn" to={confirmationPath!}>
                             Vezi confirmare
                         </Link>
                     )}

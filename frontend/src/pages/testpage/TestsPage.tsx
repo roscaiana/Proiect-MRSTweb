@@ -1,7 +1,7 @@
 ﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useStorageSync } from '../../hooks/useStorageSync';
 import { ClipboardList } from 'lucide-react';
-import { getQuizCategories, getQuestionsByCategory, getCategoryById } from '../../data/quizData';
+import { getQuizCategories, getQuestionsByCategory, getCategoryById, hydrateQuizDataFromApi } from '../../data/quizData';
 import { useAuth } from '../../hooks/useAuth';
 import type { QuizMode, QuizResult, QuizSession } from '../../types/quiz';
 import type { QuizHistoryRecord } from '../../features/admin/types';
@@ -22,6 +22,8 @@ const TestsPage: React.FC = () => {
     const [quizSession, setQuizSession] = useState<QuizSession | null>(null);
     const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
     const [categories, setCategories] = useState(() => getQuizCategories());
+    const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+    const [quizDataWarning, setQuizDataWarning] = useState('');
     const [adminTests, setAdminTests] = useState(() => readAdminTests());
     const [examSettings, setExamSettings] = useState(() => readExamSettings());
     const [submitWarning, setSubmitWarning] = useState('');
@@ -36,6 +38,34 @@ const TestsPage: React.FC = () => {
     useEffect(() => {
         window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     }, [testsView]);
+
+    useEffect(() => {
+        let isMounted = true;
+
+        setIsLoadingCategories(true);
+        hydrateQuizDataFromApi()
+            .then((loadedFromApi) => {
+                if (!isMounted) {
+                    return;
+                }
+
+                setCategories(getQuizCategories());
+                setQuizDataWarning(
+                    loadedFromApi
+                        ? ''
+                        : 'Nu s-a putut conecta la serverul de teste. Se folosesc datele locale.',
+                );
+            })
+            .finally(() => {
+                if (isMounted) {
+                    setIsLoadingCategories(false);
+                }
+            });
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
 
     useStorageSync([STORAGE_KEYS.tests, STORAGE_KEYS.settings], () => {
         setCategories(getQuizCategories());
@@ -497,22 +527,30 @@ const TestsPage: React.FC = () => {
                             <p>Alege testul care corespunde zonei în care vrei să exersezi mai mult.</p>
                         </div>
 
+                        {quizDataWarning && <div className="submit-warning">{quizDataWarning}</div>}
+
                         <div className="quiz-categories">
-                            {categories.map((category) => (
-                                <QuizCategoryCard
-                                    key={category.id}
-                                    id={category.id}
-                                    title={normalizeText(category.title)}
-                                    description={normalizeText(category.description)}
-                                    questionCount={category.questionCount}
-                                    difficulty={category.difficulty}
-                                    durationMinutes={durationByCategoryId[category.id] ?? category.estimatedTime}
-                                    quizModeLabel={modeLabel(quizMode)}
-                                    icon={renderCategoryIcon(category.id)}
-                                    difficultyLabel={difficultyLabel(category.difficulty)}
-                                    onStart={startQuiz}
-                                />
-                            ))}
+                            {isLoadingCategories ? (
+                                <p className="page-subtitle">Se încarcă testele...</p>
+                            ) : categories.length === 0 ? (
+                                <p className="page-subtitle">Nu există teste disponibile momentan.</p>
+                            ) : (
+                                categories.map((category) => (
+                                    <QuizCategoryCard
+                                        key={category.id}
+                                        id={category.id}
+                                        title={normalizeText(category.title)}
+                                        description={normalizeText(category.description)}
+                                        questionCount={category.questionCount}
+                                        difficulty={category.difficulty}
+                                        durationMinutes={durationByCategoryId[category.id] ?? category.estimatedTime}
+                                        quizModeLabel={modeLabel(quizMode)}
+                                        icon={renderCategoryIcon(category.id)}
+                                        difficultyLabel={difficultyLabel(category.difficulty)}
+                                        onStart={startQuiz}
+                                    />
+                                ))
+                            )}
                         </div>
                     </section>
                 </div>
