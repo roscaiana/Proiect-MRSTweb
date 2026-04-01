@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "e-ElectoralWeb.Api", "e-ElectoralWeb.Api\e-ElectoralWeb.Api.csproj", "{D09101DD-4F35-4A54-9704-1101188F34DC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "e-ElectoralWeb.Domain", "e-ElectoralWeb.Domain\e-ElectoralWeb.Domain.csproj", "{67B9719C-AD25-454A-AD27-5B8ACEBE9C00}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "e-ElectoralWeb.BusinessLayer", "e-ElectoralWeb.BusinessLayer\e-ElectoralWeb.BusinessLayer.csproj", "{E136A8F6-E490-4788-AA22-89C5D99B0469}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "e-ElectoralWeb.DataAccessLayer", "e-ElectoralWeb.DataAccessLayer\e-ElectoralWeb.DataAccessLayer.csproj", "{268380BC-8A8C-44DF-97FE-57B69F6FDB3D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D09101DD-4F35-4A54-9704-1101188F34DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D09101DD-4F35-4A54-9704-1101188F34DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D09101DD-4F35-4A54-9704-1101188F34DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D09101DD-4F35-4A54-9704-1101188F34DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{67B9719C-AD25-454A-AD27-5B8ACEBE9C00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{67B9719C-AD25-454A-AD27-5B8ACEBE9C00}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{67B9719C-AD25-454A-AD27-5B8ACEBE9C00}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{67B9719C-AD25-454A-AD27-5B8ACEBE9C00}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E136A8F6-E490-4788-AA22-89C5D99B0469}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E136A8F6-E490-4788-AA22-89C5D99B0469}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E136A8F6-E490-4788-AA22-89C5D99B0469}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E136A8F6-E490-4788-AA22-89C5D99B0469}.Release|Any CPU.Build.0 = Release|Any CPU
+		{268380BC-8A8C-44DF-97FE-57B69F6FDB3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{268380BC-8A8C-44DF-97FE-57B69F6FDB3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{268380BC-8A8C-44DF-97FE-57B69F6FDB3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{268380BC-8A8C-44DF-97FE-57B69F6FDB3D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

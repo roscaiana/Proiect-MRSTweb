@@ -1,6 +1,5 @@
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactElement, type ReactNode } from "react";
+import {useEffect, useLayoutEffect, useRef, useState, type ReactElement, type ReactNode, CSSProperties} from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
 import Layout from "./layouts/Layout";
 import HomePage from "./pages/HomePage/HomePage";
 import Support from "./pages/support/support";
@@ -18,6 +17,7 @@ import UserDashboard from "./pages/auth/UserDashboard/UserDashboard";
 import UserAppointmentsPage from "./pages/auth/UserAppointmentsPage/UserAppointmentsPage";
 import TestHistoryPage from "./pages/auth/TestHistoryPage/TestHistoryPage";
 import AdminDashboard from "./pages/auth/AdminDashboard/AdminDashboard";
+import { AxiosProvider, useAxios } from "./api/AxiosProvider";
 import { AuthProvider } from "./context/AuthContext";
 import { ScrollLockProvider, useScrollLockContext } from "./context/ScrollLockContext";
 import { useAuth } from "./hooks/useAuth";
@@ -69,6 +69,22 @@ const ErrorBoundaryShell = ({ children }: { children: ReactNode }) => {
     return <ErrorBoundary resetKey={`${location.pathname}${location.search}`} >{children}</ErrorBoundary>;
 };
 
+const GlobalHttpErrorBanner = () => {
+    const { globalHttpError, clearGlobalHttpError } = useAxios();
+    if (!globalHttpError) {
+        return null;
+    }
+
+    return (
+        <div role="alert" style={{ background: "#fee2e2", color: "#991b1b", padding: "10px 14px", borderBottom: "1px solid #fecaca" }}>
+            <span>{globalHttpError}</span>
+            <button type="button" onClick={clearGlobalHttpError} style={{ marginLeft: 12, padding: "4px 8px" }}>
+                Închide
+            </button>
+        </div>
+    );
+};
+
 const AppShell = ({ children }: { children: ReactNode }) => {
     const { locked } = useScrollLockContext();
     const scrollOffsetRef = useRef(0);
@@ -104,14 +120,15 @@ const AppShell = ({ children }: { children: ReactNode }) => {
 
 export default function App() {
     return (
-        <AuthProvider>
-            <ScrollLockProvider>
-                <BrowserRouter>
-                    <AppShell>
-                        <Toaster position="top-right" />
-                        <ScrollToTop />
-                        <ErrorBoundaryShell>
-                            <Routes>
+        <AxiosProvider>
+            <AuthProvider>
+                <ScrollLockProvider>
+                    <BrowserRouter>
+                        <AppShell>
+                            <GlobalHttpErrorBanner />
+                            <ScrollToTop />
+                            <ErrorBoundaryShell>
+                                <Routes>
                                 <Route
                                     path={APP_ROUTES.admin}
                                     element={
@@ -183,11 +200,12 @@ export default function App() {
                                     <Route path={APP_ROUTES.notFound} element={<NotFoundPage />} />
                                     <Route path="*" element={<Navigate to={APP_ROUTES.notFound} replace />} />
                                 </Route>
-                            </Routes>
-                        </ErrorBoundaryShell>
-                    </AppShell>
-                </BrowserRouter>
-            </ScrollLockProvider>
-        </AuthProvider>
+                                </Routes>
+                            </ErrorBoundaryShell>
+                        </AppShell>
+                    </BrowserRouter>
+                </ScrollLockProvider>
+            </AuthProvider>
+        </AxiosProvider>
     );
 }
