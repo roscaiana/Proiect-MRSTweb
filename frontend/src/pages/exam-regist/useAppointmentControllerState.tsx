@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { AppointmentFormData, FormErrors } from '../../types/appointment';
+import { useForm, useFormState, useWatch, type Resolver } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import type { AppointmentFormData, FormErrors, TimeSlot } from '../../types/appointment';
 import { useAuth } from '../../hooks/useAuth';
 import { useStorageSync } from '../../hooks/useStorageSync';
 import { useAppointmentDraft } from '../../hooks/useAppointmentDraft';
@@ -9,21 +11,17 @@ import { readAppointments, readExamSettings, STORAGE_KEYS } from '../../features
 import { clampMonth as clampMonthToRange, startOfMonth } from '../../utils/calendarUtils';
 import type { SlotFilter } from './AppointmentStep3Slots';
 import type { AppointmentWizardTab } from './appointmentController.constants';
+import {
+    buildAppointmentSchema,
+    type AppointmentFormValues,
+    type AppointmentValidationContext,
+} from '../../schemas/appointmentSchema';
 
 export const useAppointmentControllerState = () => {
     const { user } = useAuth();
     const location = useLocation();
     const { getRescheduleSourceId, clearDraft } = useAppointmentDraft();
 
-    const [formData, setFormData] = useState<AppointmentFormData>({
-        fullName: user?.fullName || '',
-        idOrPhone: '',
-        selectedDate: null,
-        selectedSlot: null,
-    });
-    const [errors, setErrors] = useState<FormErrors>({});
-    const [isSubmitted, setIsSubmitted] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [examSettings, setExamSettings] = useState(() => readExamSettings());
     const [appointments, setAppointments] = useState(() => readAppointments());
     const [slotFilter, setSlotFilter] = useState<SlotFilter>('all');
@@ -35,11 +33,88 @@ export const useAppointmentControllerState = () => {
     const [calendarMonth, setCalendarMonth] = useState<Date>(() =>
         clampMonthToRange(startOfMonth(new Date()), new Date(2026, 0, 1), new Date(2050, 11, 31))
     );
+    const [isSubmitted, setIsSubmitted] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [lastUnavailableSlotId, setLastUnavailableSlotId] = useState<string | null>(null);
     const calendarPickerRef = useRef<HTMLDivElement | null>(null);
     const previousUserEmailRef = useRef<string | null>(user?.email ? user.email.trim().toLowerCase() : null);
 
     const minDate = useMemo(() => new Date(2026, 0, 1), []);
     const maxDate = useMemo(() => new Date(2050, 11, 31), []);
+
+    const validationContextRef = useRef<AppointmentValidationContext>({
+        examSettings,
+        appointments,
+        rescheduleSourceId: null,
+        allowedWeekdayNames: '',
+        activeUserAppointments: [],
+        userAppointments: [],
+        lastRejectedUserAppointment: null,
+        allAvailableSlots: [],
+        lastUnavailableSlotId: null,
+    });
+
+    const setValidationContext = useCallback((context: AppointmentValidationContext) => {
+        validationContextRef.current = context;
+    }, []);
+
+    const resolver = useCallback<Resolver<AppointmentFormValues>>(
+        (values, context, options) => {
+            const schema = buildAppointmentSchema(validationContextRef.current);
+            return zodResolver(schema)(values, context, options) as ReturnType<Resolver<AppointmentFormValues>>;
+        },
+        []
+    );
+
+    const form = useForm<AppointmentFormValues>({
+        resolver,
+        defaultValues: {
+            fullName: user?.fullName || '',
+            idOrPhone: '',
+            selectedDate: null,
+            selectedSlot: null,
+        },
+        reValidateMode: 'onChange',
+    });
+
+    const { errors: formErrors } = useFormState({ control: form.control });
+    const watchedValues = useWatch<AppointmentFormValues>({ control: form.control });
+
+    const normalizedSelectedSlot: TimeSlot | null = useMemo(() => {
+        const slot = watchedValues.selectedSlot;
+        if (
+            slot &&
+            typeof slot.id === 'string' &&
+            typeof slot.startTime === 'string' &&
+            typeof slot.endTime === 'string' &&
+            typeof slot.available === 'boolean'
+        ) {
+            return {
+                id: slot.id,
+                startTime: slot.startTime,
+                endTime: slot.endTime,
+                available: slot.available,
+            };
+        }
+        return null;
+    }, [watchedValues.selectedSlot]);
+
+    const formData: AppointmentFormData = useMemo(
+        () => ({
+            fullName: watchedValues.fullName ?? '',
+            idOrPhone: watchedValues.idOrPhone ?? '',
+            selectedDate: watchedValues.selectedDate ?? null,
+            selectedSlot: normalizedSelectedSlot,
+        }),
+        [normalizedSelectedSlot, watchedValues.fullName, watchedValues.idOrPhone, watchedValues.selectedDate]
+    );
+
+    const errors: FormErrors = {
+        fullName: formErrors.fullName?.message,
+        idOrPhone: formErrors.idOrPhone?.message,
+        date: formErrors.selectedDate?.message,
+        slot: formErrors.selectedSlot?.message,
+    };
 
     useStorageSync([STORAGE_KEYS.settings, STORAGE_KEYS.appointments], () => {
         setExamSettings(readExamSettings());
@@ -48,45 +123,47 @@ export const useAppointmentControllerState = () => {
 
     useEffect(() => {
         if (!user?.fullName) return;
-        setFormData((prev) => (prev.fullName ? prev : { ...prev, fullName: user.fullName }));
-    }, [user?.fullName]);
+        const current = form.getValues('fullName');
+        if (current) return;
+        form.setValue('fullName', user.fullName, { shouldValidate: true, shouldDirty: false });
+    }, [form, user?.fullName]);
 
     useEffect(() => {
         const currentUserEmail = user?.email ? user.email.trim().toLowerCase() : null;
         const previousUserEmail = previousUserEmailRef.current;
 
         if (previousUserEmail && previousUserEmail !== currentUserEmail) {
-            setFormData({ fullName: '', idOrPhone: '', selectedDate: null, selectedSlot: null });
-            setErrors({});
+            form.reset({ fullName: '', idOrPhone: '', selectedDate: null, selectedSlot: null });
+            form.clearErrors();
             setSubmitMessage('');
             setSubmittedAppointment(null);
             setRescheduleSourceId(null);
             setActiveTab(1);
+            setLastUnavailableSlotId(null);
             clearDraft();
         }
 
         previousUserEmailRef.current = currentUserEmail;
-    }, [user?.email]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [clearDraft, form, user?.email]);
 
     useEffect(() => {
         const searchParams = new URLSearchParams(location.search);
         const rescheduleIdFromQuery = searchParams.get('reschedule');
         const sourceId = rescheduleIdFromQuery || getRescheduleSourceId();
         if (sourceId) setRescheduleSourceId(sourceId);
-    }, [location.search]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [getRescheduleSourceId, location.search]);
 
     useEffect(() => {
         if (!isSubmitted) return;
         clearDraft();
-    }, [isSubmitted]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [clearDraft, isSubmitted]);
 
     return {
         user,
         clearDraft,
+        form,
         formData,
-        setFormData,
         errors,
-        setErrors,
         isSubmitted,
         setIsSubmitted,
         isSubmitting,
@@ -112,5 +189,8 @@ export const useAppointmentControllerState = () => {
         calendarPickerRef,
         minDate,
         maxDate,
+        setValidationContext,
+        lastUnavailableSlotId,
+        setLastUnavailableSlotId,
     };
 };

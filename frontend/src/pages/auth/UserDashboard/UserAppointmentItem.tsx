@@ -27,6 +27,7 @@ export default function UserAppointmentItem({
     const canViewConfirmation =
         Boolean(confirmationPath) &&
         (appointment.status === "pending" || appointment.status === "approved");
+    const confirmationLink = confirmationPath ?? "";
 
     return (
         <div className="history-item">
@@ -38,7 +39,7 @@ export default function UserAppointmentItem({
                 {appointment.adminNote && <p className="appointment-admin-note">Notă admin: {appointment.adminNote}</p>}
                 <div className="appointment-item-actions">
                     {canViewConfirmation && (
-                        <Link className="dashboard-mini-btn" to={confirmationPath!}>
+                        <Link className="dashboard-mini-btn" to={confirmationLink}>
                             Vezi confirmare
                         </Link>
                     )}

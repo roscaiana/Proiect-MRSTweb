@@ -1,13 +1,15 @@
 import { useEffect, useMemo } from 'react';
+import type { UseFormTrigger } from 'react-hook-form';
 import type { AppointmentFormData, FormErrors } from '../../types/appointment';
-import { PHONE_NUMBER_PATTERN, type AppointmentWizardTab } from './appointmentController.constants';
+import { type AppointmentWizardTab } from './appointmentController.constants';
+import type { AppointmentFormValues } from '../../schemas/appointmentSchema';
 
 type UseAppointmentControllerTabFlowParams = {
     activeTab: AppointmentWizardTab;
     setActiveTab: (value: AppointmentWizardTab | ((prev: AppointmentWizardTab) => AppointmentWizardTab)) => void;
     formData: AppointmentFormData;
     errors: FormErrors;
-    setErrors: (value: FormErrors | ((prev: FormErrors) => FormErrors)) => void;
+    trigger: UseFormTrigger<AppointmentFormValues>;
 };
 
 const scrollToTop = () => window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -17,7 +19,7 @@ export const useAppointmentControllerTabFlow = ({
     setActiveTab,
     formData,
     errors,
-    setErrors,
+    trigger,
 }: UseAppointmentControllerTabFlowParams) => {
     const activateTab = (tab: AppointmentWizardTab) => {
         setActiveTab(tab);
@@ -27,8 +29,8 @@ export const useAppointmentControllerTabFlow = ({
     const isStep1Complete = Boolean(formData.selectedDate) && !errors.date;
     const isStep2Complete = Boolean(formData.selectedSlot) && !errors.slot;
     const isStep3Complete =
-        formData.fullName.trim().length >= 3 &&
-        PHONE_NUMBER_PATTERN.test(formData.idOrPhone.trim()) &&
+        formData.fullName.trim().length > 0 &&
+        formData.idOrPhone.trim().length > 0 &&
         !errors.fullName &&
         !errors.idOrPhone;
 
@@ -61,30 +63,20 @@ export const useAppointmentControllerTabFlow = ({
         activateTab((activeTab - 1) as AppointmentWizardTab);
     };
 
-    const goToNextTab = () => {
+    const goToNextTab = async () => {
         if (activeTab === 1) {
-            if (!formData.selectedDate) setErrors((prev) => ({ ...prev, date: 'Vă rugăm să selectați o dată.' }));
-            if (formData.selectedDate && !errors.date) activateTab(2);
+            const valid = await trigger('selectedDate');
+            if (valid) activateTab(2);
             return;
         }
         if (activeTab === 2) {
-            if (!formData.selectedSlot) setErrors((prev) => ({ ...prev, slot: 'Vă rugăm să selectați un interval orar.' }));
-            if (formData.selectedSlot && !errors.slot) activateTab(3);
+            const valid = await trigger('selectedSlot');
+            if (valid) activateTab(3);
             return;
         }
         if (activeTab === 3) {
-            const personalInfoErrors: FormErrors = {};
-            if (!formData.fullName.trim()) personalInfoErrors.fullName = 'Numele complet este obligatoriu';
-            else if (formData.fullName.trim().length < 3) personalInfoErrors.fullName = 'Numele trebuie să conțină cel puțin 3 caractere';
-            if (!formData.idOrPhone.trim()) personalInfoErrors.idOrPhone = 'Numărul de telefon este obligatoriu';
-            else if (!PHONE_NUMBER_PATTERN.test(formData.idOrPhone.trim())) {
-                personalInfoErrors.idOrPhone = 'Număr invalid. Folosește formatul +373 urmat de 8 cifre.';
-            }
-            if (Object.keys(personalInfoErrors).length > 0) setErrors((prev) => ({ ...prev, ...personalInfoErrors }));
-            else {
-                setErrors((prev) => ({ ...prev, fullName: undefined, idOrPhone: undefined }));
-                activateTab(4);
-            }
+            const valid = await trigger(['fullName', 'idOrPhone']);
+            if (valid) activateTab(4);
         }
     };
 

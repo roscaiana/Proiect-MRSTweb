@@ -1,28 +1,29 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useState, type ReactNode } from "react";
 
 type ScrollLockContextValue = {
     locked: boolean;
-    lockScroll: () => void;
-    unlockScroll: () => void;
-    setLocked: (value: boolean) => void;
+    setLocked: (locked: boolean) => void;
+    lock: () => void;
+    unlock: () => void;
 };
 
 const ScrollLockContext = createContext<ScrollLockContextValue | undefined>(undefined);
 
-export const ScrollLockProvider = ({ children }: { children: ReactNode }) => {
+type ScrollLockProviderProps = {
+    children: ReactNode;
+};
+
+export const ScrollLockProvider = ({ children }: ScrollLockProviderProps) => {
     const [locked, setLocked] = useState(false);
 
-    const value = useMemo(
-        () => ({
-            locked,
-            lockScroll: () => setLocked(true),
-            unlockScroll: () => setLocked(false),
-            setLocked,
-        }),
-        [locked],
-    );
+    const lock = () => setLocked(true);
+    const unlock = () => setLocked(false);
 
-    return <ScrollLockContext.Provider value={value}>{children}</ScrollLockContext.Provider>;
+    return (
+        <ScrollLockContext.Provider value={{ locked, setLocked, lock, unlock }}>
+            {children}
+        </ScrollLockContext.Provider>
+    );
 };
 
 export const useScrollLockContext = () => {

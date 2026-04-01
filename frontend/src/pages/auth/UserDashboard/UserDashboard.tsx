@@ -10,9 +10,9 @@ import "./UserDashboard.css";
 const UserDashboard: React.FC = () => {
     const controller = useUserDashboardController();
     const averageScore = controller.sortedUserQuizHistory.length > 0
-        ? Math.round(controller.sortedUserQuizHistory.reduce((acc: number, q: any) => acc + q.score, 0) / controller.sortedUserQuizHistory.length)
+        ? Math.round(controller.sortedUserQuizHistory.reduce((acc, q) => acc + q.score, 0) / controller.sortedUserQuizHistory.length)
         : 0;
-    const passedTests = controller.sortedUserQuizHistory.filter((q: any) => q.score >= controller.passThreshold).length;
+    const passedTests = controller.sortedUserQuizHistory.filter((q) => q.score >= controller.passThreshold).length;
 
     return (
         <div className="dashboard-container">

@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactElement, type ReactNode } from "react";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 import Layout from "./layouts/Layout";
 import HomePage from "./pages/HomePage/HomePage";
 import Support from "./pages/support/support";
@@ -125,6 +126,7 @@ export default function App() {
                 <ScrollLockProvider>
                     <BrowserRouter>
                         <AppShell>
+                            <Toaster position="top-right" />
                             <GlobalHttpErrorBanner />
                             <ScrollToTop />
                             <ErrorBoundaryShell>

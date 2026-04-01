@@ -1,24 +1,17 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo } from "react";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from "@mui/material";
+import toast from "react-hot-toast";
 import { useAdminPanel } from "../hooks/useAdminPanel";
-import type { AppointmentStatus } from "../types";
 import { appointmentStatusLabelFeminine } from "../../../utils/appointmentUtils";
-import { TIME_SLOTS } from "../../../types/appointment";
-import {
-    buildAvailableSlotsForDate,
-    getAppointmentsForDate,
-    getBlockedDateEntry,
-    getDailyCapacity,
-    getNextEligibleDates,
-    parseDateKey,
-    toDateKey,
-} from "../../../utils/appointmentScheduling";
-import { isAllowedDay, formatDateShort } from "../../../utils/dateUtils";
-import { notifyUser } from "../../../utils/appEventNotifications";
+import { getNextEligibleDates, toDateKey } from "../../../utils/appointmentScheduling";
+import { formatDateShort } from "../../../utils/dateUtils";
 import AdminAppointmentPendingItem from "../components/AdminAppointmentPendingItem";
 import AdminAppointmentHeatmapDay from "../components/AdminAppointmentHeatmapDay";
 import AdminCalendarDayConfig from "../components/AdminCalendarDayConfig";
-import AdminAppointmentsTable, { type AppointmentSortBy } from "../components/AdminAppointmentsTable";
-
+import AdminAppointmentsTable from "../components/AdminAppointmentsTable";
+import { useAdminAppointmentsConfig } from "../hooks/useAdminAppointmentsConfig";
+import { useAdminAppointmentsFilters } from "../hooks/useAdminAppointmentsFilters";
+import { useAdminAppointmentsActions } from "../hooks/useAdminAppointmentsActions";
 
 const formatDateTimeLabel = (value: string): string => {
     return new Date(value).toLocaleString("ro-RO", {
@@ -32,86 +25,105 @@ const formatDateTimeLabel = (value: string): string => {
 
 const AdminAppointmentsPage: React.FC = () => {
     const { state, updateAppointmentStatus, updateAppointment, updateSettings } = useAdminPanel();
-    const [statusFilters, setStatusFilters] = useState<AppointmentStatus[]>([]);
-    const [search, setSearch] = useState("");
-    const [dateFilter, setDateFilter] = useState("");
-    const [slotFilters, setSlotFilters] = useState<string[]>([]);
-    const [sortBy, setSortBy] = useState<AppointmentSortBy>("updated_desc");
-    const [selectedAppointmentIds, setSelectedAppointmentIds] = useState<string[]>([]);
-    const [feedback, setFeedback] = useState("");
 
-    const [configDate, setConfigDate] = useState(() => toDateKey(new Date()));
-    const [blockDate, setBlockDate] = useState(false);
-    const [blockNote, setBlockNote] = useState("");
-    const [overrideCapacity, setOverrideCapacity] = useState(false);
-    const [capacityValue, setCapacityValue] = useState(0);
-    const [overrideSlots, setOverrideSlots] = useState(false);
-    const [slotDraftText, setSlotDraftText] = useState("");
-    const [locationValue, setLocationValue] = useState(state.settings.appointmentLocation);
-    const [roomValue, setRoomValue] = useState(state.settings.appointmentRoom);
-    const [allowedWeekdaysDraft, setAllowedWeekdaysDraft] = useState<number[]>(state.settings.allowedWeekdays);
+    const {
+        statusFilters,
+        setStatusFilters,
+        search,
+        setSearch,
+        dateFilter,
+        setDateFilter,
+        slotFilters,
+        setSlotFilters,
+        sortBy,
+        setSortBy,
+        selectedAppointmentIds,
+        setSelectedAppointmentIds,
+        slotOptions,
+        filteredAppointments,
+        selectedAppointments,
+        allFilteredSelected,
+        toggleSelectAllFiltered,
+        toggleAppointmentSelection,
+    } = useAdminAppointmentsFilters(state.appointments);
 
-    useEffect(() => {
-        setLocationValue(state.settings.appointmentLocation);
-        setRoomValue(state.settings.appointmentRoom);
-        setAllowedWeekdaysDraft(state.settings.allowedWeekdays);
-    }, [state.settings.appointmentLocation, state.settings.appointmentRoom, state.settings.allowedWeekdays]);
+    const {
+        configDate,
+        setConfigDate,
+        blockDate,
+        setBlockDate,
+        blockNote,
+        setBlockNote,
+        overrideCapacity,
+        setOverrideCapacity,
+        capacityValue,
+        setCapacityValue,
+        overrideSlots,
+        setOverrideSlots,
+        slotDraftText,
+        setSlotDraftText,
+        locationValue,
+        setLocationValue,
+        roomValue,
+        setRoomValue,
+        allowedWeekdaysDraft,
+        setAllowedWeekdaysDraft,
+        configDayBlockedEntry,
+        configDayCapacity,
+        configDayAppointments,
+        configDaySlots,
+        configDayCalendarRows,
+        handleSaveDayConfig,
+    } = useAdminAppointmentsConfig({
+        settings: state.settings,
+        appointments: state.appointments,
+        updateSettings,
+    });
 
-    useEffect(() => {
-        const blocked = state.settings.blockedDates.find((item) => item.date === configDate);
-        const capacityOverride = state.settings.capacityOverrides.find((item) => item.date === configDate);
-        const slotOverride = state.settings.slotOverrides.find((item) => item.date === configDate);
-        setBlockDate(Boolean(blocked));
-        setBlockNote(blocked?.note || "");
-        setOverrideCapacity(Boolean(capacityOverride));
-        setCapacityValue(capacityOverride?.appointmentsPerDay || state.settings.appointmentsPerDay);
-        setOverrideSlots(Boolean(slotOverride && slotOverride.slots.length > 0));
-        setSlotDraftText(
-            slotOverride?.slots
-                .map((slot) => `${slot.startTime}-${slot.endTime}`)
-                .join("\n") || ""
-        );
-    }, [configDate, state.settings]);
-
-    useEffect(() => {
-        if (!feedback) return;
-        const timer = window.setTimeout(() => setFeedback(""), 3500);
-        return () => window.clearTimeout(timer);
-    }, [feedback]);
-
-    const slotOptions = useMemo(() => {
-        const all = new Set<string>(TIME_SLOTS.map((slot) => `${slot.startTime}-${slot.endTime}`));
-        state.appointments.forEach((appointment) => all.add(`${appointment.slotStart}-${appointment.slotEnd}`));
-        return Array.from(all).sort();
-    }, [state.appointments]);
-
-    useEffect(() => {
-        setSlotFilters((prev) => prev.filter((slot) => slotOptions.includes(slot)));
-    }, [slotOptions]);
+    const {
+        bulkDialogOpen,
+        bulkAction,
+        bulkTargetIds,
+        bulkReason,
+        setBulkReason,
+        bulkAdminNote,
+        setBulkAdminNote,
+        singleDialogOpen,
+        singleAction,
+        singleReason,
+        setSingleReason,
+        singleAdminNote,
+        setSingleAdminNote,
+        singleAppointment,
+        rescheduleDialogOpen,
+        rescheduleDate,
+        setRescheduleDate,
+        rescheduleInterval,
+        setRescheduleInterval,
+        availableIntervalsLabel,
+        closeBulkDialog,
+        closeSingleDialog,
+        closeRescheduleDialog,
+        applyBulkStatusAction,
+        handleConfirmBulkAction,
+        handleApprove,
+        handleReject,
+        handleCancelByAdmin,
+        handleConfirmSingleAction,
+        handleReschedule,
+        handleConfirmReschedule,
+    } = useAdminAppointmentsActions({
+        appointments: state.appointments,
+        settings: state.settings,
+        selectedAppointments,
+        setSelectedAppointmentIds,
+        updateAppointmentStatus,
+        updateAppointment,
+    });
 
     const occupancyPreview = useMemo(
         () => getNextEligibleDates(state.settings, state.appointments, { count: 16 }),
         [state.settings, state.appointments]
-    );
-
-    const configDayBlockedEntry = useMemo(
-        () => getBlockedDateEntry(state.settings, configDate),
-        [configDate, state.settings]
-    );
-
-    const configDayCapacity = useMemo(
-        () => getDailyCapacity(state.settings, configDate),
-        [configDate, state.settings]
-    );
-
-    const configDayAppointments = useMemo(
-        () => getAppointmentsForDate(state.appointments, configDate, { activeOnly: true }),
-        [configDate, state.appointments]
-    );
-
-    const configDaySlots = useMemo(
-        () => buildAvailableSlotsForDate(state.settings, state.appointments, configDate),
-        [configDate, state.appointments, state.settings]
     );
 
     const pendingQueue = useMemo(
@@ -126,160 +138,6 @@ const AdminAppointmentsPage: React.FC = () => {
                 .slice(0, 8),
         [state.appointments]
     );
-
-    const configDayCalendarRows = useMemo(() => {
-        const activeBySlot = new Map(
-            configDayAppointments.map((appointment) => [`${appointment.slotStart}-${appointment.slotEnd}`, appointment])
-        );
-
-        return configDaySlots.map((slot) => {
-            const key = `${slot.startTime}-${slot.endTime}`;
-            const occupiedAppointment = activeBySlot.get(key);
-            return {
-                key,
-                slot,
-                occupiedAppointment,
-            };
-        });
-    }, [configDayAppointments, configDaySlots]);
-
-    const filteredAppointments = useMemo(() => {
-        return [...state.appointments]
-            .filter((appointment) => {
-                const matchesStatus =
-                    statusFilters.length === 0 ? true : statusFilters.includes(appointment.status);
-                const query = search.trim().toLowerCase();
-                const matchesSearch =
-                    !query ||
-                    appointment.fullName.toLowerCase().includes(query) ||
-                    appointment.idOrPhone.toLowerCase().includes(query) ||
-                    (appointment.userEmail || "").toLowerCase().includes(query) ||
-                    (appointment.appointmentCode || "").toLowerCase().includes(query);
-                const matchesDate = !dateFilter || toDateKey(appointment.date) === dateFilter;
-                const matchesSlot =
-                    slotFilters.length === 0 ||
-                    slotFilters.includes(`${appointment.slotStart}-${appointment.slotEnd}`);
-
-                return matchesStatus && matchesSearch && matchesDate && matchesSlot;
-            })
-            .sort((a, b) => {
-                if (sortBy === "exam_asc") {
-                    return new Date(a.date).getTime() - new Date(b.date).getTime();
-                }
-
-                if (sortBy === "exam_desc") {
-                    return new Date(b.date).getTime() - new Date(a.date).getTime();
-                }
-
-                if (sortBy === "name_asc") {
-                    return a.fullName.localeCompare(b.fullName, "ro");
-                }
-
-                const aTime = new Date(a.updatedAt || a.createdAt).getTime();
-                const bTime = new Date(b.updatedAt || b.createdAt).getTime();
-                return bTime - aTime;
-            });
-    }, [dateFilter, search, slotFilters, sortBy, state.appointments, statusFilters]);
-
-    useEffect(() => {
-        const availableIds = new Set(filteredAppointments.map((appointment) => appointment.id));
-        setSelectedAppointmentIds((prev) => prev.filter((id) => availableIds.has(id)));
-    }, [filteredAppointments]);
-
-    const selectedAppointments = useMemo(
-        () => filteredAppointments.filter((appointment) => selectedAppointmentIds.includes(appointment.id)),
-        [filteredAppointments, selectedAppointmentIds]
-    );
-
-    const allFilteredSelected =
-        filteredAppointments.length > 0 &&
-        filteredAppointments.every((appointment) => selectedAppointmentIds.includes(appointment.id));
-
-    const handleSaveDayConfig = () => {
-        if (!configDate) {
-            setFeedback("Selectează o dată pentru configurare.");
-            return;
-        }
-
-        const nextBlockedDates = blockDate
-            ? [
-                  ...state.settings.blockedDates.filter((item) => item.date !== configDate),
-                  { date: configDate, note: blockNote.trim() || undefined },
-              ].sort((a, b) => a.date.localeCompare(b.date))
-            : state.settings.blockedDates.filter((item) => item.date !== configDate);
-
-        const nextCapacityOverrides = overrideCapacity
-            ? [
-                  ...state.settings.capacityOverrides.filter((item) => item.date !== configDate),
-                  { date: configDate, appointmentsPerDay: Math.max(1, Number(capacityValue) || 1) },
-              ].sort((a, b) => a.date.localeCompare(b.date))
-            : state.settings.capacityOverrides.filter((item) => item.date !== configDate);
-
-        const nextSlotOverrides = (() => {
-            if (!overrideSlots) {
-                return state.settings.slotOverrides.filter((item) => item.date !== configDate);
-            }
-
-            const parsedLines = slotDraftText
-                .split(/\r?\n/)
-                .map((line) => line.trim())
-                .filter(Boolean);
-
-            if (parsedLines.length === 0) {
-                setFeedback("Adaugă cel puțin un slot valid sau dezactivează override sloturi.");
-                return null;
-            }
-
-            const slots = parsedLines.map((line, index) => {
-                const match = line.match(/^(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})$/);
-                if (!match) return null;
-                const startTime = match[1];
-                const endTime = match[2];
-                if (startTime >= endTime) return null;
-                return {
-                    id: `slot-${configDate}-${index + 1}`,
-                    startTime,
-                    endTime,
-                    available: true,
-                };
-            });
-
-            if (slots.some((slot) => !slot)) {
-                setFeedback("Format slot invalid. Folosește linii de forma HH:MM-HH:MM.");
-                return null;
-            }
-
-            const deduped = Array.from(
-                new Map(
-                    (slots as Array<{ id: string; startTime: string; endTime: string; available: boolean }>).map((slot) => [
-                        `${slot.startTime}-${slot.endTime}`,
-                        slot,
-                    ])
-                ).values()
-            ).sort((a, b) => `${a.startTime}-${a.endTime}`.localeCompare(`${b.startTime}-${b.endTime}`));
-
-            return [
-                ...state.settings.slotOverrides.filter((item) => item.date !== configDate),
-                { date: configDate, slots: deduped },
-            ].sort((a, b) => a.date.localeCompare(b.date));
-        })();
-
-        if (nextSlotOverrides === null) {
-            return;
-        }
-
-        updateSettings({
-            ...state.settings,
-            appointmentLocation: locationValue.trim() || state.settings.appointmentLocation,
-            appointmentRoom: roomValue.trim() || state.settings.appointmentRoom,
-            allowedWeekdays: allowedWeekdaysDraft.length > 0 ? allowedWeekdaysDraft : state.settings.allowedWeekdays,
-            blockedDates: nextBlockedDates,
-            capacityOverrides: nextCapacityOverrides,
-            slotOverrides: nextSlotOverrides,
-        });
-
-        setFeedback(`Configurația pentru ${configDate} a fost salvată.`);
-    };
 
     const handleExportCsv = () => {
         const rows = [
@@ -313,194 +171,28 @@ const AdminAppointmentsPage: React.FC = () => {
         const anchor = globalThis["document"]?.createElement("a");
         if (!anchor) {
             URL.revokeObjectURL(url);
-            setFeedback("Export CSV indisponibil în acest context.");
+            toast.error("Export CSV indisponibil în acest context.");
             return;
         }
         anchor.href = url;
         anchor.download = `admin-programări-${new Date().toISOString().slice(0, 10)}.csv`;
         anchor.click();
         URL.revokeObjectURL(url);
-        setFeedback("Export CSV generat.");
+        toast.success("Export CSV generat.");
     };
 
-    const toggleSelectAllFiltered = () => {
-        if (allFilteredSelected) {
-            setSelectedAppointmentIds([]);
-            return;
-        }
-
-        setSelectedAppointmentIds(filteredAppointments.map((appointment) => appointment.id));
-    };
-
-    const toggleAppointmentSelection = (appointmentId: string) => {
-        setSelectedAppointmentIds((prev) =>
-            prev.includes(appointmentId) ? prev.filter((id) => id !== appointmentId) : [...prev, appointmentId]
-        );
-    };
-
-    const applyBulkStatusAction = (action: "approve" | "reject" | "cancel") => {
-        if (selectedAppointments.length === 0) {
-            setFeedback("Selectează cel puțin o programare.");
-            return;
-        }
-
-        const eligibleAppointments = selectedAppointments.filter((appointment) => {
-            if (action === "approve") {
-                return appointment.status !== "approved" && appointment.status !== "cancelled";
-            }
-            return appointment.status !== "cancelled";
-        });
-
-        if (eligibleAppointments.length === 0) {
-            setFeedback("Nicio programare selectată nu este eligibilă pentru acțiunea aleasă.");
-            return;
-        }
-
-        const actionLabel =
-            action === "approve" ? "aprobarea" : action === "reject" ? "respingerea" : "anularea";
-        if (!window.confirm(`Confirmi ${actionLabel} pentru ${eligibleAppointments.length} programări?`)) {
-            return;
-        }
-
-        let reason: string | null = null;
-        let adminNote: string | null = null;
-
-        if (action === "reject") {
-            reason = (window.prompt("Motivul respingerii (vizibil utilizatorului):", "") || "").trim() || null;
-            if (!reason) {
-                setFeedback("Respingerea bulk necesita un motiv.");
-                return;
-            }
-            adminNote = (window.prompt("Nota interna admin (optional):", "") || "").trim() || null;
-        }
-
-        if (action === "cancel") {
-            reason = (window.prompt("Motiv anulare (vizibil utilizatorului, optional):", "") || "").trim() || null;
-        }
-
-        if (action === "approve") {
-            adminNote = (window.prompt("Nota admin (optional, aplicata tuturor):", "") || "").trim() || null;
-        }
-
-        eligibleAppointments.forEach((appointment) => {
-            if (action === "approve") {
-                updateAppointmentStatus(appointment.id, "approved", { reason: null, adminNote });
-                return;
-            }
-
-            if (action === "reject") {
-                updateAppointmentStatus(appointment.id, "rejected", { reason, adminNote });
-                return;
-            }
-
-            updateAppointmentStatus(appointment.id, "cancelled", { reason, cancelledBy: "admin" });
-        });
-
-        setSelectedAppointmentIds([]);
-        setFeedback(
-            `${eligibleAppointments.length} programări au fost ${action === "approve" ? "aprobate" : action === "reject" ? "respinse" : "anulate"}.`
-        );
-    };
-
-    const handleApprove = (appointmentId: string) => {
-        if (!window.confirm("Confirmi aprobarea acestei programări?")) return;
-        const adminNote = window.prompt("Nota admin (optional):", "") || "";
-        updateAppointmentStatus(appointmentId, "approved", {
-            reason: null,
-            adminNote: adminNote.trim() || null,
-        });
-        setFeedback("Programarea a fost aprobată.");
-    };
-
-    const handleReject = (appointmentId: string) => {
-        if (!window.confirm("Confirmi respingerea acestei programări?")) return;
-        const reason = window.prompt("Motivul respingerii (vizibil utilizatorului):", "");
-        if (!reason || !reason.trim()) {
-            setFeedback("Respingerea necesită un motiv.");
-            return;
-        }
-
-        const adminNote = window.prompt("Nota interna admin (optional):", "") || "";
-        updateAppointmentStatus(appointmentId, "rejected", {
-            reason: reason.trim(),
-            adminNote: adminNote.trim() || null,
-        });
-        setFeedback("Programarea a fost respinsă.");
-    };
-
-    const handleCancelByAdmin = (appointmentId: string) => {
-        if (!window.confirm("Confirmi anularea acestei programări de către admin?")) return;
-        const reason = window.prompt("Motiv anulare (vizibil utilizatorului):", "") || "";
-        updateAppointmentStatus(appointmentId, "cancelled", {
-            reason: reason.trim() || null,
-            cancelledBy: "admin",
-        });
-        setFeedback("Programarea a fost anulată de admin.");
-    };
-
-    const handleReschedule = (appointmentId: string) => {
-        const appointment = state.appointments.find((item) => item.id === appointmentId);
-        if (!appointment) return;
-        if (!window.confirm("Confirmi reprogramarea acestei cereri?")) return;
-
-        const nextDateValue = window.prompt("Data nouă (YYYY-MM-DD):", toDateKey(appointment.date)) || "";
-        if (!nextDateValue) return;
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(nextDateValue) || !isAllowedDay(parseDateKey(nextDateValue), state.settings.allowedWeekdays)) {
-            setFeedback("Data introdusă nu este validă (zi neeligibilă).");
-            return;
-        }
-        if (getBlockedDateEntry(state.settings, nextDateValue)) {
-            setFeedback("Ziua selectată este blocată.");
-            return;
-        }
-
-        const slotOptionsForDay = buildAvailableSlotsForDate(state.settings, state.appointments, nextDateValue, {
-            excludeAppointmentId: appointmentId,
-        });
-        const suggested = slotOptionsForDay.find((slot) => slot.available);
-
-        const availableIntervals = slotOptionsForDay
-            .filter((slot) => slot.available)
-            .map((slot) => `${slot.startTime}-${slot.endTime}`)
-            .join(", ");
-
-        const nextIntervalValue =
-            window.prompt(
-                `Interval nou (HH:MM-HH:MM). Intervale disponibile: ${availableIntervals || "niciunul"}`,
-                suggested ? `${suggested.startTime}-${suggested.endTime}` : ""
-            ) || "";
-
-        if (!nextIntervalValue) return;
-
-        const [slotStart, slotEnd] = nextIntervalValue.split("-");
-        const validSlot = slotOptionsForDay.find(
-            (slot) => slot.startTime === slotStart && slot.endTime === slotEnd && slot.available
-        );
-        if (!validSlot) {
-            setFeedback("Intervalul introdus nu este disponibil.");
-            return;
-        }
-
-        updateAppointment(appointmentId, {
-            date: new Date(`${nextDateValue}T00:00:00`).toISOString(),
-            slotStart: validSlot.startTime,
-            slotEnd: validSlot.endTime,
-            rescheduleCount: (appointment.rescheduleCount || 0) + 1,
-            previousAppointmentId: appointment.previousAppointmentId || appointment.id,
-            status: appointment.status === "rejected" || appointment.status === "cancelled" ? "pending" : appointment.status,
-            statusReason: undefined,
-            updatedAt: new Date().toISOString(),
-        });
-
-        notifyUser(appointment.userEmail, {
-            title: "Programare reprogramată",
-            message: `Programarea ${appointment.appointmentCode || ""} a fost mutată la ${nextDateValue}, ${validSlot.startTime}-${validSlot.endTime}.`,
-            link: "/dashboard",
-            tag: `admin-reschedule-${appointmentId}-${nextDateValue}-${validSlot.id}`,
-        });
-
-        setFeedback("Programarea a fost reprogramată.");
-    };
+    const actionDialogTitle =
+        singleAction === "approve"
+            ? "Aprobare programare"
+            : singleAction === "reject"
+                ? "Respingere programare"
+                : "Anulare programare";
+    const bulkDialogTitle =
+        bulkAction === "approve"
+            ? "Aprobare programări"
+            : bulkAction === "reject"
+                ? "Respingere programări"
+                : "Anulare programări";
 
     return (
         <div className="admin-page-content">
@@ -508,12 +200,6 @@ const AdminAppointmentsPage: React.FC = () => {
                 <h2>Programări examen</h2>
                 <p>Revizuiește cererile, gestionează ocuparea zilelor și aplică reguli per zi.</p>
             </section>
-
-            {feedback && (
-                <div className="admin-feedback-banner" role="status">
-                    {feedback}
-                </div>
-            )}
 
             <section className="admin-panel-card">
                 <div className="admin-card-header">
@@ -614,6 +300,140 @@ const AdminAppointmentsPage: React.FC = () => {
                 formatDateTimeLabel={formatDateTimeLabel}
                 statusLabel={appointmentStatusLabelFeminine}
             />
+
+            <Dialog open={bulkDialogOpen} onClose={closeBulkDialog} maxWidth="sm" fullWidth>
+                <DialogTitle>{bulkDialogTitle}</DialogTitle>
+                <DialogContent>
+                    <p>
+                        Confirmi {bulkAction === "approve" ? "aprobarea" : bulkAction === "reject" ? "respingerea" : "anularea"} pentru {bulkTargetIds.length} programări?
+                    </p>
+                    {bulkAction === "reject" && (
+                        <>
+                            <TextField
+                                label="Motiv respingere"
+                                value={bulkReason}
+                                onChange={(event) => setBulkReason(event.target.value)}
+                                fullWidth
+                                required
+                                margin="dense"
+                            />
+                            <TextField
+                                label="Nota internă (optional)"
+                                value={bulkAdminNote}
+                                onChange={(event) => setBulkAdminNote(event.target.value)}
+                                fullWidth
+                                margin="dense"
+                            />
+                        </>
+                    )}
+                    {bulkAction === "cancel" && (
+                        <TextField
+                            label="Motiv anulare (optional)"
+                            value={bulkReason}
+                            onChange={(event) => setBulkReason(event.target.value)}
+                            fullWidth
+                            margin="dense"
+                        />
+                    )}
+                    {bulkAction === "approve" && (
+                        <TextField
+                            label="Nota admin (optional)"
+                            value={bulkAdminNote}
+                            onChange={(event) => setBulkAdminNote(event.target.value)}
+                            fullWidth
+                            margin="dense"
+                        />
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={closeBulkDialog}>Renunță</Button>
+                    <Button variant="contained" onClick={handleConfirmBulkAction}>
+                        Confirmă
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog open={singleDialogOpen} onClose={closeSingleDialog} maxWidth="sm" fullWidth>
+                <DialogTitle>{actionDialogTitle}</DialogTitle>
+                <DialogContent>
+                    <p>
+                        Confirmi {singleAction === "approve" ? "aprobarea" : singleAction === "reject" ? "respingerea" : "anularea"} acestei programări
+                        {singleAppointment?.appointmentCode ? ` (${singleAppointment.appointmentCode})` : ""}?
+                    </p>
+                    {singleAction === "reject" && (
+                        <>
+                            <TextField
+                                label="Motiv respingere"
+                                value={singleReason}
+                                onChange={(event) => setSingleReason(event.target.value)}
+                                fullWidth
+                                required
+                                margin="dense"
+                            />
+                            <TextField
+                                label="Nota internă (optional)"
+                                value={singleAdminNote}
+                                onChange={(event) => setSingleAdminNote(event.target.value)}
+                                fullWidth
+                                margin="dense"
+                            />
+                        </>
+                    )}
+                    {singleAction === "cancel" && (
+                        <TextField
+                            label="Motiv anulare (optional)"
+                            value={singleReason}
+                            onChange={(event) => setSingleReason(event.target.value)}
+                            fullWidth
+                            margin="dense"
+                        />
+                    )}
+                    {singleAction === "approve" && (
+                        <TextField
+                            label="Nota admin (optional)"
+                            value={singleAdminNote}
+                            onChange={(event) => setSingleAdminNote(event.target.value)}
+                            fullWidth
+                            margin="dense"
+                        />
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={closeSingleDialog}>Renunță</Button>
+                    <Button variant="contained" onClick={handleConfirmSingleAction}>
+                        Confirmă
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog open={rescheduleDialogOpen} onClose={closeRescheduleDialog} maxWidth="sm" fullWidth>
+                <DialogTitle>Reprogramează cererea</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        label="Data nouă"
+                        type="date"
+                        value={rescheduleDate}
+                        onChange={(event) => setRescheduleDate(event.target.value)}
+                        fullWidth
+                        margin="dense"
+                        InputLabelProps={{ shrink: true }}
+                    />
+                    <TextField
+                        label="Interval (HH:MM-HH:MM)"
+                        value={rescheduleInterval}
+                        onChange={(event) => setRescheduleInterval(event.target.value)}
+                        fullWidth
+                        margin="dense"
+                        helperText={`Intervale disponibile: ${availableIntervalsLabel || "niciunul"}`}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={closeRescheduleDialog}>Renunță</Button>
+                    <Button variant="contained" onClick={handleConfirmReschedule}>
+                        Confirmă
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </div>
     );
 };

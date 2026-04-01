@@ -27,7 +27,7 @@ export const useUserAppointmentsPageController = () => {
     }, [appointments, user?.email]);
 
     const canCancelAppointment = (status: string) => status === "pending" || status === "approved";
-    const canRescheduleAppointment = (appointment: any) =>
+    const canRescheduleAppointment = (appointment: AdminAppointmentRecord) =>
         (appointment.status === "pending" || appointment.status === "approved") &&
         (appointment.rescheduleCount || 0) < examSettings.maxReschedulesPerUser;
 
