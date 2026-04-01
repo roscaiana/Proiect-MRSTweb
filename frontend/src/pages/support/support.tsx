@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
+﻿import React, { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { Search, LifeBuoy, FileText, HelpCircle, Calculator } from "lucide-react";
 import { FaqItem, FaqCategory } from "@/types/support1.1";
 import Sidebar from "../../components/SideBar/SideBar";
@@ -159,9 +160,9 @@ const Support: React.FC = () => {
                                         <p className="support-card-text">
                                             Nu ați găsit răspunsul? Echipa noastră este gata să vă ajute.
                                         </p>
-                                        <a href="/contact" className="contact-btn">
+                                        <Link to="/contact" className="contact-btn">
                                             Contactați-ne
-                                        </a>
+                                        </Link>
                                     </div>
                                 </div>
                             </div>

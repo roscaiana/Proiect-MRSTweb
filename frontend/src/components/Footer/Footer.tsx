@@ -22,15 +22,15 @@ export default function Footer() {
                         Chișinău, Republica Moldova
                     </p>
                     <div className="social-links">
-                        <a href="#" onClick={stop} aria-label="Facebook">
+                        <Link to="#" onClick={stop} aria-label="Facebook">
                             <i className="fab fa-facebook-f" />
-                        </a>
-                        <a href="#" onClick={stop} aria-label="LinkedIn">
+                        </Link>
+                        <Link to="#" onClick={stop} aria-label="LinkedIn">
                             <i className="fab fa-linkedin-in" />
-                        </a>
-                        <a href="#" onClick={stop} aria-label="YouTube">
+                        </Link>
+                        <Link to="#" onClick={stop} aria-label="YouTube">
                             <i className="fab fa-youtube" />
-                        </a>
+                        </Link>
                     </div>
                 </div>
                 <div className="footer-col">

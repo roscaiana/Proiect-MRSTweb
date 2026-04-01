@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth";
 import { useStorageSync } from "../../../hooks/useStorageSync";
 import type { UpdateUserProfileInput } from "../../../types/user";
-import type { AdminAppointmentRecord } from "../../../features/admin/types";
+import type { AdminAppointmentRecord, QuizHistoryRecord } from "../../../features/admin/types";
 import { notifyAdmins, notifyUser } from "../../../utils/appEventNotifications";
 import {
     readAppointments,
@@ -94,7 +94,7 @@ export const useUserDashboardController = () => {
     const packagePerformance = useMemo<PackagePerformanceItem[]>(() => {
         const grouped = new Map<string, { name: string; attempts: number; totalScore: number; passed: number }>();
 
-        sortedUserQuizHistory.forEach((attempt: any) => {
+        sortedUserQuizHistory.forEach((attempt: QuizHistoryRecord) => {
             const name = (attempt.categoryTitle || "Test general").trim();
             const current = grouped.get(name) || { name, attempts: 0, totalScore: 0, passed: 0 };
             current.attempts += 1;
@@ -120,7 +120,7 @@ export const useUserDashboardController = () => {
 
     const overallPassRate = useMemo(() => {
         if (!sortedUserQuizHistory.length) return 0;
-        const passedAttempts = sortedUserQuizHistory.filter((attempt: any) => attempt.score >= passThreshold).length;
+        const passedAttempts = sortedUserQuizHistory.filter((attempt: QuizHistoryRecord) => attempt.score >= passThreshold).length;
         return Math.round((passedAttempts / sortedUserQuizHistory.length) * 100);
     }, [sortedUserQuizHistory, passThreshold]);
 
@@ -134,7 +134,7 @@ export const useUserDashboardController = () => {
     const profileAvatarInitial = (profileDisplayName || user?.email || "U").charAt(0).toUpperCase();
 
     const canCancelAppointment = (status: string) => status === "pending" || status === "approved";
-    const canRescheduleAppointment = (appointment: any) =>
+    const canRescheduleAppointment = (appointment: AdminAppointmentRecord) =>
         (appointment.status === "pending" || appointment.status === "approved") &&
         (appointment.rescheduleCount || 0) < examSettings.maxReschedulesPerUser;
 
@@ -242,8 +242,8 @@ export const useUserDashboardController = () => {
             setProfileMessage("Profilul a fost actualizat.");
             setIsProfileEditorOpen(false);
             if (avatarInputRef.current) avatarInputRef.current.value = "";
-        } catch (error: any) {
-            setProfileError(error?.message || "Nu am putut actualiza profilul.");
+        } catch (error: unknown) {
+            setProfileError(error instanceof Error ? error.message : "Nu am putut actualiza profilul.");
         } finally {
             setIsProfileSaving(false);
         }

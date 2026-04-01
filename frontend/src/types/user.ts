@@ -36,8 +36,3 @@ export interface AuthState {
     user: User | null;
     token: string | null;
 }
-
-export interface AuthError {
-    field?: string;
-    message: string;
-}

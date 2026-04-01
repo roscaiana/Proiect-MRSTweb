@@ -1,31 +1,23 @@
-import type { AppointmentFormData, FormErrors, TimeSlot } from '../../types/appointment';
-import type { AdminAppointmentRecord, ExamSettings } from '../../features/admin/types';
-import {
-    getAppointmentsForDate,
-    getBlockedDateEntry,
-    getDailyCapacity,
-    isLeadTimeSatisfied,
-    toDateKey,
-} from '../../utils/appointmentScheduling';
-import { isAllowedDay } from '../../utils/dateUtils';
+import type { UseFormClearErrors, UseFormReset, UseFormSetValue, UseFormTrigger } from 'react-hook-form';
+import type { AppointmentFormData, TimeSlot } from '../../types/appointment';
+import type { AdminAppointmentRecord } from '../../features/admin/types';
 import { clampMonth as clampMonthToRange, navigateMonth, startOfMonth } from '../../utils/calendarUtils';
 import type { AppointmentWizardTab } from './appointmentController.constants';
+import type { AppointmentFormValues } from '../../schemas/appointmentSchema';
 
 type UseAppointmentControllerHandlersParams = {
     userFullName: string | undefined;
     clearDraft: () => void;
     formData: AppointmentFormData;
-    setFormData: (value: AppointmentFormData | ((prev: AppointmentFormData) => AppointmentFormData)) => void;
-    setErrors: (value: FormErrors | ((prev: FormErrors) => FormErrors)) => void;
+    setValue: UseFormSetValue<AppointmentFormValues>;
+    trigger: UseFormTrigger<AppointmentFormValues>;
+    clearErrors: UseFormClearErrors<AppointmentFormValues>;
+    reset: UseFormReset<AppointmentFormValues>;
     setIsSubmitted: (value: boolean) => void;
     setSubmittedAppointment: (value: AdminAppointmentRecord | null) => void;
     setSubmitMessage: (value: string) => void;
     setRescheduleSourceId: (value: string | null) => void;
     setActiveTab: (value: AppointmentWizardTab) => void;
-    appointments: AdminAppointmentRecord[];
-    examSettings: ExamSettings;
-    rescheduleSourceId: string | null;
-    allowedWeekdayNames: string;
     minDate: Date;
     maxDate: Date;
     isCalendarOpen: boolean;
@@ -35,23 +27,22 @@ type UseAppointmentControllerHandlersParams = {
     canNavigatePrevMonth: boolean;
     canNavigateNextMonth: boolean;
     allAvailableSlots: TimeSlot[];
+    setLastUnavailableSlotId: (value: string | null) => void;
 };
 
 export const useAppointmentControllerHandlers = ({
     userFullName,
     clearDraft,
     formData,
-    setFormData,
-    setErrors,
+    setValue,
+    trigger,
+    clearErrors,
+    reset,
     setIsSubmitted,
     setSubmittedAppointment,
     setSubmitMessage,
     setRescheduleSourceId,
     setActiveTab,
-    appointments,
-    examSettings,
-    rescheduleSourceId,
-    allowedWeekdayNames,
     minDate,
     maxDate,
     isCalendarOpen,
@@ -61,41 +52,22 @@ export const useAppointmentControllerHandlers = ({
     canNavigatePrevMonth,
     canNavigateNextMonth,
     allAvailableSlots,
+    setLastUnavailableSlotId,
 }: UseAppointmentControllerHandlersParams) => {
-    const handleDateValueChange = (dateString: string) => {
+    const handleDateValueChange = async (dateString: string) => {
         if (!dateString) {
-            setFormData((prev) => ({ ...prev, selectedDate: null, selectedSlot: null }));
-            setErrors((prev) => ({ ...prev, date: undefined, slot: undefined }));
+            setValue('selectedDate', null, { shouldValidate: true });
+            setValue('selectedSlot', null, { shouldValidate: true });
+            setLastUnavailableSlotId(null);
+            await trigger(['selectedDate', 'selectedSlot']);
             return;
         }
 
         const selectedDate = new Date(`${dateString}T00:00:00`);
-        const dateKey = toDateKey(selectedDate);
-        const dayAppointments = getAppointmentsForDate(appointments, dateKey, {
-            activeOnly: true,
-            excludeId: rescheduleSourceId || undefined,
-        });
-        const dayCapacity = getDailyCapacity(examSettings, dateKey);
-        const blockedEntry = getBlockedDateEntry(examSettings, dateKey);
-        const isDayFullyBooked = dayAppointments.length >= dayCapacity;
-        let dateError: string | undefined;
-        let slotError: string | undefined;
-
-        if (!isAllowedDay(selectedDate, examSettings.allowedWeekdays)) {
-            dateError = `Vă rugăm să selectați ${allowedWeekdayNames}.`;
-        } else if (blockedEntry) {
-            dateError = blockedEntry.note
-                ? `Ziua este blocată: ${blockedEntry.note}.`
-                : 'Ziua selectată este blocată pentru programări.';
-        } else if (!isLeadTimeSatisfied(examSettings, selectedDate)) {
-            dateError = `Programarea trebuie făcută cu cel puțin ${examSettings.appointmentLeadTimeHours} ore înainte.`;
-        } else if (isDayFullyBooked) {
-            dateError = `Ziua selectată este complet rezervată (${dayCapacity}/${dayCapacity}).`;
-            slotError = 'Nu mai sunt intervale disponibile pentru această zi.';
-        }
-
-        setFormData((prev) => ({ ...prev, selectedDate, selectedSlot: null }));
-        setErrors((prev) => ({ ...prev, date: dateError, slot: slotError }));
+        setValue('selectedDate', selectedDate, { shouldValidate: true });
+        setValue('selectedSlot', null, { shouldValidate: true });
+        setLastUnavailableSlotId(null);
+        await trigger(['selectedDate', 'selectedSlot']);
     };
 
     const toggleCalendar = () => {
@@ -113,31 +85,33 @@ export const useAppointmentControllerHandlers = ({
         if (canNavigateNextMonth) setCalendarMonth(navigateMonth('next', calendarMonth, minDate, maxDate));
     };
     const handleCalendarDaySelect = (dateKey: string) => {
-        handleDateValueChange(dateKey);
+        void handleDateValueChange(dateKey);
         setIsCalendarOpen(false);
     };
-    const handleSlotSelect = (slotId: string) => {
+    const handleSlotSelect = async (slotId: string) => {
         const slot = allAvailableSlots.find((item) => item.id === slotId && item.available);
         if (!slot) return;
-        setFormData((prev) => ({ ...prev, selectedSlot: slot }));
-        setErrors((prev) => ({ ...prev, slot: undefined }));
+        setValue('selectedSlot', slot, { shouldValidate: true });
+        setLastUnavailableSlotId(null);
+        await trigger('selectedSlot');
     };
-    const handleFullNameChange = (value: string) => {
-        setFormData((prev) => ({ ...prev, fullName: value }));
-        setErrors((prev) => ({ ...prev, fullName: undefined }));
+    const handleFullNameChange = async (value: string) => {
+        setValue('fullName', value, { shouldValidate: true });
+        await trigger('fullName');
     };
-    const handleIdOrPhoneChange = (value: string) => {
-        setFormData((prev) => ({ ...prev, idOrPhone: value }));
-        setErrors((prev) => ({ ...prev, idOrPhone: undefined }));
+    const handleIdOrPhoneChange = async (value: string) => {
+        setValue('idOrPhone', value, { shouldValidate: true });
+        await trigger('idOrPhone');
     };
     const handleNewAppointment = () => {
-        setFormData({ fullName: userFullName || '', idOrPhone: '', selectedDate: null, selectedSlot: null });
-        setErrors({});
+        reset({ fullName: userFullName || '', idOrPhone: '', selectedDate: null, selectedSlot: null });
+        clearErrors();
         setIsSubmitted(false);
         setSubmittedAppointment(null);
         setSubmitMessage('');
         setRescheduleSourceId(null);
         setActiveTab(1);
+        setLastUnavailableSlotId(null);
         clearDraft();
     };
 

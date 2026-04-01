@@ -1,59 +1,39 @@
-﻿import React, { useState, FormEvent, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Mail, Phone, MapPin, Send, MessageSquare, User, AtSign, CheckCircle2 } from 'lucide-react';
-import { ContactFormData } from '@/types/contact';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { contactSchema, type ContactFormValues } from '../../schemas/contactSchema';
 import Sidebar from "../../components/SideBar/SideBar";
 import './Contact.css';
 
-const Contact: React.FC = () => {
+const Contact = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [formData, setFormData] = useState<ContactFormData>({
-        name: '',
-        email: '',
-        subject: '',
-        message: '',
-    });
-
-    const [errors, setErrors] = useState<Partial<ContactFormData>>({});
     const [isSubmitted, setIsSubmitted] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const validate = (): boolean => {
-        const newErrors: Partial<ContactFormData> = {};
-        if (!formData.name.trim()) newErrors.name = 'Numele este obligatoriu';
-        if (!formData.email.trim()) {
-            newErrors.email = 'Email-ul este obligatoriu';
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            newErrors.email = 'Adresa de email este invalidă';
-        }
-        if (!formData.subject.trim()) newErrors.subject = 'Subiectul este obligatoriu';
-        if (!formData.message.trim()) {
-            newErrors.message = 'Mesajul este obligatoriu';
-        } else if (formData.message.length < 10) {
-            newErrors.message = 'Mesajul trebuie să de minim 10 caractere';
-        }
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors },
+    } = useForm<ContactFormValues>({
+        resolver: zodResolver(contactSchema),
+        defaultValues: {
+            name: '',
+            email: '',
+            subject: '',
+            message: '',
+        },
+        reValidateMode: 'onChange',
+    });
 
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-    const handleSubmit = (e: FormEvent) => {
-        e.preventDefault();
-        if (validate()) {
-            setIsSubmitting(true);
-            setTimeout(() => {
-                setIsSubmitting(false);
-                setIsSubmitted(true);
-                setFormData({ name: '', email: '', subject: '', message: '' });
-            }, 1500);
-        }
-    };
-
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
-        if (errors[name as keyof ContactFormData]) {
-            setErrors(prev => ({ ...prev, [name]: undefined }));
-        }
+    const onSubmit = () => {
+        setIsSubmitting(true);
+        setTimeout(() => {
+            setIsSubmitting(false);
+            setIsSubmitted(true);
+            reset();
+        }, 1500);
     };
 
     useEffect(() => {
@@ -64,7 +44,6 @@ const Contact: React.FC = () => {
         };
     }, [sidebarOpen]);
 
-    const openSidebar = () => setSidebarOpen(true);
     const closeSidebar = () => setSidebarOpen(false);
 
     return (
@@ -72,7 +51,6 @@ const Contact: React.FC = () => {
             <Sidebar open={sidebarOpen} onClose={closeSidebar} />
             <main>
                 <div className="contact-container">
-                    {/* Hero Section */}
                     <div className="contact-hero">
                         <div className="hero-overlay-1"></div>
                         <div className="hero-overlay-2"></div>
@@ -97,9 +75,7 @@ const Contact: React.FC = () => {
 
                     <div className="main-content">
                         <div className="contact-grid">
-                            {/* Sidebar Section */}
                             <div className="contact-sidebar">
-                                {/* Contact Cards */}
                                 <div className="info-card">
                                     <div className="info-card-content">
                                         <div className="info-icon-wrapper">
@@ -136,7 +112,6 @@ const Contact: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {/* Map Container */}
                                 <div className="map-container">
                                     <div className="map-wrapper">
                                         <div className="map-overlay"></div>
@@ -152,7 +127,6 @@ const Contact: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Form Section */}
                             <div className="form-section">
                                 <div className="form-card">
                                     <div className="form-blob-1"></div>
@@ -185,7 +159,7 @@ const Contact: React.FC = () => {
                                                     <p className="form-subtitle">Completați formularul de mai jos și vă vom răspunde rapid.</p>
                                                 </div>
 
-                                                <form onSubmit={handleSubmit} className="form-grid-wrapper">
+                                                <form onSubmit={handleSubmit(onSubmit)} className="form-grid-wrapper">
                                                     <div className="form-grid">
                                                         <div className="form-group">
                                                             <label className="form-label">Nume Complet</label>
@@ -193,14 +167,12 @@ const Contact: React.FC = () => {
                                                                 <User className="input-icon" />
                                                                 <input
                                                                     type="text"
-                                                                    name="name"
-                                                                    value={formData.name}
-                                                                    onChange={handleChange}
+                                                                    {...register('name')}
                                                                     className="form-input"
                                                                     placeholder="Ex: Ion Popescu"
                                                                 />
                                                             </div>
-                                                            {errors.name && <p className="form-error"><span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> {errors.name}</p>}
+                                                            {errors.name && <p className="form-error"><span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> {errors.name.message}</p>}
                                                         </div>
 
                                                         <div className="form-group">
@@ -209,14 +181,12 @@ const Contact: React.FC = () => {
                                                                 <AtSign className="input-icon" />
                                                                 <input
                                                                     type="email"
-                                                                    name="email"
-                                                                    value={formData.email}
-                                                                    onChange={handleChange}
+                                                                    {...register('email')}
                                                                     className="form-input"
                                                                     placeholder="ex@exemplu.md"
                                                                 />
                                                             </div>
-                                                            {errors.email && <p className="form-error"><span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> {errors.email}</p>}
+                                                            {errors.email && <p className="form-error"><span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> {errors.email.message}</p>}
                                                         </div>
                                                     </div>
 
@@ -224,26 +194,22 @@ const Contact: React.FC = () => {
                                                         <label className="form-label">Subiect</label>
                                                         <input
                                                             type="text"
-                                                            name="subject"
-                                                            value={formData.subject}
-                                                            onChange={handleChange}
+                                                            {...register('subject')}
                                                             className="form-input"
                                                             placeholder="Cum vă putem ajuta?"
                                                         />
-                                                        {errors.subject && <p className="form-error"><span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> {errors.subject}</p>}
+                                                        {errors.subject && <p className="form-error"><span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> {errors.subject.message}</p>}
                                                     </div>
 
                                                     <div className="form-group" style={{ marginTop: '2rem' }}>
                                                         <label className="form-label">Mesaj</label>
                                                         <textarea
-                                                            name="message"
-                                                            value={formData.message}
-                                                            onChange={handleChange}
+                                                            {...register('message')}
                                                             rows={6}
                                                             className="form-textarea"
                                                             placeholder="Scrieți mesajul detaliat aici..."
                                                         />
-                                                        {errors.message && <p className="form-error"><span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> {errors.message}</p>}
+                                                        {errors.message && <p className="form-error"><span className="w-1.5 h-1.5 rounded-full bg-red-500"></span> {errors.message.message}</p>}
                                                     </div>
 
                                                     <button
