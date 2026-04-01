@@ -1,3 +1,4 @@
+using e_ElectoralWeb.Api.Seed;
 using e_ElectoralWeb.DataAccessLayer;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +11,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
+
+await DBSeed.SeedAsync();
 
 if (app.Environment.IsDevelopment())
 {
