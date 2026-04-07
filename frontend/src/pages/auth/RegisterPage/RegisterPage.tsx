@@ -1,41 +1,42 @@
-﻿import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { RegisterData, AuthError } from '../../../types/user';
-import { validateRegistration, mockRegister } from '../../../utils/authUtils';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { toast } from 'react-hot-toast';
+import { mockRegister } from '../../../utils/authUtils';
 import { notifyAdmins } from '../../../utils/appEventNotifications';
+import { registerSchema, type RegisterFormValues } from '../../../schemas/authSchemas';
 import './RegisterPage.css';
 
-const RegisterPage: React.FC = () => {
+const RegisterPage = () => {
     const navigate = useNavigate();
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-    const [formData, setFormData] = useState<RegisterData>({
-        fullName: '',
-        email: '',
-        password: '',
-        confirmPassword: ''
-    });
-    const [errors, setErrors] = useState<AuthError[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [generalError, setGeneralError] = useState<string>('');
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const {
+        register,
+        handleSubmit,
+        watch,
+        formState: { errors },
+    } = useForm<RegisterFormValues>({
+        resolver: zodResolver(registerSchema),
+        defaultValues: {
+            fullName: '',
+            email: '',
+            password: '',
+            confirmPassword: '',
+        },
+        reValidateMode: 'onChange',
+    });
+
+    const onSubmit = async (data: RegisterFormValues) => {
         setGeneralError('');
-
-        // Validate form
-        const validationErrors = validateRegistration(formData);
-        if (validationErrors.length > 0) {
-            setErrors(validationErrors);
-            return;
-        }
-
         setIsLoading(true);
-        setErrors([]);
 
         try {
-            // Mock register
-            const createdUser = await mockRegister(formData);
+            const createdUser = await mockRegister(data);
 
             notifyAdmins({
                 title: 'Cont nou creat',
@@ -44,28 +45,21 @@ const RegisterPage: React.FC = () => {
                 tag: `admin-user-registered-${createdUser.email.trim().toLowerCase()}`,
             });
 
-            // Redirect to login with success message
             navigate('/login?registered=true');
-        } catch (error: any) {
-            setGeneralError(error.message || 'Eroare la înregistrare');
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : 'Eroare la înregistrare';
+            setGeneralError(message);
+            toast.error(message);
         } finally {
             setIsLoading(false);
         }
     };
 
-    const getFieldError = (field: string): string | undefined => {
-        return errors.find(e => e.field === field)?.message;
-    };
-
-    const updateField = (field: keyof RegisterData, value: string) => {
-        setFormData({ ...formData, [field]: value });
-        setErrors(errors.filter(err => err.field !== field));
-    };
+    const watchedEmail = watch('email');
 
     return (
         <div className="auth-page">
             <div className="auth-container">
-                {/* Logo Section */}
                 <div className="auth-header">
                     <Link to="/" className="auth-logo">
                         <div className="hexagon">
@@ -78,14 +72,12 @@ const RegisterPage: React.FC = () => {
                     </Link>
                 </div>
 
-                {/* Register Card */}
                 <div className="auth-card">
                     <div className="auth-card-header">
                         <h2>Înregistrare</h2>
                         <p>Creați un cont nou pentru a accesa platforma</p>
                     </div>
 
-                    {/* General Error */}
                     {generalError && (
                         <div className="alert alert-error">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -97,8 +89,7 @@ const RegisterPage: React.FC = () => {
                         </div>
                     )}
 
-                    {/* Register Form */}
-                    <form className="auth-form" onSubmit={handleSubmit}>
+                    <form className="auth-form" onSubmit={handleSubmit(onSubmit)}>
                         <div className="form-group">
                             <label htmlFor="fullName">
                                 Nume Complet <span className="required">*</span>
@@ -106,13 +97,12 @@ const RegisterPage: React.FC = () => {
                             <input
                                 type="text"
                                 id="fullName"
-                                className={`text-input ${getFieldError('fullName') ? 'error' : ''}`}
+                                className={`text-input ${errors.fullName ? 'error' : ''}`}
                                 placeholder="Ex: Ion Popescu"
-                                value={formData.fullName}
-                                onChange={(e) => updateField('fullName', e.target.value)}
+                                {...register('fullName', { onChange: () => setGeneralError('') })}
                             />
-                            {getFieldError('fullName') && (
-                                <span className="error-message">{getFieldError('fullName')}</span>
+                            {errors.fullName && (
+                                <span className="error-message">{errors.fullName.message}</span>
                             )}
                         </div>
 
@@ -123,15 +113,14 @@ const RegisterPage: React.FC = () => {
                             <input
                                 type="email"
                                 id="email"
-                                className={`text-input ${getFieldError('email') ? 'error' : ''}`}
+                                className={`text-input ${errors.email ? 'error' : ''}`}
                                 placeholder="utilizator@exemplu.com"
-                                value={formData.email}
-                                onChange={(e) => updateField('email', e.target.value)}
+                                {...register('email', { onChange: () => setGeneralError('') })}
                             />
-                            {getFieldError('email') && (
-                                <span className="error-message">{getFieldError('email')}</span>
+                            {errors.email && (
+                                <span className="error-message">{errors.email.message}</span>
                             )}
-                            {!getFieldError('email') && formData.email && (
+                            {!errors.email && watchedEmail && (
                                 <span className="input-hint">
                                     Asigurați-vă că formatul este corect (ex: nume@domeniu.com)
                                 </span>
@@ -146,10 +135,9 @@ const RegisterPage: React.FC = () => {
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     id="password"
-                                    className={`text-input ${getFieldError('password') ? 'error' : ''}`}
+                                    className={`text-input ${errors.password ? 'error' : ''}`}
                                     placeholder="Minimum 6 caractere"
-                                    value={formData.password}
-                                    onChange={(e) => updateField('password', e.target.value)}
+                                    {...register('password', { onChange: () => setGeneralError('') })}
                                 />
                                 <button
                                     type="button"
@@ -170,8 +158,8 @@ const RegisterPage: React.FC = () => {
                                     )}
                                 </button>
                             </div>
-                            {getFieldError('password') && (
-                                <span className="error-message">{getFieldError('password')}</span>
+                            {errors.password && (
+                                <span className="error-message">{errors.password.message}</span>
                             )}
                         </div>
 
@@ -183,10 +171,9 @@ const RegisterPage: React.FC = () => {
                                 <input
                                     type={showConfirmPassword ? "text" : "password"}
                                     id="confirmPassword"
-                                    className={`text-input ${getFieldError('confirmPassword') ? 'error' : ''}`}
+                                    className={`text-input ${errors.confirmPassword ? 'error' : ''}`}
                                     placeholder="Reintroduceți parola"
-                                    value={formData.confirmPassword}
-                                    onChange={(e) => updateField('confirmPassword', e.target.value)}
+                                    {...register('confirmPassword', { onChange: () => setGeneralError('') })}
                                 />
                                 <button
                                     type="button"
@@ -207,8 +194,8 @@ const RegisterPage: React.FC = () => {
                                     )}
                                 </button>
                             </div>
-                            {getFieldError('confirmPassword') && (
-                                <span className="error-message">{getFieldError('confirmPassword')}</span>
+                            {errors.confirmPassword && (
+                                <span className="error-message">{errors.confirmPassword.message}</span>
                             )}
                         </div>
 
@@ -234,7 +221,6 @@ const RegisterPage: React.FC = () => {
                         </div>
                     </form>
 
-                    {/* Login Link */}
                     <div className="auth-footer">
                         <p>
                             Aveți deja un cont?{' '}
@@ -245,7 +231,6 @@ const RegisterPage: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Back to Home */}
                 <div className="auth-back">
                     <Link to="/" className="back-link">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

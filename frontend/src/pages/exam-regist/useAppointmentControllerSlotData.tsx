@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
-import { TIME_SLOTS, type AppointmentFormData, type FormErrors } from '../../types/appointment';
+import type { UseFormSetValue, UseFormTrigger } from 'react-hook-form';
+import { TIME_SLOTS, type AppointmentFormData } from '../../types/appointment';
 import type { AdminAppointmentRecord, ExamSettings } from '../../features/admin/types';
 import {
     buildAvailableSlotsForDate,
@@ -8,6 +9,7 @@ import {
     getNextEligibleDates,
 } from '../../utils/appointmentScheduling';
 import type { SlotFilter } from './AppointmentStep3Slots';
+import type { AppointmentFormValues } from '../../schemas/appointmentSchema';
 
 type UseAppointmentControllerSlotDataParams = {
     selectedDateKey: string;
@@ -16,9 +18,10 @@ type UseAppointmentControllerSlotDataParams = {
     rescheduleSourceId: string | null;
     slotFilter: SlotFilter;
     formData: AppointmentFormData;
-    setFormData: (value: AppointmentFormData | ((prev: AppointmentFormData) => AppointmentFormData)) => void;
-    setErrors: (value: FormErrors | ((prev: FormErrors) => FormErrors)) => void;
+    setValue: UseFormSetValue<AppointmentFormValues>;
+    trigger: UseFormTrigger<AppointmentFormValues>;
     maxDate: Date;
+    setLastUnavailableSlotId: (value: string | null) => void;
 };
 
 export const useAppointmentControllerSlotData = ({
@@ -28,9 +31,10 @@ export const useAppointmentControllerSlotData = ({
     rescheduleSourceId,
     slotFilter,
     formData,
-    setFormData,
-    setErrors,
+    setValue,
+    trigger,
     maxDate,
+    setLastUnavailableSlotId,
 }: UseAppointmentControllerSlotDataParams) => {
     const selectedDayAppointments = useMemo(() => {
         if (!selectedDateKey) return [];
@@ -76,10 +80,11 @@ export const useAppointmentControllerSlotData = ({
         if (!formData.selectedSlot) return;
         const stillAvailable = allAvailableSlots.some((slot) => slot.id === formData.selectedSlot?.id && slot.available);
         if (!stillAvailable) {
-            setFormData((prev) => ({ ...prev, selectedSlot: null }));
-            setErrors((prev) => ({ ...prev, slot: 'Intervalul selectat nu mai este disponibil. Alege alt interval.' }));
+            setLastUnavailableSlotId(formData.selectedSlot.id);
+            setValue('selectedSlot', null, { shouldValidate: true });
+            void trigger('selectedSlot');
         }
-    }, [allAvailableSlots, formData.selectedSlot, setErrors, setFormData]);
+    }, [allAvailableSlots, formData.selectedSlot, setLastUnavailableSlotId, setValue, trigger]);
 
     return {
         allAvailableSlots,

@@ -54,6 +54,9 @@ const readArray = <T>(raw: string | null): T[] => {
     }
 };
 
+const asRecord = (value: unknown): Record<string, unknown> =>
+    typeof value === "object" && value !== null ? (value as Record<string, unknown>) : {};
+
 const createSeedTests = (): AdminTest[] => {
     const now = new Date().toISOString();
 
@@ -171,21 +174,25 @@ export const readExamSettings = (): ExamSettings => {
                 })(),
             blockedDates: Array.isArray(parsed.blockedDates)
                 ? parsed.blockedDates
-                      .map((item: any) => ({
-                          date: String(item?.date || "").slice(0, 10),
-                          note:
-                              typeof item?.note === "string" && item.note.trim()
-                                  ? item.note.trim()
-                                  : undefined,
-                      }))
+                      .map((item) => {
+                          const record = asRecord(item);
+                          const note = typeof record.note === "string" && record.note.trim() ? record.note.trim() : undefined;
+                          return {
+                              date: String(record.date || "").slice(0, 10),
+                              note,
+                          };
+                      })
                       .filter((item) => /^\d{4}-\d{2}-\d{2}$/.test(item.date))
                 : DEFAULT_SETTINGS.blockedDates,
             capacityOverrides: Array.isArray(parsed.capacityOverrides)
                 ? parsed.capacityOverrides
-                      .map((item: any) => ({
-                          date: String(item?.date || "").slice(0, 10),
-                          appointmentsPerDay: Number(item?.appointmentsPerDay) || 0,
-                      }))
+                      .map((item) => {
+                          const record = asRecord(item);
+                          return {
+                              date: String(record.date || "").slice(0, 10),
+                              appointmentsPerDay: Number(record.appointmentsPerDay) || 0,
+                          };
+                      })
                       .filter(
                           (item) =>
                               /^\d{4}-\d{2}-\d{2}$/.test(item.date) && item.appointmentsPerDay > 0
@@ -193,25 +200,28 @@ export const readExamSettings = (): ExamSettings => {
                 : DEFAULT_SETTINGS.capacityOverrides,
             slotOverrides: Array.isArray(parsed.slotOverrides)
                 ? parsed.slotOverrides
-                      .map((item: any) => ({
-                          date: String(item?.date || "").slice(0, 10),
-                          slots: Array.isArray(item?.slots)
-                              ? item.slots
-                                    .map((slot: any, slotIndex: number) => ({
-                                        id: String(slot?.id || `slot-${slotIndex + 1}`),
-                                        startTime: String(slot?.startTime || ""),
-                                        endTime: String(slot?.endTime || ""),
-                                        available:
-                                            typeof slot?.available === "boolean"
-                                                ? slot.available
-                                                : true,
-                                    }))
-                                    .filter(
-                                        (slot: any) =>
-                                            slot.startTime.length > 0 && slot.endTime.length > 0
-                                    )
-                              : [],
-                      }))
+                      .map((item) => {
+                          const record = asRecord(item);
+                          const slotsRaw = Array.isArray(record.slots) ? record.slots : [];
+                          const slots = slotsRaw
+                              .map((slot, slotIndex: number) => {
+                                  const slotRecord = asRecord(slot);
+                                  return {
+                                      id: String(slotRecord.id || `slot-${slotIndex + 1}`),
+                                      startTime: String(slotRecord.startTime || ""),
+                                      endTime: String(slotRecord.endTime || ""),
+                                      available:
+                                          typeof slotRecord.available === "boolean"
+                                              ? slotRecord.available
+                                              : true,
+                                  };
+                              })
+                              .filter((slot) => slot.startTime.length > 0 && slot.endTime.length > 0);
+                          return {
+                              date: String(record.date || "").slice(0, 10),
+                              slots,
+                          };
+                      })
                       .filter(
                           (item) =>
                               /^\d{4}-\d{2}-\d{2}$/.test(item.date) &&
@@ -233,29 +243,37 @@ export const writeExamSettings = (settings: ExamSettings): void => {
 
 export const readAdminUsers = (): AdminUserRecord[] => {
     ensureNoSimulatedServerError();
-    const rawUsers = readArray<any>(localStorage.getItem(STORAGE_KEYS.users));
+    const rawUsers = readArray<Record<string, unknown>>(localStorage.getItem(STORAGE_KEYS.users));
 
-    return rawUsers.map((user, index) => ({
-        id: user.id || `user-${index + 1}`,
-        email: user.email || "",
-        fullName: user.fullName || user.name || "Utilizator",
-        nickname:
-            typeof user.nickname === "string" && user.nickname.trim()
-                ? user.nickname.trim()
-                : undefined,
-        phoneNumber:
-            typeof user.phoneNumber === "string" && user.phoneNumber.trim()
-                ? user.phoneNumber.trim()
-                : undefined,
-        avatarDataUrl:
-            typeof user.avatarDataUrl === "string" && user.avatarDataUrl.trim()
-                ? user.avatarDataUrl
-                : undefined,
-        role: user.role === "admin" ? "admin" : "user",
-        createdAt: user.createdAt ? new Date(user.createdAt).toISOString() : new Date().toISOString(),
-        isBlocked: Boolean(user.isBlocked),
-        lastLoginAt: user.lastLoginAt ? new Date(user.lastLoginAt).toISOString() : undefined,
-    }));
+    return rawUsers.map((user, index) => {
+        const record = asRecord(user);
+        return {
+            id: typeof record.id === "string" ? record.id : `user-${index + 1}`,
+            email: typeof record.email === "string" ? record.email : "",
+            fullName:
+                typeof record.fullName === "string"
+                    ? record.fullName
+                    : typeof record.name === "string"
+                        ? record.name
+                        : "Utilizator",
+            nickname:
+                typeof record.nickname === "string" && record.nickname.trim()
+                    ? record.nickname.trim()
+                    : undefined,
+            phoneNumber:
+                typeof record.phoneNumber === "string" && record.phoneNumber.trim()
+                    ? record.phoneNumber.trim()
+                    : undefined,
+            avatarDataUrl:
+                typeof record.avatarDataUrl === "string" && record.avatarDataUrl.trim()
+                    ? record.avatarDataUrl
+                    : undefined,
+            role: record.role === "admin" ? "admin" : "user",
+            createdAt: record.createdAt ? new Date(String(record.createdAt)).toISOString() : new Date().toISOString(),
+            isBlocked: Boolean(record.isBlocked),
+            lastLoginAt: record.lastLoginAt ? new Date(String(record.lastLoginAt)).toISOString() : undefined,
+        };
+    });
 };
 
 export const writeAdminUsers = (users: AdminUserRecord[]): void => {
@@ -266,54 +284,57 @@ export const writeAdminUsers = (users: AdminUserRecord[]): void => {
 
 export const readAppointments = (): AdminAppointmentRecord[] => {
     ensureNoSimulatedServerError();
-    const rawAppointments = readArray<any>(localStorage.getItem(STORAGE_KEYS.appointments));
+    const rawAppointments = readArray<Record<string, unknown>>(localStorage.getItem(STORAGE_KEYS.appointments));
 
-    return rawAppointments.map((appointment, index) => ({
-        id: appointment.id || `appointment-${index + 1}`,
-        appointmentCode:
-            typeof appointment.appointmentCode === "string" && appointment.appointmentCode.trim()
-                ? appointment.appointmentCode.trim()
-                : `AP-${String(index + 1).padStart(4, "0")}`,
-        fullName: appointment.fullName || "",
-        idOrPhone: appointment.idOrPhone || "",
-        userEmail: appointment.userEmail || undefined,
-        date: appointment.date || new Date().toISOString(),
-        slotStart: appointment.slotStart || "00:00",
-        slotEnd: appointment.slotEnd || "00:30",
-        status:
-            appointment.status === "approved" ||
-            appointment.status === "rejected" ||
-            appointment.status === "cancelled"
-                ? appointment.status
-                : "pending",
-        statusReason:
-            typeof appointment.statusReason === "string" && appointment.statusReason.trim()
-                ? appointment.statusReason.trim()
+    return rawAppointments.map((appointment, index) => {
+        const record = asRecord(appointment);
+        return {
+            id: typeof record.id === "string" ? record.id : `appointment-${index + 1}`,
+            appointmentCode:
+                typeof record.appointmentCode === "string" && record.appointmentCode.trim()
+                    ? record.appointmentCode.trim()
+                    : `AP-${String(index + 1).padStart(4, "0")}`,
+            fullName: typeof record.fullName === "string" ? record.fullName : "",
+            idOrPhone: typeof record.idOrPhone === "string" ? record.idOrPhone : "",
+            userEmail: typeof record.userEmail === "string" ? record.userEmail : undefined,
+            date: typeof record.date === "string" ? record.date : new Date().toISOString(),
+            slotStart: typeof record.slotStart === "string" ? record.slotStart : "00:00",
+            slotEnd: typeof record.slotEnd === "string" ? record.slotEnd : "00:30",
+            status:
+                record.status === "approved" ||
+                record.status === "rejected" ||
+                record.status === "cancelled"
+                    ? record.status
+                    : "pending",
+            statusReason:
+                typeof record.statusReason === "string" && record.statusReason.trim()
+                    ? record.statusReason.trim()
+                    : undefined,
+            adminNote:
+                typeof record.adminNote === "string" && record.adminNote.trim()
+                    ? record.adminNote.trim()
+                    : undefined,
+            cancelledBy:
+                record.cancelledBy === "user" || record.cancelledBy === "admin"
+                    ? record.cancelledBy
+                    : undefined,
+            previousAppointmentId:
+                typeof record.previousAppointmentId === "string" &&
+                record.previousAppointmentId.trim()
+                    ? record.previousAppointmentId.trim()
+                    : undefined,
+            rescheduleCount:
+                Number.isFinite(Number(record.rescheduleCount))
+                    ? Math.max(0, Number(record.rescheduleCount))
+                    : 0,
+            createdAt: record.createdAt
+                ? new Date(String(record.createdAt)).toISOString()
+                : new Date().toISOString(),
+            updatedAt: record.updatedAt
+                ? new Date(String(record.updatedAt)).toISOString()
                 : undefined,
-        adminNote:
-            typeof appointment.adminNote === "string" && appointment.adminNote.trim()
-                ? appointment.adminNote.trim()
-                : undefined,
-        cancelledBy:
-            appointment.cancelledBy === "user" || appointment.cancelledBy === "admin"
-                ? appointment.cancelledBy
-                : undefined,
-        previousAppointmentId:
-            typeof appointment.previousAppointmentId === "string" &&
-            appointment.previousAppointmentId.trim()
-                ? appointment.previousAppointmentId.trim()
-                : undefined,
-        rescheduleCount:
-            Number.isFinite(Number(appointment.rescheduleCount))
-                ? Math.max(0, Number(appointment.rescheduleCount))
-                : 0,
-        createdAt: appointment.createdAt
-            ? new Date(appointment.createdAt).toISOString()
-            : new Date().toISOString(),
-        updatedAt: appointment.updatedAt
-            ? new Date(appointment.updatedAt).toISOString()
-            : undefined,
-    }));
+        };
+    });
 };
 
 export const writeAppointments = (appointments: AdminAppointmentRecord[]): void => {
@@ -324,44 +345,51 @@ export const writeAppointments = (appointments: AdminAppointmentRecord[]): void 
 
 export const readQuizHistory = (): QuizHistoryRecord[] => {
     ensureNoSimulatedServerError();
-    const rawHistory = readArray<any>(localStorage.getItem(STORAGE_KEYS.quizHistory));
+    const rawHistory = readArray<Record<string, unknown>>(localStorage.getItem(STORAGE_KEYS.quizHistory));
 
-    return rawHistory.map((entry) => ({
-        categoryId: entry.categoryId || "unknown",
-        categoryTitle: entry.categoryTitle || "Test",
-        score: Number(entry.score) || 0,
-        mode: entry.mode === "training" || entry.mode === "exam" ? entry.mode : undefined,
-        totalQuestions: Number.isFinite(Number(entry.totalQuestions))
-            ? Number(entry.totalQuestions)
-            : undefined,
-        correctAnswers: Number.isFinite(Number(entry.correctAnswers))
-            ? Number(entry.correctAnswers)
-            : undefined,
-        wrongAnswers: Number.isFinite(Number(entry.wrongAnswers))
-            ? Number(entry.wrongAnswers)
-            : undefined,
-        unanswered: Number.isFinite(Number(entry.unanswered)) ? Number(entry.unanswered) : undefined,
-        timeTaken: Number.isFinite(Number(entry.timeTaken)) ? Number(entry.timeTaken) : undefined,
-        durationSeconds: Number.isFinite(Number(entry.durationSeconds))
-            ? Number(entry.durationSeconds)
-            : undefined,
-        chapterStats: Array.isArray(entry.chapterStats)
-            ? entry.chapterStats
-                  .map((chapter: any) => ({
-                      chapterId: String(chapter?.chapterId || "general"),
-                      chapterTitle: String(chapter?.chapterTitle || "General"),
-                      total: Number(chapter?.total) || 0,
-                      correct: Number(chapter?.correct) || 0,
-                      accuracy: Number(chapter?.accuracy) || 0,
-                  }))
-                  .filter((chapter: any) => chapter.total > 0)
-            : undefined,
-        completedAt: entry.completedAt
-            ? new Date(entry.completedAt).toISOString()
-            : new Date().toISOString(),
-        userEmail: entry.userEmail || undefined,
-        userName: entry.userName || undefined,
-    }));
+    return rawHistory.map((entry) => {
+        const record = asRecord(entry);
+        const chapterStatsRaw = Array.isArray(record.chapterStats) ? record.chapterStats : [];
+        const chapterStats = chapterStatsRaw
+            .map((chapter) => {
+                const chapterRecord = asRecord(chapter);
+                return {
+                    chapterId: String(chapterRecord.chapterId || "general"),
+                    chapterTitle: String(chapterRecord.chapterTitle || "General"),
+                    total: Number(chapterRecord.total) || 0,
+                    correct: Number(chapterRecord.correct) || 0,
+                    accuracy: Number(chapterRecord.accuracy) || 0,
+                };
+            })
+            .filter((chapter) => chapter.total > 0);
+
+        return {
+            categoryId: typeof record.categoryId === "string" ? record.categoryId : "unknown",
+            categoryTitle: typeof record.categoryTitle === "string" ? record.categoryTitle : "Test",
+            score: Number(record.score) || 0,
+            mode: record.mode === "training" || record.mode === "exam" ? record.mode : undefined,
+            totalQuestions: Number.isFinite(Number(record.totalQuestions))
+                ? Number(record.totalQuestions)
+                : undefined,
+            correctAnswers: Number.isFinite(Number(record.correctAnswers))
+                ? Number(record.correctAnswers)
+                : undefined,
+            wrongAnswers: Number.isFinite(Number(record.wrongAnswers))
+                ? Number(record.wrongAnswers)
+                : undefined,
+            unanswered: Number.isFinite(Number(record.unanswered)) ? Number(record.unanswered) : undefined,
+            timeTaken: Number.isFinite(Number(record.timeTaken)) ? Number(record.timeTaken) : undefined,
+            durationSeconds: Number.isFinite(Number(record.durationSeconds))
+                ? Number(record.durationSeconds)
+                : undefined,
+            chapterStats: chapterStats.length > 0 ? chapterStats : undefined,
+            completedAt: record.completedAt
+                ? new Date(String(record.completedAt)).toISOString()
+                : new Date().toISOString(),
+            userEmail: typeof record.userEmail === "string" ? record.userEmail : undefined,
+            userName: typeof record.userName === "string" ? record.userName : undefined,
+        };
+    });
 };
 
 export const writeQuizHistory = (history: QuizHistoryRecord[]): void => {
@@ -372,23 +400,26 @@ export const writeQuizHistory = (history: QuizHistoryRecord[]): void => {
 
 export const readSentNotifications = (): SentNotificationLog[] => {
     ensureNoSimulatedServerError();
-    const rawLogs = readArray<any>(localStorage.getItem(STORAGE_KEYS.sentNotifications));
+    const rawLogs = readArray<Record<string, unknown>>(localStorage.getItem(STORAGE_KEYS.sentNotifications));
 
-    return rawLogs.map((log, index) => ({
-        id: log.id || `sent-log-${index + 1}`,
-        target:
-            log.target === "users" ||
-            log.target === "admins" ||
-            log.target === "email" ||
-            log.target === "all"
-                ? log.target
-                : "all",
-        title: log.title || "",
-        message: log.message || "",
-        targetEmail: log.targetEmail || undefined,
-        sentAt: log.sentAt ? new Date(log.sentAt).toISOString() : new Date().toISOString(),
-        recipientCount: Number(log.recipientCount) || 0,
-    }));
+    return rawLogs.map((log, index) => {
+        const record = asRecord(log);
+        return {
+            id: typeof record.id === "string" ? record.id : `sent-log-${index + 1}`,
+            target:
+                record.target === "users" ||
+                record.target === "admins" ||
+                record.target === "email" ||
+                record.target === "all"
+                    ? record.target
+                    : "all",
+            title: typeof record.title === "string" ? record.title : "",
+            message: typeof record.message === "string" ? record.message : "",
+            targetEmail: typeof record.targetEmail === "string" ? record.targetEmail : undefined,
+            sentAt: record.sentAt ? new Date(String(record.sentAt)).toISOString() : new Date().toISOString(),
+            recipientCount: Number(record.recipientCount) || 0,
+        };
+    });
 };
 
 export const writeSentNotifications = (logs: SentNotificationLog[]): void => {
@@ -408,18 +439,21 @@ const SEED_NEWS: AdminNewsArticle[] = [
 
 export const readAdminNews = (): AdminNewsArticle[] => {
     ensureNoSimulatedServerError();
-    const items = readArray<any>(localStorage.getItem(STORAGE_KEYS.news));
+    const items = readArray<Record<string, unknown>>(localStorage.getItem(STORAGE_KEYS.news));
     if (items.length > 0) {
-        return items.map((item, index) => ({
-            id: item.id || `news-${index + 1}`,
-            title: item.title || "",
-            description: item.description || "",
-            category: item.category || "",
-            image: item.image || "cert",
-            publishedAt: item.publishedAt ? new Date(item.publishedAt).toISOString() : new Date().toISOString(),
-            createdAt: item.createdAt ? new Date(item.createdAt).toISOString() : new Date().toISOString(),
-            updatedAt: item.updatedAt ? new Date(item.updatedAt).toISOString() : new Date().toISOString(),
-        }));
+        return items.map((item, index) => {
+            const record = asRecord(item);
+            return {
+                id: typeof record.id === "string" ? record.id : `news-${index + 1}`,
+                title: typeof record.title === "string" ? record.title : "",
+                description: typeof record.description === "string" ? record.description : "",
+                category: typeof record.category === "string" ? record.category : "",
+                image: typeof record.image === "string" ? record.image : "cert",
+                publishedAt: record.publishedAt ? new Date(String(record.publishedAt)).toISOString() : new Date().toISOString(),
+                createdAt: record.createdAt ? new Date(String(record.createdAt)).toISOString() : new Date().toISOString(),
+                updatedAt: record.updatedAt ? new Date(String(record.updatedAt)).toISOString() : new Date().toISOString(),
+            };
+        });
     }
     localStorage.setItem(STORAGE_KEYS.news, JSON.stringify(SEED_NEWS));
     return SEED_NEWS;

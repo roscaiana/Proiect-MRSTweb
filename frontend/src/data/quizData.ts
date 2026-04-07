@@ -1,3 +1,4 @@
+import { apiClient } from "../api/axiosClient";
 import { QuizCategory, Question } from '../types/quiz';
 
 export const quizCategories: QuizCategory[] = [
@@ -331,7 +332,122 @@ export const questionBanks: Record<string, Question[]> = {
     ]
 };
 
+type ApiQuiz = {
+    id: number;
+    title?: string;
+    description?: string | null;
+};
+
+type ApiQuestion = {
+    id: number;
+    text?: string;
+    quizId: number;
+};
+
+type ApiAnswerOption = {
+    id: number;
+    text?: string;
+    isCorrect: boolean;
+    questionId: number;
+};
+
+const QUIZ_API_BASE_URL = "";
+let apiQuizCategoriesCache: QuizCategory[] | null = null;
+let apiQuestionBankCache: Record<string, Question[]> | null = null;
+
+const mapApiQuizData = (
+    quizzes: ApiQuiz[],
+    questions: ApiQuestion[],
+    answerOptions: ApiAnswerOption[],
+): { categories: QuizCategory[]; questionBank: Record<string, Question[]> } => {
+    const answerOptionsByQuestionId = answerOptions.reduce<Record<number, ApiAnswerOption[]>>((acc, option) => {
+        if (!acc[option.questionId]) {
+            acc[option.questionId] = [];
+        }
+
+        acc[option.questionId].push(option);
+        return acc;
+    }, {});
+
+    const questionsByQuizId = questions.reduce<Record<number, Question[]>>((acc, question) => {
+        const questionOptions = (answerOptionsByQuestionId[question.id] || []).slice().sort((a, b) => a.id - b.id);
+        if (questionOptions.length === 0) {
+            return acc;
+        }
+
+        const options = questionOptions.map((option) => option.text || "");
+        const correctIndex = questionOptions.findIndex((option) => option.isCorrect);
+        const mappedQuestion: Question = {
+            id: String(question.id),
+            text: question.text || "",
+            options,
+            correctAnswer: correctIndex >= 0 ? correctIndex : 0,
+        };
+
+        if (!acc[question.quizId]) {
+            acc[question.quizId] = [];
+        }
+
+        acc[question.quizId].push(mappedQuestion);
+        return acc;
+    }, {});
+
+    const categories = quizzes.map((quiz) => {
+        const categoryId = String(quiz.id);
+        const quizQuestions = questionsByQuizId[quiz.id] || [];
+        const questionCount = quizQuestions.length;
+        const estimatedTime = Math.max(10, questionCount * 2);
+
+        return {
+            id: categoryId,
+            title: quiz.title || "Test",
+            description: quiz.description || "Test disponibil in platforma",
+            icon: "📝",
+            questionCount,
+            estimatedTime,
+            difficulty: toDifficulty(questionCount),
+        } satisfies QuizCategory;
+    });
+
+    const questionBank = categories.reduce<Record<string, Question[]>>((acc, category) => {
+        const quizId = Number(category.id);
+        acc[category.id] = questionsByQuizId[quizId] || [];
+        return acc;
+    }, {});
+
+    return { categories, questionBank };
+};
+
+export const hydrateQuizDataFromApi = (): Promise<boolean> => {
+    return Promise.all([
+        apiClient.get<ApiQuiz[]>(`${QUIZ_API_BASE_URL}/Quiz`),
+        apiClient.get<ApiQuestion[]>(`${QUIZ_API_BASE_URL}/Question`),
+        apiClient.get<ApiAnswerOption[]>(`${QUIZ_API_BASE_URL}/AnswerOption`),
+    ])
+        .then(([quizzesResponse, questionsResponse, answerOptionsResponse]) => {
+            const mapped = mapApiQuizData(
+                Array.isArray(quizzesResponse.data) ? quizzesResponse.data : [],
+                Array.isArray(questionsResponse.data) ? questionsResponse.data : [],
+                Array.isArray(answerOptionsResponse.data) ? answerOptionsResponse.data : [],
+            );
+
+            if (mapped.categories.length === 0) {
+                return false;
+            }
+
+            apiQuizCategoriesCache = mapped.categories;
+            apiQuestionBankCache = mapped.questionBank;
+            return true;
+        })
+        .catch(() => false);
+};
+
 export const getQuestionsByCategory = (categoryId: string): Question[] => {
+    const apiQuestions = apiQuestionBankCache?.[categoryId];
+    if (apiQuestions) {
+        return apiQuestions;
+    }
+
     const adminBank = getAdminQuestionBank();
     if (adminBank[categoryId]) {
         return adminBank[categoryId];
@@ -401,6 +517,10 @@ const getAdminQuestionBank = (): Record<string, Question[]> => {
 };
 
 export const getQuizCategories = (): QuizCategory[] => {
+    if (apiQuizCategoriesCache && apiQuizCategoriesCache.length > 0) {
+        return apiQuizCategoriesCache;
+    }
+
     const tests = getAdminTests();
     if (tests.length === 0) return quizCategories;
 

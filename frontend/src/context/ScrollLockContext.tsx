@@ -1,8 +1,8 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useState, type ReactNode } from "react";
 
 type ScrollLockContextValue = {
     locked: boolean;
-    setLocked: (value: boolean) => void;
+    setLocked: (locked: boolean) => void;
     lock: () => void;
     unlock: () => void;
 };
@@ -13,36 +13,23 @@ type ScrollLockProviderProps = {
     children: ReactNode;
 };
 
-export function ScrollLockProvider({ children }: ScrollLockProviderProps) {
+export const ScrollLockProvider = ({ children }: ScrollLockProviderProps) => {
     const [locked, setLocked] = useState(false);
 
-    useEffect(() => {
-        document.body.classList.toggle("no-scroll", locked);
+    const lock = () => setLocked(true);
+    const unlock = () => setLocked(false);
 
-        return () => {
-            document.body.classList.remove("no-scroll");
-        };
-    }, [locked]);
-
-    const value = useMemo<ScrollLockContextValue>(
-        () => ({
-            locked,
-            setLocked,
-            lock: () => setLocked(true),
-            unlock: () => setLocked(false),
-        }),
-        [locked]
+    return (
+        <ScrollLockContext.Provider value={{ locked, setLocked, lock, unlock }}>
+            {children}
+        </ScrollLockContext.Provider>
     );
+};
 
-    return <ScrollLockContext.Provider value={value}>{children}</ScrollLockContext.Provider>;
-}
-
-export function useScrollLockContext() {
+export const useScrollLockContext = () => {
     const context = useContext(ScrollLockContext);
-
     if (!context) {
         throw new Error("useScrollLockContext must be used within a ScrollLockProvider");
     }
-
     return context;
-}
+};

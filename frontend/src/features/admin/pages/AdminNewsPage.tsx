@@ -1,9 +1,14 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import toast from "react-hot-toast";
 import AdminNewsRow from "../components/AdminNewsRow";
 import AdminSingleSelect, { type AdminSingleSelectOption } from "../components/AdminSingleSelect";
 import { useAdminPanel } from "../hooks/useAdminPanel";
 import type { AdminNewsArticle, AdminNewsArticleInput } from "../types";
 import { formatDateShort } from "../../../utils/dateUtils";
+import { adminNewsSchema, type AdminNewsFormValues } from "../../../schemas/adminSchemas";
 
 type NewsView = "list" | "form";
 
@@ -33,67 +38,73 @@ const EMPTY_FORM: AdminNewsArticleInput = {
     publishedAt: new Date().toISOString().slice(0, 10),
 };
 
-
 const AdminNewsPage: React.FC = () => {
     const { state, createNewsArticle, updateNewsArticle, deleteNewsArticle } = useAdminPanel();
     const [view, setView] = useState<NewsView>("list");
     const [editingId, setEditingId] = useState<string | null>(null);
-    const [form, setForm] = useState<AdminNewsArticleInput>(EMPTY_FORM);
-    const [error, setError] = useState("");
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [pendingDelete, setPendingDelete] = useState<AdminNewsArticle | null>(null);
+
+    const {
+        control,
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors },
+    } = useForm<AdminNewsFormValues>({
+        resolver: zodResolver(adminNewsSchema),
+        defaultValues: EMPTY_FORM,
+    });
 
     const openCreate = () => {
         setEditingId(null);
-        setForm(EMPTY_FORM);
-        setError("");
+        reset(EMPTY_FORM);
         setView("form");
     };
 
     const openEdit = (article: AdminNewsArticle) => {
         setEditingId(article.id);
-        setForm({
+        reset({
             title: article.title,
             description: article.description,
             category: article.category,
             image: article.image,
             publishedAt: article.publishedAt.slice(0, 10),
         });
-        setError("");
         setView("form");
     };
 
-    const handleDelete = (id: string) => {
-        if (!window.confirm("Ești sigur că vrei să ștergi această știre?")) {
-            return;
-        }
-        deleteNewsArticle(id);
+    const openDeleteDialog = (article: AdminNewsArticle) => {
+        setPendingDelete(article);
+        setDeleteDialogOpen(true);
     };
 
-    const handleSubmit = (event: React.FormEvent) => {
-        event.preventDefault();
-        if (!form.title.trim()) {
-            setError("Titlul este obligatoriu.");
-            return;
-        }
-        if (!form.description.trim()) {
-            setError("Descrierea este obligatorie.");
-            return;
-        }
-        if (!form.publishedAt) {
-            setError("Data publicării este obligatorie.");
-            return;
-        }
+    const closeDeleteDialog = () => {
+        setDeleteDialogOpen(false);
+        setPendingDelete(null);
+    };
 
+    const handleDeleteConfirm = () => {
+        if (!pendingDelete) return;
+        deleteNewsArticle(pendingDelete.id);
+        toast.success("Știrea a fost ștearsă.");
+        closeDeleteDialog();
+    };
+
+    const onSubmit = (data: AdminNewsFormValues) => {
         const input: AdminNewsArticleInput = {
-            ...form,
-            title: form.title.trim(),
-            description: form.description.trim(),
-            publishedAt: new Date(form.publishedAt).toISOString(),
+            ...data,
+            title: data.title.trim(),
+            description: data.description.trim(),
+            publishedAt: new Date(data.publishedAt).toISOString(),
         };
 
         if (editingId) {
             updateNewsArticle(editingId, input);
+            toast.success("Noutatea a fost actualizată.");
         } else {
             createNewsArticle(input);
+            toast.success("Noutatea a fost publicată.");
         }
 
         setView("list");
@@ -112,7 +123,7 @@ const AdminNewsPage: React.FC = () => {
                     className={`admin-btn admin-notifications-switch-btn ${view === "list" ? "primary" : "ghost"}`}
                     onClick={() => setView("list")}
                 >
-                    Listă noutăți
+                    Lista noutăți
                 </button>
                 <button
                     type="button"
@@ -147,14 +158,13 @@ const AdminNewsPage: React.FC = () => {
                                     {state.news.map((article) => (
                                         <AdminNewsRow
                                             key={article.id}
-                                            id={article.id}
                                             title={article.title}
                                             description={article.description}
                                             category={article.category}
                                             publishedAt={article.publishedAt}
                                             formatDate={formatDateShort}
                                             onEdit={() => openEdit(article)}
-                                            onDelete={handleDelete}
+                                            onDelete={() => openDeleteDialog(article)}
                                         />
                                     ))}
                                 </tbody>
@@ -173,57 +183,79 @@ const AdminNewsPage: React.FC = () => {
                         </h3>
                     </div>
 
-                    <form className="admin-form-grid" onSubmit={handleSubmit}>
+                    <form className="admin-form-grid" onSubmit={handleSubmit(onSubmit)}>
                         <label className="admin-field admin-field-full">
                             <span>Titlu</span>
                             <input
                                 type="text"
-                                value={form.title}
-                                onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+                                {...register("title")}
                                 placeholder="Titlul știrii"
                             />
+                            {errors.title?.message && (
+                                <span className="admin-field-error" role="alert">{errors.title.message}</span>
+                            )}
                         </label>
 
                         <label className="admin-field admin-field-full">
                             <span>Descriere</span>
                             <textarea
                                 rows={4}
-                                value={form.description}
-                                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                                {...register("description")}
                                 placeholder="Conținutul știrii"
                             />
+                            {errors.description?.message && (
+                                <span className="admin-field-error" role="alert">{errors.description.message}</span>
+                            )}
                         </label>
 
                         <label className="admin-field">
                             <span>Categorie</span>
-                            <AdminSingleSelect
-                                ariaLabel="Selectare categorie"
-                                options={CATEGORY_OPTIONS}
-                                value={form.category}
-                                onChange={(val) => setForm((f) => ({ ...f, category: val }))}
+                            <Controller
+                                control={control}
+                                name="category"
+                                render={({ field }) => (
+                                    <AdminSingleSelect
+                                        ariaLabel="Selectare categorie"
+                                        options={CATEGORY_OPTIONS}
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                    />
+                                )}
                             />
+                            {errors.category?.message && (
+                                <span className="admin-field-error" role="alert">{errors.category.message}</span>
+                            )}
                         </label>
 
                         <label className="admin-field">
-                            <span>Pictogramă</span>
-                            <AdminSingleSelect
-                                ariaLabel="Selectare pictogramă"
-                                options={IMAGE_OPTIONS}
-                                value={form.image}
-                                onChange={(val) => setForm((f) => ({ ...f, image: val }))}
+                            <span>Pictograma</span>
+                            <Controller
+                                control={control}
+                                name="image"
+                                render={({ field }) => (
+                                    <AdminSingleSelect
+                                        ariaLabel="Selectare pictograma"
+                                        options={IMAGE_OPTIONS}
+                                        value={field.value}
+                                        onChange={field.onChange}
+                                    />
+                                )}
                             />
+                            {errors.image?.message && (
+                                <span className="admin-field-error" role="alert">{errors.image.message}</span>
+                            )}
                         </label>
 
                         <label className="admin-field">
                             <span>Data publicării</span>
                             <input
                                 type="date"
-                                value={form.publishedAt}
-                                onChange={(e) => setForm((f) => ({ ...f, publishedAt: e.target.value }))}
+                                {...register("publishedAt")}
                             />
+                            {errors.publishedAt?.message && (
+                                <span className="admin-field-error" role="alert">{errors.publishedAt.message}</span>
+                            )}
                         </label>
-
-                        {error && <p className="admin-muted-text" style={{ color: "#ef4444" }}>{error}</p>}
 
                         <div className="admin-form-actions">
                             <button type="button" className="admin-btn ghost" onClick={() => setView("list")}>
@@ -236,6 +268,19 @@ const AdminNewsPage: React.FC = () => {
                     </form>
                 </section>
             )}
+
+            <Dialog open={deleteDialogOpen} onClose={closeDeleteDialog} maxWidth="xs" fullWidth>
+                <DialogTitle>Ștergere noutate</DialogTitle>
+                <DialogContent>
+                    <p>Ești sigur că vrei să ștergi această știre?</p>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={closeDeleteDialog}>Renunță</Button>
+                    <Button color="error" variant="contained" onClick={handleDeleteConfirm}>
+                        Șterge
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </div>
     );
 };

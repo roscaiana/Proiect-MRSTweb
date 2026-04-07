@@ -2,21 +2,16 @@ import {
     User,
     AuthCredentials,
     RegisterData,
-    AuthError,
     UpdateUserProfileInput,
 } from '../types/user';
 import { buildNotificationStorageKey, readNotifications, saveNotifications } from './notificationUtils';
 import { emitStorageUpdate, emitNotificationsUpdated } from './storageEvents';
+import { buildUpdateProfileSchema } from '../schemas/profileSchema';
 
-// Email validation regex
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-// Mock admin credentials
 const ADMIN_EMAIL = 'admin@electoral.md';
 const ADMIN_PASSWORD = 'admin123';
 const USERS_STORAGE_KEY = 'users';
 const SESSION_FORM_KEYS = ['appointmentFormDraft', 'appointmentRescheduleDraft'];
-const PHONE_REGEX = /^[0-9+\s()-]{6,20}$/;
 
 type AuthStorageUser = {
     email?: string;
@@ -24,6 +19,22 @@ type AuthStorageUser = {
 };
 
 const normalizeComparableEmail = (value: string): string => value.trim().toLowerCase();
+
+const readArray = (raw: string | null): Array<Record<string, unknown>> => {
+    if (!raw) {
+        return [];
+    }
+
+    try {
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) {
+            return [];
+        }
+        return parsed.filter((item): item is Record<string, unknown> => typeof item === 'object' && item !== null);
+    } catch {
+        return [];
+    }
+};
 
 const migrateArrayUserEmail = (storageKey: string, oldEmail: string, newEmail: string): void => {
     if (oldEmail === newEmail) {
@@ -98,70 +109,9 @@ const migrateNotificationStorage = (role: 'user' | 'admin', oldEmail: string, ne
     emitNotificationsUpdated(oldKey);
 };
 
-// Validate email format
-export const validateEmail = (email: string): boolean => {
-    return EMAIL_REGEX.test(email);
-};
-
-// Validate password strength (minimum 6 characters)
-export const validatePassword = (password: string): boolean => {
-    return password.length >= 6;
-};
-
-// Validate registration form
-export const validateRegistration = (data: RegisterData): AuthError[] => {
-    const errors: AuthError[] = [];
-
-    if (!data.fullName.trim()) {
-        errors.push({ field: 'fullName', message: 'Numele complet este obligatoriu' });
-    } else if (data.fullName.trim().length < 3) {
-        errors.push({ field: 'fullName', message: 'Numele trebuie să conțină cel puțin 3 caractere' });
-    }
-
-    if (!data.email.trim()) {
-        errors.push({ field: 'email', message: 'Email-ul este obligatoriu' });
-    } else if (!validateEmail(data.email)) {
-        errors.push({ field: 'email', message: 'Format de email invalid (ex: utilizator@exemplu.com)' });
-    }
-
-    if (!data.password) {
-        errors.push({ field: 'password', message: 'Parola este obligatorie' });
-    } else if (!validatePassword(data.password)) {
-        errors.push({ field: 'password', message: 'Parola trebuie să conțină cel puțin 6 caractere' });
-    }
-
-    if (!data.confirmPassword) {
-        errors.push({ field: 'confirmPassword', message: 'Confirmarea parolei este obligatorie' });
-    } else if (data.password !== data.confirmPassword) {
-        errors.push({ field: 'confirmPassword', message: 'Parolele nu coincid' });
-    }
-
-    return errors;
-};
-
-// Validate login form
-export const validateLogin = (data: AuthCredentials): AuthError[] => {
-    const errors: AuthError[] = [];
-
-    if (!data.email.trim()) {
-        errors.push({ field: 'email', message: 'Email-ul este obligatoriu' });
-    } else if (!validateEmail(data.email)) {
-        errors.push({ field: 'email', message: 'Format de email invalid' });
-    }
-
-    if (!data.password) {
-        errors.push({ field: 'password', message: 'Parola este obligatorie' });
-    }
-
-    return errors;
-};
-
-// Mock login function
 export const mockLogin = async (credentials: AuthCredentials): Promise<User> => {
-    // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Check admin credentials
     if (normalizeComparableEmail(credentials.email) === normalizeComparableEmail(ADMIN_EMAIL) && credentials.password === ADMIN_PASSWORD) {
         return {
             id: 'admin-1',
@@ -173,7 +123,6 @@ export const mockLogin = async (credentials: AuthCredentials): Promise<User> => 
         };
     }
 
-    // Check user credentials from localStorage
     const users = getStoredUsers();
     const userIndex = users.findIndex(u => normalizeComparableEmail(u.email) === normalizeComparableEmail(credentials.email));
     const user = userIndex >= 0 ? users[userIndex] : undefined;
@@ -186,7 +135,6 @@ export const mockLogin = async (credentials: AuthCredentials): Promise<User> => 
         throw new Error('Contul este blocat. Contactează administratorul.');
     }
 
-    // In a real app, we'd hash and compare passwords
     const storedPassword = localStorage.getItem(`password_${user.email}`);
     if (storedPassword !== credentials.password) {
         throw new Error('Parola incorectă');
@@ -203,18 +151,14 @@ export const mockLogin = async (credentials: AuthCredentials): Promise<User> => 
     return updatedUser;
 };
 
-// Mock register function
 export const mockRegister = async (data: RegisterData): Promise<User> => {
-    // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Check if email already exists
     const users = getStoredUsers();
     if (users.some(u => normalizeComparableEmail(u.email) === normalizeComparableEmail(data.email))) {
         throw new Error('Acest email este deja înregistrat');
     }
 
-    // Create new user
     const newUser: User = {
         id: `user-${Date.now()}`,
         email: data.email,
@@ -224,7 +168,6 @@ export const mockRegister = async (data: RegisterData): Promise<User> => {
         isBlocked: false
     };
 
-    // Store user and password
     users.push(newUser);
     localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
     emitStorageUpdate(USERS_STORAGE_KEY);
@@ -239,56 +182,27 @@ export const updateMockUserProfile = async (
 ): Promise<User> => {
     await new Promise((resolve) => setTimeout(resolve, 400));
 
-    const trimmedFullName = data.fullName.trim();
-    const trimmedNickname = data.nickname?.trim() || '';
-    const trimmedEmail = data.email.trim();
-    const trimmedPhoneNumber = data.phoneNumber?.trim() || '';
-    const trimmedAvatar = data.avatarDataUrl?.trim() || '';
-
-    if (!trimmedFullName) {
-        throw new Error('Numele este obligatoriu');
-    }
-
-    if (trimmedFullName.length < 3) {
-        throw new Error('Numele trebuie să conțină cel puțin 3 caractere');
-    }
-
-    if (!trimmedEmail) {
-        throw new Error('Email-ul este obligatoriu');
-    }
-
-    if (!validateEmail(trimmedEmail)) {
-        throw new Error('Format de email invalid');
-    }
-
-    if (trimmedPhoneNumber && !PHONE_REGEX.test(trimmedPhoneNumber)) {
-        throw new Error('Număr de telefon invalid');
-    }
-
-    if (
-        normalizeComparableEmail(trimmedEmail) === normalizeComparableEmail(ADMIN_EMAIL) &&
-        normalizeComparableEmail(currentEmail) !== normalizeComparableEmail(ADMIN_EMAIL)
-    ) {
-        throw new Error('Acest email este rezervat');
-    }
-
     const users = getStoredUsers();
+    const schema = buildUpdateProfileSchema(currentEmail, users, ADMIN_EMAIL);
+    const parsed = schema.safeParse(data);
+
+    if (!parsed.success) {
+        const message = parsed.error.issues[0]?.message || 'Date invalide';
+        throw new Error(message);
+    }
+
+    const trimmedFullName = parsed.data.fullName;
+    const trimmedNickname = parsed.data.nickname?.trim() || '';
+    const trimmedEmail = parsed.data.email;
+    const trimmedPhoneNumber = parsed.data.phoneNumber?.trim() || '';
+    const trimmedAvatar = parsed.data.avatarDataUrl?.trim() || '';
+
     const userIndex = users.findIndex(
         (candidate) => normalizeComparableEmail(candidate.email) === normalizeComparableEmail(currentEmail)
     );
 
     if (userIndex < 0) {
         throw new Error('Utilizatorul nu a fost găsit');
-    }
-
-    const duplicate = users.find(
-        (candidate, index) =>
-            index !== userIndex &&
-            normalizeComparableEmail(candidate.email) === normalizeComparableEmail(trimmedEmail)
-    );
-
-    if (duplicate) {
-        throw new Error('Acest email este deja utilizat de alt cont');
     }
 
     const previousUser = users[userIndex];
@@ -328,28 +242,52 @@ export const updateMockUserProfile = async (
     return updatedUser;
 };
 
-// Get stored users from localStorage
 const getStoredUsers = (): User[] => {
-    const stored = localStorage.getItem(USERS_STORAGE_KEY);
-    if (!stored) return [];
+    const stored = readArray(localStorage.getItem(USERS_STORAGE_KEY));
 
-    try {
-        return JSON.parse(stored).map((u: any) => ({
-            ...u,
-            createdAt: new Date(u.createdAt)
-        }));
-    } catch {
-        return [];
-    }
+    return stored.map((user, index) => {
+        const id = typeof user.id === 'string' ? user.id : `user-${index + 1}`;
+        const email = typeof user.email === 'string' ? user.email : '';
+        const fullName = typeof user.fullName === 'string'
+            ? user.fullName
+            : typeof user.name === 'string'
+                ? user.name
+                : 'Utilizator';
+        const nickname = typeof user.nickname === 'string' ? user.nickname : undefined;
+        const phoneNumber = typeof user.phoneNumber === 'string' ? user.phoneNumber : undefined;
+        const avatarDataUrl = typeof user.avatarDataUrl === 'string' ? user.avatarDataUrl : undefined;
+        const role = user.role === 'admin' ? 'admin' : 'user';
+        const createdAtValue =
+            typeof user.createdAt === 'string' || typeof user.createdAt === 'number'
+                ? user.createdAt
+                : undefined;
+        const createdAt = createdAtValue ? new Date(createdAtValue) : new Date();
+        const isBlocked = Boolean(user.isBlocked);
+        const lastLoginAt =
+            typeof user.lastLoginAt === 'string' || typeof user.lastLoginAt === 'number'
+                ? new Date(user.lastLoginAt).toISOString()
+                : undefined;
+
+        return {
+            id,
+            email,
+            fullName,
+            nickname,
+            phoneNumber,
+            avatarDataUrl,
+            role,
+            createdAt,
+            isBlocked,
+            lastLoginAt,
+        };
+    });
 };
 
-// Store auth state
 export const storeAuthState = (user: User, token: string): void => {
     localStorage.setItem('authUser', JSON.stringify(user));
     localStorage.setItem('authToken', token);
 };
 
-// Get auth state
 export const getAuthState = (): { user: User | null; token: string | null } => {
     const userStr = localStorage.getItem('authUser');
     const token = localStorage.getItem('authToken');
@@ -366,7 +304,6 @@ export const getAuthState = (): { user: User | null; token: string | null } => {
     }
 };
 
-// Clear auth state
 export const clearAuthState = (): void => {
     const rawAuthUser = localStorage.getItem('authUser');
 

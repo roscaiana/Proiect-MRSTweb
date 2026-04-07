@@ -1,19 +1,52 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import toast from "react-hot-toast";
 import AdminTestRow from "../components/AdminTestRow";
 import TestForm from "../components/TestForm";
 import { useAdminPanel } from "../hooks/useAdminPanel";
 import type { AdminTest, ExamSettings } from "../types";
+import { adminSettingsSchema, type AdminSettingsFormValues } from "../../../schemas/adminSchemas";
 
 const AdminTestsPage: React.FC = () => {
     const { state, createTest, updateTest, deleteTest, updateSettings } = useAdminPanel();
     const [creating, setCreating] = useState(false);
     const [editingTestId, setEditingTestId] = useState<string | null>(null);
-    const [settingsDraft, setSettingsDraft] = useState<ExamSettings>(state.settings);
-    const [settingsMessage, setSettingsMessage] = useState("");
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [pendingDelete, setPendingDelete] = useState<AdminTest | null>(null);
+
+    const {
+        register,
+        handleSubmit,
+        reset,
+        formState: { errors },
+    } = useForm<AdminSettingsFormValues>({
+        resolver: zodResolver(adminSettingsSchema),
+        defaultValues: {
+            testDurationMinutes: state.settings.testDurationMinutes,
+            passingThreshold: state.settings.passingThreshold,
+            appointmentsPerDay: state.settings.appointmentsPerDay,
+            appointmentLeadTimeHours: state.settings.appointmentLeadTimeHours,
+            maxReschedulesPerUser: state.settings.maxReschedulesPerUser,
+            rejectionCooldownDays: state.settings.rejectionCooldownDays,
+            appointmentLocation: state.settings.appointmentLocation,
+            appointmentRoom: state.settings.appointmentRoom,
+        },
+    });
 
     useEffect(() => {
-        setSettingsDraft(state.settings);
-    }, [state.settings]);
+        reset({
+            testDurationMinutes: state.settings.testDurationMinutes,
+            passingThreshold: state.settings.passingThreshold,
+            appointmentsPerDay: state.settings.appointmentsPerDay,
+            appointmentLeadTimeHours: state.settings.appointmentLeadTimeHours,
+            maxReschedulesPerUser: state.settings.maxReschedulesPerUser,
+            rejectionCooldownDays: state.settings.rejectionCooldownDays,
+            appointmentLocation: state.settings.appointmentLocation,
+            appointmentRoom: state.settings.appointmentRoom,
+        });
+    }, [reset, state.settings]);
 
     const editingTest = useMemo<AdminTest | undefined>(() => {
         if (!editingTestId) {
@@ -23,35 +56,34 @@ const AdminTestsPage: React.FC = () => {
         return state.tests.find((test) => test.id === editingTestId);
     }, [editingTestId, state.tests]);
 
-    const handleDeleteTest = (test: AdminTest) => {
-        const confirmed = window.confirm(`Sigur vrei să ștergi testul "${test.title}"? Această acțiune nu poate fi anulată.`);
-        if (!confirmed) {
-            return;
-        }
-        deleteTest(test.id);
+    const openDeleteDialog = (test: AdminTest) => {
+        setPendingDelete(test);
+        setDeleteDialogOpen(true);
     };
 
-    const handleSaveSettings = (event: React.FormEvent) => {
-        event.preventDefault();
-        if (
-            settingsDraft.testDurationMinutes < 1 ||
-            settingsDraft.testDurationMinutes > 180 ||
-            settingsDraft.passingThreshold < 1 ||
-            settingsDraft.passingThreshold > 100 ||
-            settingsDraft.appointmentsPerDay < 1 ||
-            settingsDraft.appointmentLeadTimeHours < 0 ||
-            settingsDraft.appointmentLeadTimeHours > 720 ||
-            settingsDraft.maxReschedulesPerUser < 0 ||
-            settingsDraft.maxReschedulesPerUser > 20 ||
-            settingsDraft.rejectionCooldownDays < 0 ||
-            settingsDraft.rejectionCooldownDays > 365
-        ) {
-            setSettingsMessage("Valorile introduse sunt invalide.");
-            return;
-        }
+    const closeDeleteDialog = () => {
+        setDeleteDialogOpen(false);
+        setPendingDelete(null);
+    };
 
-        updateSettings(settingsDraft);
-        setSettingsMessage("Setările au fost actualizate.");
+    const confirmDelete = () => {
+        if (!pendingDelete) return;
+        deleteTest(pendingDelete.id);
+        toast.success("Testul a fost șters.");
+        closeDeleteDialog();
+    };
+
+    const handleSaveSettings = (data: AdminSettingsFormValues) => {
+        const nextSettings: ExamSettings = {
+            ...state.settings,
+            ...data,
+        };
+        updateSettings(nextSettings);
+        toast.success("Setările au fost actualizate.");
+    };
+
+    const handleSettingsInvalid = () => {
+        toast.error("Valorile introduse sunt invalide.");
     };
 
     return (
@@ -65,18 +97,18 @@ const AdminTestsPage: React.FC = () => {
                 <div className="admin-card-header">
                     <h3><i className="fas fa-sliders admin-card-header-icon"></i> Setări globale examen</h3>
                 </div>
-                <form className="admin-inline-form" onSubmit={handleSaveSettings}>
+                <form className="admin-inline-form" onSubmit={handleSubmit(handleSaveSettings, handleSettingsInvalid)} noValidate>
                     <label className="admin-field">
                         <span>Durata test (minute)</span>
                         <input
                             type="number"
                             min={1}
                             max={180}
-                            value={settingsDraft.testDurationMinutes}
-                            onChange={(event) =>
-                                setSettingsDraft((prev) => ({ ...prev, testDurationMinutes: Number(event.target.value) || 0 }))
-                            }
+                            {...register("testDurationMinutes", { valueAsNumber: true })}
                         />
+                        {errors.testDurationMinutes?.message && (
+                            <span className="admin-field-error" role="alert">{errors.testDurationMinutes.message}</span>
+                        )}
                     </label>
 
                     <label className="admin-field">
@@ -85,11 +117,11 @@ const AdminTestsPage: React.FC = () => {
                             type="number"
                             min={1}
                             max={100}
-                            value={settingsDraft.passingThreshold}
-                            onChange={(event) =>
-                                setSettingsDraft((prev) => ({ ...prev, passingThreshold: Number(event.target.value) || 0 }))
-                            }
+                            {...register("passingThreshold", { valueAsNumber: true })}
                         />
+                        {errors.passingThreshold?.message && (
+                            <span className="admin-field-error" role="alert">{errors.passingThreshold.message}</span>
+                        )}
                     </label>
 
                     <label className="admin-field">
@@ -98,11 +130,11 @@ const AdminTestsPage: React.FC = () => {
                             type="number"
                             min={1}
                             max={500}
-                            value={settingsDraft.appointmentsPerDay}
-                            onChange={(event) =>
-                                setSettingsDraft((prev) => ({ ...prev, appointmentsPerDay: Number(event.target.value) || 0 }))
-                            }
+                            {...register("appointmentsPerDay", { valueAsNumber: true })}
                         />
+                        {errors.appointmentsPerDay?.message && (
+                            <span className="admin-field-error" role="alert">{errors.appointmentsPerDay.message}</span>
+                        )}
                     </label>
 
                     <label className="admin-field">
@@ -111,11 +143,11 @@ const AdminTestsPage: React.FC = () => {
                             type="number"
                             min={0}
                             max={720}
-                            value={settingsDraft.appointmentLeadTimeHours}
-                            onChange={(event) =>
-                                setSettingsDraft((prev) => ({ ...prev, appointmentLeadTimeHours: Number(event.target.value) || 0 }))
-                            }
+                            {...register("appointmentLeadTimeHours", { valueAsNumber: true })}
                         />
+                        {errors.appointmentLeadTimeHours?.message && (
+                            <span className="admin-field-error" role="alert">{errors.appointmentLeadTimeHours.message}</span>
+                        )}
                     </label>
 
                     <label className="admin-field">
@@ -124,11 +156,11 @@ const AdminTestsPage: React.FC = () => {
                             type="number"
                             min={0}
                             max={20}
-                            value={settingsDraft.maxReschedulesPerUser}
-                            onChange={(event) =>
-                                setSettingsDraft((prev) => ({ ...prev, maxReschedulesPerUser: Number(event.target.value) || 0 }))
-                            }
+                            {...register("maxReschedulesPerUser", { valueAsNumber: true })}
                         />
+                        {errors.maxReschedulesPerUser?.message && (
+                            <span className="admin-field-error" role="alert">{errors.maxReschedulesPerUser.message}</span>
+                        )}
                     </label>
 
                     <label className="admin-field">
@@ -137,19 +169,18 @@ const AdminTestsPage: React.FC = () => {
                             type="number"
                             min={0}
                             max={365}
-                            value={settingsDraft.rejectionCooldownDays}
-                            onChange={(event) =>
-                                setSettingsDraft((prev) => ({ ...prev, rejectionCooldownDays: Number(event.target.value) || 0 }))
-                            }
+                            {...register("rejectionCooldownDays", { valueAsNumber: true })}
                         />
+                        {errors.rejectionCooldownDays?.message && (
+                            <span className="admin-field-error" role="alert">{errors.rejectionCooldownDays.message}</span>
+                        )}
                     </label>
 
                     <label className="admin-field">
                         <span>Locație examen</span>
                         <input
                             type="text"
-                            value={settingsDraft.appointmentLocation}
-                            onChange={(event) => setSettingsDraft((prev) => ({ ...prev, appointmentLocation: event.target.value }))}
+                            {...register("appointmentLocation")}
                         />
                     </label>
 
@@ -157,8 +188,7 @@ const AdminTestsPage: React.FC = () => {
                         <span>Sală</span>
                         <input
                             type="text"
-                            value={settingsDraft.appointmentRoom}
-                            onChange={(event) => setSettingsDraft((prev) => ({ ...prev, appointmentRoom: event.target.value }))}
+                            {...register("appointmentRoom")}
                         />
                     </label>
 
@@ -166,7 +196,6 @@ const AdminTestsPage: React.FC = () => {
                         Salvează setările
                     </button>
                 </form>
-                {settingsMessage && <p className="admin-muted-text">{settingsMessage}</p>}
             </section>
 
             <section className="admin-panel-card">
@@ -227,13 +256,28 @@ const AdminTestsPage: React.FC = () => {
                                         setEditingTestId(testId);
                                         setCreating(false);
                                     }}
-                                    onDelete={handleDeleteTest}
+                                    onDelete={openDeleteDialog}
                                 />
                             ))}
                         </tbody>
                     </table>
                 </div>
             </section>
+
+            <Dialog open={deleteDialogOpen} onClose={closeDeleteDialog} maxWidth="xs" fullWidth>
+                <DialogTitle>Ștergere test</DialogTitle>
+                <DialogContent>
+                    <p>
+                        Sigur vrei să ștergi testul {pendingDelete?.title ? `"${pendingDelete.title}"` : ""}? Această acțiune nu poate fi anulată.
+                    </p>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={closeDeleteDialog}>Renunță</Button>
+                    <Button color="error" variant="contained" onClick={confirmDelete}>
+                        Șterge
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </div>
     );
 };

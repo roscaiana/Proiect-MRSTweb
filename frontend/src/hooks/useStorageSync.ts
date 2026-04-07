@@ -4,15 +4,21 @@ import { useEffect, useRef } from "react";
  * Listens to both the native `storage` event and the custom `app-storage-updated`
  * event, calling onSync whenever one of the watched keys changes.
  *
- * Pass a stable (constant) array for `keys`. The callback can change between renders —
+ * Pass a stable (constant) array for `keys`. The callback can change between renders -
  * it is read from a ref so the listener always calls the latest version.
  */
 export function useStorageSync(keys: string[], onSync: () => void): void {
     const onSyncRef = useRef(onSync);
-    onSyncRef.current = onSync;
-
     const keysRef = useRef(keys);
     keysRef.current = keys;
+
+    useEffect(() => {
+        onSyncRef.current = onSync;
+    }, [onSync]);
+
+    useEffect(() => {
+        keysRef.current = keys;
+    }, [keys]);
 
     useEffect(() => {
         const handleStorage = (event: StorageEvent): void => {
@@ -35,6 +41,5 @@ export function useStorageSync(keys: string[], onSync: () => void): void {
             window.removeEventListener("storage", handleStorage);
             window.removeEventListener("app-storage-updated", handleAppStorage as EventListener);
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 }
