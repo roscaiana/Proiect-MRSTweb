@@ -1,4 +1,9 @@
-import { apiClient } from "../api/axiosClient";
+import axios from "axios";
+import { API_BASE_URL } from "../api/axiosClient";
+
+// Standalone instance — intentionally bypasses the global error interceptor
+// so that a missing/offline backend doesn't show the error banner.
+const quizApiClient = axios.create({ baseURL: API_BASE_URL, headers: { "Content-Type": "application/json" } });
 import { QuizCategory, Question } from '../types/quiz';
 
 export const quizCategories: QuizCategory[] = [
@@ -420,9 +425,9 @@ const mapApiQuizData = (
 
 export const hydrateQuizDataFromApi = (): Promise<boolean> => {
     return Promise.all([
-        apiClient.get<ApiQuiz[]>(`${QUIZ_API_BASE_URL}/Quiz`),
-        apiClient.get<ApiQuestion[]>(`${QUIZ_API_BASE_URL}/Question`),
-        apiClient.get<ApiAnswerOption[]>(`${QUIZ_API_BASE_URL}/AnswerOption`),
+        quizApiClient.get<ApiQuiz[]>(`${QUIZ_API_BASE_URL}/Quiz`),
+        quizApiClient.get<ApiQuestion[]>(`${QUIZ_API_BASE_URL}/Question`),
+        quizApiClient.get<ApiAnswerOption[]>(`${QUIZ_API_BASE_URL}/AnswerOption`),
     ])
         .then(([quizzesResponse, questionsResponse, answerOptionsResponse]) => {
             const mapped = mapApiQuizData(

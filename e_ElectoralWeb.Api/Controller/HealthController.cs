@@ -7,9 +7,10 @@ namespace e_ElectoralWeb.Api.Controller
     public class HealthController : ControllerBase
     {
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public IActionResult Get()
         {
-            return Ok("Server is running.");
+            return Ok(new { status = "ok", timestamp = DateTime.UtcNow });
         }
     }
 }
