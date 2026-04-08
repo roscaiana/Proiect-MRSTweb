@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 type QuizCategoryCardProps = {
     id: string;
     title: string;
@@ -6,7 +8,7 @@ type QuizCategoryCardProps = {
     difficulty: string;
     durationMinutes: number;
     quizModeLabel: string;
-    icon: React.ReactNode;
+    icon: ReactNode;
     difficultyLabel: string;
     onStart: (categoryId: string) => void;
 };

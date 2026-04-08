@@ -6,7 +6,7 @@ type ChapterFeedbackItemProps = {
 
 export default function ChapterFeedbackItem({ chapterId, chapterTitle, accuracy }: ChapterFeedbackItemProps) {
     return (
-        <li key={chapterId}>
+        <li>
             <span>{chapterTitle}</span>
             <strong>{accuracy}%</strong>
         </li>

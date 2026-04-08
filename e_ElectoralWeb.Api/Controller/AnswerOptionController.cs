@@ -6,57 +6,63 @@ using Microsoft.AspNetCore.Mvc;
 namespace e_ElectoralWeb.Api.Controller
 {
     [ApiController]
-    [Route("api/answeroption")]
+    [Route("api/[controller]")]
     public class AnswerOptionController : ControllerBase
     {
-        private readonly IAnswerOptionAction _answerOptionAction;
+        private readonly IAnswerOptionAction _answerOption;
 
         public AnswerOptionController()
         {
             var bl = new BusinessLogic();
-            _answerOptionAction = bl.AnswerOptionAction();
-        }
-
-        [HttpGet("getAll")]
-        public IActionResult GetAll()
-        {
-            var data = _answerOptionAction.GetAllAnswerOptionsAction();
-            return Ok(data);
+            _answerOption = bl.AnswerOptionAction();
         }
 
         [HttpGet]
-        public IActionResult GetById([FromQuery] int id)
+        [ProducesResponseType(typeof(List<AnswerOptionInfoDto>), StatusCodes.Status200OK)]
+        public IActionResult GetAll()
         {
-            var result = _answerOptionAction.GetAnswerOptionByIdAction(id);
+            var result = _answerOption.GetAllAnswerOptionsAction();
             return Ok(result);
         }
 
-        [HttpGet("byQuestion")]
-        public IActionResult GetByQuestion([FromQuery] int questionId)
+        [HttpGet("{id}")]
+        [ProducesResponseType(typeof(AnswerOptionInfoDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetById(int id)
         {
-            var result = _answerOptionAction.GetAnswerOptionsByQuestionAction(questionId);
+            var result = _answerOption.GetAnswerOptionByIdAction(id);
+            if (result == null) return NotFound();
             return Ok(result);
         }
 
         [HttpPost]
-        public IActionResult Create([FromBody] AnswerOptionDto answerOption)
+        [ProducesResponseType(typeof(AnswerOptionInfoDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public IActionResult Create([FromBody] AnswerOptionCreateDto dto)
         {
-            var result = _answerOptionAction.CreateAnswerOptionAction(answerOption);
+            var result = _answerOption.CreateAnswerOptionAction(dto);
+            if (result == null) return BadRequest("Question not found.");
+            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        }
+
+        [HttpPut("{id}")]
+        [ProducesResponseType(typeof(AnswerOptionInfoDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult Update(int id, [FromBody] AnswerOptionUpdateDto dto)
+        {
+            var result = _answerOption.UpdateAnswerOptionAction(id, dto);
+            if (result == null) return NotFound();
             return Ok(result);
         }
 
-        [HttpPut]
-        public IActionResult Update([FromBody] AnswerOptionDto answerOption)
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult Delete(int id)
         {
-            var result = _answerOptionAction.UpdateAnswerOptionAction(answerOption);
-            return Ok(result);
-        }
-
-        [HttpDelete]
-        public IActionResult Delete([FromQuery] int id)
-        {
-            var result = _answerOptionAction.DeleteAnswerOptionAction(id);
-            return Ok(result);
+            var deleted = _answerOption.DeleteAnswerOptionAction(id);
+            if (!deleted) return NotFound();
+            return NoContent();
         }
     }
 }

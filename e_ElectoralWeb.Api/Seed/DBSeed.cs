@@ -14,20 +14,17 @@ namespace e_ElectoralWeb.Api.Seed
             await context.Database.MigrateAsync(cancellationToken);
 
             await context.Database.ExecuteSqlRawAsync("""
-                                                      IF OBJECT_ID(N'dbo.SeedHistory', N'U') IS NULL
-                                                      BEGIN
-                                                          CREATE TABLE dbo.SeedHistory
-                                                          (
-                                                              Id INT IDENTITY(1,1) PRIMARY KEY,
-                                                              SeedKey NVARCHAR(100) NOT NULL UNIQUE,
-                                                              ExecutedAtUtc DATETIME2 NOT NULL
-                                                          );
-                                                      END;
-                                                      """, cancellationToken);
+                CREATE TABLE IF NOT EXISTS "SeedHistory"
+                (
+                    "Id"             SERIAL PRIMARY KEY,
+                    "SeedKey"        VARCHAR(100) NOT NULL UNIQUE,
+                    "ExecutedAtUtc"  TIMESTAMP    NOT NULL
+                );
+                """, cancellationToken);
 
             var seedAlreadyRun = await context.Database
                 .SqlQueryRaw<int>(
-                    "SELECT COUNT(1) AS [Value] FROM dbo.SeedHistory WHERE SeedKey = {0}",
+                    "SELECT COUNT(1) AS \"Value\" FROM \"SeedHistory\" WHERE \"SeedKey\" = {0}",
                     SeedKey)
                 .SingleAsync(cancellationToken);
 
@@ -39,7 +36,7 @@ namespace e_ElectoralWeb.Api.Seed
                 return;
 
             await context.Database.ExecuteSqlRawAsync(
-                "INSERT INTO dbo.SeedHistory (SeedKey, ExecutedAtUtc) VALUES ({0}, SYSUTCDATETIME())",
+                "INSERT INTO \"SeedHistory\" (\"SeedKey\", \"ExecutedAtUtc\") VALUES ({0}, NOW())",
                 new object[] { SeedKey },
                 cancellationToken);
         }

@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace e_ElectoralWeb.Api.Controller
 {
-    [Route("api/quiz")]
+    [Route("api/[controller]")]
     [ApiController]
     public class QuizController : ControllerBase
     {
@@ -17,39 +17,51 @@ namespace e_ElectoralWeb.Api.Controller
             _quiz = bl.QuizAction();
         }
 
-        [HttpGet("getAll")]
-        public IActionResult GetAllQuizzes()
+        [HttpGet]
+        [ProducesResponseType(typeof(List<QuizInfoDto>), StatusCodes.Status200OK)]
+        public IActionResult GetAll()
         {
-            var quizzes = _quiz.GetAllQuizzesAction();
-            return Ok(quizzes);
+            var result = _quiz.GetAllQuizzesAction();
+            return Ok(result);
         }
 
-        [HttpGet]
-        public IActionResult GetById([FromQuery] int id)
+        [HttpGet("{id}")]
+        [ProducesResponseType(typeof(QuizInfoDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult GetById(int id)
         {
-            var quiz = _quiz.GetQuizByIdAction(id);
-            return Ok(quiz);
+            var result = _quiz.GetQuizByIdAction(id);
+            if (result == null) return NotFound();
+            return Ok(result);
         }
 
         [HttpPost]
-        public IActionResult Create([FromBody] QuizDto quiz)
+        [ProducesResponseType(typeof(QuizInfoDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public IActionResult Create([FromBody] QuizCreateDto dto)
         {
-            var result = _quiz.CreateQuizAction(quiz);
+            var result = _quiz.CreateQuizAction(dto);
+            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        }
+
+        [HttpPut("{id}")]
+        [ProducesResponseType(typeof(QuizInfoDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult Update(int id, [FromBody] QuizUpdateDto dto)
+        {
+            var result = _quiz.UpdateQuizAction(id, dto);
+            if (result == null) return NotFound();
             return Ok(result);
         }
 
-        [HttpPut]
-        public IActionResult Update([FromBody] QuizDto quiz)
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult Delete(int id)
         {
-            var result = _quiz.UpdateQuizAction(quiz);
-            return Ok(result);
-        }
-
-        [HttpDelete]
-        public IActionResult Delete([FromQuery] int id)
-        {
-            var result = _quiz.DeleteQuizAction(id);
-            return Ok(result);
+            var deleted = _quiz.DeleteQuizAction(id);
+            if (!deleted) return NotFound();
+            return NoContent();
         }
     }
 }
