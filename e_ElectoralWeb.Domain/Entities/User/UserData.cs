@@ -30,7 +30,7 @@ namespace e_ElectoralWeb.Domain.Entities.User
         public string Email { get; set; } = string.Empty;
 
         [Required]
-        [StringLength(48, MinimumLength = 8)]
+        [StringLength(48, MinimumLength = 6)]
         public string Password { get; set; } = string.Empty;
 
         [StringLength(12)]

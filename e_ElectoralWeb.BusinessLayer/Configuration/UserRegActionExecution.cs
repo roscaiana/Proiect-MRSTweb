@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using e_ElectoralWeb.BusinessLayer.Core;
 using e_ElectoralWeb.BusinessLayer.Interfaces;
 using e_ElectoralWeb.Domain.Models.Responses;
@@ -15,6 +10,26 @@ namespace e_ElectoralWeb.BusinessLayer.Configuration
         public ActionResponce UserRegDataValidation(UserRegisterDto uReg)
         {
             return UserRegDataValidationAction(uReg);
+        }
+
+        public List<UserDto> GetAllUsersAction()
+        {
+            return GetAllUsersActionExecution();
+        }
+
+        public UserDto? GetUserByIdAction(int id)
+        {
+            return GetUserByIdActionExecution(id);
+        }
+
+        public ActionResponce UpdateUserAction(UserDto data)
+        {
+            return UpdateUserActionExecution(data);
+        }
+
+        public ActionResponce DeleteUserAction(int id)
+        {
+            return DeleteUserActionExecution(id);
         }
     }
 }
