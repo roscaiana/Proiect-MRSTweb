@@ -48,7 +48,7 @@ export default function AppointmentCalendarDayButton({
         : !day.isWithinRange
           ? `Alegeți între ${formatDate(minDate)} și ${formatDate(maxDate)}.`
           : !day.isAllowedWeekday
-            ? "Programările sunt doar luni, miercuri și vineri."
+            ? "Zi neeligibilă pentru programări."
             : !day.isLeadTimeMet
               ? `Este necesar un lead time de ${leadTimeHours} ore.`
               : day.isFull

@@ -6,111 +6,55 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 {
     public class QuestionActions
     {
-        private readonly QuizDbContext _context;
-
-        public QuestionActions(QuizDbContext context)
-        {
-            _context = context;
-        }
-
         internal List<QuestionInfoDto> GetAllQuestionsActionExecution()
         {
-            var questions = _context.Questions
-                .Select(q => new QuestionInfoDto()
-                {
-                    Id = q.Id,
-                    Text = q.Text,
-                    QuizId = q.QuizId
-                })
+            using var db = new QuizDbContext();
+            return db.Questions
+                .Select(q => new QuestionInfoDto { Id = q.Id, Text = q.Text, QuizId = q.QuizId })
                 .ToList();
-
-            return questions;
         }
 
         internal QuestionInfoDto? GetQuestionByIdActionExecution(int id)
         {
-            var question = _context.Questions
+            using var db = new QuizDbContext();
+            return db.Questions
                 .Where(q => q.Id == id)
-                .Select(q => new QuestionInfoDto()
-                {
-                    Id = q.Id,
-                    Text = q.Text,
-                    QuizId = q.QuizId
-                })
+                .Select(q => new QuestionInfoDto { Id = q.Id, Text = q.Text, QuizId = q.QuizId })
                 .FirstOrDefault();
-
-            return question;
         }
 
         internal QuestionInfoDto? CreateQuestionActionExecution(QuestionCreateDto dto)
         {
-            var quizExists = _context.Quizzes.Any(q => q.Id == dto.QuizId);
-            if (!quizExists)
-            {
-                return null;
-            }
+            using var db = new QuizDbContext();
+            if (!db.Quizzes.Any(q => q.Id == dto.QuizId)) return null;
 
-            var entity = new QuestionEntity()
-            {
-                Text = dto.Text,
-                QuizId = dto.QuizId
-            };
-
-            _context.Questions.Add(entity);
-            _context.SaveChanges();
-
-            var result = new QuestionInfoDto()
-            {
-                Id = entity.Id,
-                Text = entity.Text,
-                QuizId = entity.QuizId
-            };
-
-            return result;
+            var entity = new QuestionEntity { Text = dto.Text, QuizId = dto.QuizId };
+            db.Questions.Add(entity);
+            db.SaveChanges();
+            return new QuestionInfoDto { Id = entity.Id, Text = entity.Text, QuizId = entity.QuizId };
         }
 
         internal QuestionInfoDto? UpdateQuestionActionExecution(int id, QuestionUpdateDto dto)
         {
-            var entity = _context.Questions.FirstOrDefault(q => q.Id == id);
-
-            if (entity == null)
-            {
-                return null;
-            }
-
-            var quizExists = _context.Quizzes.Any(q => q.Id == dto.QuizId);
-            if (!quizExists)
-            {
-                return null;
-            }
+            using var db = new QuizDbContext();
+            var entity = db.Questions.FirstOrDefault(q => q.Id == id);
+            if (entity == null) return null;
+            if (!db.Quizzes.Any(q => q.Id == dto.QuizId)) return null;
 
             entity.Text = dto.Text;
             entity.QuizId = dto.QuizId;
-
-            _context.SaveChanges();
-
-            var result = new QuestionInfoDto()
-            {
-                Id = entity.Id,
-                Text = entity.Text,
-                QuizId = entity.QuizId
-            };
-
-            return result;
+            db.SaveChanges();
+            return new QuestionInfoDto { Id = entity.Id, Text = entity.Text, QuizId = entity.QuizId };
         }
 
         internal bool DeleteQuestionActionExecution(int id)
         {
-            var entity = _context.Questions.FirstOrDefault(q => q.Id == id);
+            using var db = new QuizDbContext();
+            var entity = db.Questions.FirstOrDefault(q => q.Id == id);
+            if (entity == null) return false;
 
-            if (entity == null)
-            {
-                return false;
-            }
-
-            _context.Questions.Remove(entity);
-            _context.SaveChanges();
-
+            db.Questions.Remove(entity);
+            db.SaveChanges();
             return true;
         }
     }

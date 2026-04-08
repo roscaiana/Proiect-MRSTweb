@@ -9,6 +9,28 @@ export const apiClient = axios.create({
     },
 });
 
+// Response interceptor - global error handling based on HTTP Status Code
+apiClient.interceptors.response.use(
+    (response) => response,
+    (error: AxiosError) => {
+        const status = error.response?.status;
+
+        if (status !== undefined && status >= 500) {
+            console.error("[Axios] Server error (5xx):", getGlobalHttpErrorMessage(error));
+        } else if (status === 401) {
+            console.warn("[Axios] Unauthorized (401) - redirect to login");
+        } else if (status === 403) {
+            console.warn("[Axios] Forbidden (403)");
+        } else if (status === 404) {
+            console.warn("[Axios] Not found (404)");
+        } else if (!error.response) {
+            console.error("[Axios] Network error - backend unreachable");
+        }
+
+        return Promise.reject(error);
+    }
+);
+
 export const getGlobalHttpErrorMessage = (error: AxiosError): string => {
     const status = error.response?.status;
 

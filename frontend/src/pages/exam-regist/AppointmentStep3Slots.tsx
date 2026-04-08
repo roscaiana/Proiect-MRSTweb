@@ -48,9 +48,9 @@ export default function AppointmentStep3Slots({
 
             <div className="slot-filter-row">
                 <div className="slot-filter-group" role="tablist" aria-label="Filtru intervale">
-                    <button type="button" className={slotFilter === 'all' ? 'active' : ''} onClick={() => onFilterChange('all')}>Toate</button>
-                    <button type="button" className={slotFilter === 'midday' ? 'active' : ''} onClick={() => onFilterChange('midday')}>Prânz</button>
-                    <button type="button" className={slotFilter === 'afternoon' ? 'active' : ''} onClick={() => onFilterChange('afternoon')}>După-amiază</button>
+                    <button type="button" role="tab" aria-selected={slotFilter === 'all'} className={slotFilter === 'all' ? 'active' : ''} onClick={() => onFilterChange('all')}>Toate</button>
+                    <button type="button" role="tab" aria-selected={slotFilter === 'midday'} className={slotFilter === 'midday' ? 'active' : ''} onClick={() => onFilterChange('midday')}>Prânz</button>
+                    <button type="button" role="tab" aria-selected={slotFilter === 'afternoon'} className={slotFilter === 'afternoon' ? 'active' : ''} onClick={() => onFilterChange('afternoon')}>După-amiază</button>
                 </div>
                 <button
                     type="button"

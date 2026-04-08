@@ -142,15 +142,15 @@ export const readExamSettings = (): ExamSettings => {
             passingThreshold: Number(parsed.passingThreshold) || DEFAULT_SETTINGS.passingThreshold,
             appointmentsPerDay:
                 Number(parsed.appointmentsPerDay) || DEFAULT_SETTINGS.appointmentsPerDay,
-            appointmentLeadTimeHours:
-                Math.max(0, Number(parsed.appointmentLeadTimeHours)) ||
-                DEFAULT_SETTINGS.appointmentLeadTimeHours,
-            maxReschedulesPerUser:
-                Math.max(0, Number(parsed.maxReschedulesPerUser)) ||
-                DEFAULT_SETTINGS.maxReschedulesPerUser,
-            rejectionCooldownDays:
-                Math.max(0, Number(parsed.rejectionCooldownDays)) ||
-                DEFAULT_SETTINGS.rejectionCooldownDays,
+            appointmentLeadTimeHours: Number.isFinite(Number(parsed.appointmentLeadTimeHours))
+                ? Math.max(0, Number(parsed.appointmentLeadTimeHours))
+                : DEFAULT_SETTINGS.appointmentLeadTimeHours,
+            maxReschedulesPerUser: Number.isFinite(Number(parsed.maxReschedulesPerUser))
+                ? Math.max(0, Number(parsed.maxReschedulesPerUser))
+                : DEFAULT_SETTINGS.maxReschedulesPerUser,
+            rejectionCooldownDays: Number.isFinite(Number(parsed.rejectionCooldownDays))
+                ? Math.max(0, Number(parsed.rejectionCooldownDays))
+                : DEFAULT_SETTINGS.rejectionCooldownDays,
             appointmentLocation:
                 typeof parsed.appointmentLocation === "string" && parsed.appointmentLocation.trim()
                     ? parsed.appointmentLocation.trim()
@@ -159,12 +159,19 @@ export const readExamSettings = (): ExamSettings => {
                 typeof parsed.appointmentRoom === "string" && parsed.appointmentRoom.trim()
                     ? parsed.appointmentRoom.trim()
                     : DEFAULT_SETTINGS.appointmentRoom,
-            allowedWeekdays:
-                Array.isArray(parsed.allowedWeekdays) && parsed.allowedWeekdays.length > 0
-                    ? (parsed.allowedWeekdays as number[]).filter(
-                          (d) => Number.isInteger(d) && d >= 0 && d <= 6
-                      )
-                    : DEFAULT_SETTINGS.allowedWeekdays,
+            allowedWeekdays: (() => {
+                    if (!Array.isArray(parsed.allowedWeekdays)) {
+                        return DEFAULT_SETTINGS.allowedWeekdays;
+                    }
+                    const filtered = [
+                        ...new Set(
+                            (parsed.allowedWeekdays as number[]).filter(
+                                (d) => Number.isInteger(d) && d >= 0 && d <= 6
+                            )
+                        ),
+                    ];
+                    return filtered.length > 0 ? filtered : DEFAULT_SETTINGS.allowedWeekdays;
+                })(),
             blockedDates: Array.isArray(parsed.blockedDates)
                 ? parsed.blockedDates
                       .map((item) => {
