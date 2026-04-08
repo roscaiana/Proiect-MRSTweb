@@ -1,117 +1,207 @@
 using e_ElectoralWeb.DataAccessLayer.Context;
 using e_ElectoralWeb.Domain.Entities.Question;
 using e_ElectoralWeb.Domain.Models.Question;
+using e_ElectoralWeb.Domain.Models.Responses;
 
 namespace e_ElectoralWeb.BusinessLayer.Core
 {
     public class QuestionActions
     {
-        private readonly QuizDbContext _context;
-
-        public QuestionActions(QuizDbContext context)
+        protected QuestionActions()
         {
-            _context = context;
         }
 
-        internal List<QuestionInfoDto> GetAllQuestionsActionExecution()
+        protected List<QuestionDto> GetAllQuestionsActionExecution()
         {
-            var questions = _context.Questions
-                .Select(q => new QuestionInfoDto()
+            using var context = new QuestionContext();
+            return context.Questions
+                .Select(q => new QuestionDto
                 {
                     Id = q.Id,
                     Text = q.Text,
                     QuizId = q.QuizId
                 })
                 .ToList();
-
-            return questions;
         }
 
-        internal QuestionInfoDto? GetQuestionByIdActionExecution(int id)
+        protected QuestionDto? GetQuestionByIdActionExecution(int id)
         {
-            var question = _context.Questions
+            using var context = new QuestionContext();
+            return context.Questions
                 .Where(q => q.Id == id)
-                .Select(q => new QuestionInfoDto()
+                .Select(q => new QuestionDto
                 {
                     Id = q.Id,
                     Text = q.Text,
                     QuizId = q.QuizId
                 })
                 .FirstOrDefault();
-
-            return question;
         }
 
-        internal QuestionInfoDto? CreateQuestionActionExecution(QuestionCreateDto dto)
+        protected List<QuestionDto> GetQuestionsByQuizActionExecution(int quizId)
         {
-            var quizExists = _context.Quizzes.Any(q => q.Id == dto.QuizId);
-            if (!quizExists)
-            {
-                return null;
-            }
-
-            var entity = new QuestionEntity()
-            {
-                Text = dto.Text,
-                QuizId = dto.QuizId
-            };
-
-            _context.Questions.Add(entity);
-            _context.SaveChanges();
-
-            var result = new QuestionInfoDto()
-            {
-                Id = entity.Id,
-                Text = entity.Text,
-                QuizId = entity.QuizId
-            };
-
-            return result;
+            using var context = new QuestionContext();
+            return context.Questions
+                .Where(q => q.QuizId == quizId)
+                .Select(q => new QuestionDto
+                {
+                    Id = q.Id,
+                    Text = q.Text,
+                    QuizId = q.QuizId
+                })
+                .ToList();
         }
 
-        internal QuestionInfoDto? UpdateQuestionActionExecution(int id, QuestionUpdateDto dto)
+        protected ActionResponce CreateQuestionActionExecution(QuestionDto data)
         {
-            var entity = _context.Questions.FirstOrDefault(q => q.Id == id);
-
-            if (entity == null)
+            if (string.IsNullOrWhiteSpace(data.Text))
             {
-                return null;
+                return new ActionResponce
+                {
+                    IsSuccess = false,
+                    Message = "Question text is required."
+                };
             }
 
-            var quizExists = _context.Quizzes.Any(q => q.Id == dto.QuizId);
-            if (!quizExists)
+            using (var context = new QuestionContext())
             {
-                return null;
+                var quizExists = context.Quizzes.Any(q => q.Id == data.QuizId);
+                if (!quizExists)
+                {
+                    return new ActionResponce
+                    {
+                        IsSuccess = false,
+                        Message = "Quiz not found."
+                    };
+                }
+
+                var exists = context.Questions.Any(q =>
+                    q.QuizId == data.QuizId &&
+                    q.Text == data.Text);
+                if (exists)
+                {
+                    return new ActionResponce
+                    {
+                        IsSuccess = false,
+                        Message = "Question already exists for this quiz."
+                    };
+                }
+
+                var entity = new QuestionData
+                {
+                    Text = data.Text,
+                    QuizId = data.QuizId
+                };
+
+                context.Questions.Add(entity);
+                context.SaveChanges();
             }
 
-            entity.Text = dto.Text;
-            entity.QuizId = dto.QuizId;
-
-            _context.SaveChanges();
-
-            var result = new QuestionInfoDto()
+            return new ActionResponce
             {
-                Id = entity.Id,
-                Text = entity.Text,
-                QuizId = entity.QuizId
+                IsSuccess = true,
+                Message = "Question created."
             };
-
-            return result;
         }
 
-        internal bool DeleteQuestionActionExecution(int id)
+        protected ActionResponce UpdateQuestionActionExecution(QuestionDto data)
         {
-            var entity = _context.Questions.FirstOrDefault(q => q.Id == id);
-
-            if (entity == null)
+            if (data.Id <= 0)
             {
-                return false;
+                return new ActionResponce
+                {
+                    IsSuccess = false,
+                    Message = "Question id is required."
+                };
             }
 
-            _context.Questions.Remove(entity);
-            _context.SaveChanges();
+            if (string.IsNullOrWhiteSpace(data.Text))
+            {
+                return new ActionResponce
+                {
+                    IsSuccess = false,
+                    Message = "Question text is required."
+                };
+            }
 
-            return true;
+            using (var context = new QuestionContext())
+            {
+                var entity = context.Questions.FirstOrDefault(q => q.Id == data.Id);
+                if (entity == null)
+                {
+                    return new ActionResponce
+                    {
+                        IsSuccess = false,
+                        Message = "Question not found."
+                    };
+                }
+
+                var quizExists = context.Quizzes.Any(q => q.Id == data.QuizId);
+                if (!quizExists)
+                {
+                    return new ActionResponce
+                    {
+                        IsSuccess = false,
+                        Message = "Quiz not found."
+                    };
+                }
+
+                var exists = context.Questions.Any(q =>
+                    q.Id != data.Id &&
+                    q.QuizId == data.QuizId &&
+                    q.Text == data.Text);
+                if (exists)
+                {
+                    return new ActionResponce
+                    {
+                        IsSuccess = false,
+                        Message = "Question already exists for this quiz."
+                    };
+                }
+
+                entity.Text = data.Text;
+                entity.QuizId = data.QuizId;
+
+                context.Questions.Update(entity);
+                context.SaveChanges();
+            }
+
+            return new ActionResponce
+            {
+                IsSuccess = true,
+                Message = "Question updated."
+            };
+        }
+
+        protected ActionResponce DeleteQuestionActionExecution(int id)
+        {
+            using (var context = new QuestionContext())
+            {
+                var entity = context.Questions.FirstOrDefault(q => q.Id == id);
+                if (entity == null)
+                {
+                    return new ActionResponce
+                    {
+                        IsSuccess = false,
+                        Message = "Question not found."
+                    };
+                }
+
+                var options = context.AnswerOptions.Where(a => a.QuestionId == entity.Id).ToList();
+                if (options.Count > 0)
+                {
+                    context.AnswerOptions.RemoveRange(options);
+                }
+
+                context.Questions.Remove(entity);
+                context.SaveChanges();
+            }
+
+            return new ActionResponce
+            {
+                IsSuccess = true,
+                Message = "Question deleted."
+            };
         }
     }
 }

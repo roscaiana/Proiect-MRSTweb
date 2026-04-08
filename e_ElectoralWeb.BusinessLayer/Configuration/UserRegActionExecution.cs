@@ -12,7 +12,7 @@ namespace e_ElectoralWeb.BusinessLayer.Configuration
 {
     public class UserRegActionExecution : UserDbActions, IUserRegAction
     {
-        public ActionResponse UserRegDataValidation(UserRegisterDto uReg)
+        public ActionResponce UserRegDataValidation(UserRegisterDto uReg)
         {
             return UserRegDataValidationAction(uReg);
         }

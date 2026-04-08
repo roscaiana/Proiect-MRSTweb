@@ -36,7 +36,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
             return userToken;
         }
-        internal ActionResponse UserRegDataValidationAction(UserRegisterDto uReg)
+        internal ActionResponce UserRegDataValidationAction(UserRegisterDto uReg)
         {
             UserData? user;
             using (var db = new UserContext())
@@ -48,7 +48,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
             if (user != null)
             {
-                return new ActionResponse
+                return new ActionResponce
                 {
                     IsSuccess = false,
                     Message = "Email already exists."
@@ -74,7 +74,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                 db.SaveChanges();
             }
 
-            return new ActionResponse()
+            return new ActionResponce()
             {
                 IsSuccess = true,
                 Message = "User registration successful."

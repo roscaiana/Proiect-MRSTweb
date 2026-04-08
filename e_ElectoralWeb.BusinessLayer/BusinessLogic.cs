@@ -1,31 +1,26 @@
 using e_ElectoralWeb.BusinessLayer.Configuration;
 using e_ElectoralWeb.BusinessLayer.Interfaces;
-using e_ElectoralWeb.DataAccessLayer.Context;
+using e_ElectoralWeb.BusinessLayer.Structure;
 
 namespace e_ElectoralWeb.BusinessLayer
 {
     public class BusinessLogic
     {
-        private readonly QuizDbContext _context;
-
-        public BusinessLogic(QuizDbContext context)
-        {
-            _context = context;
-        }
+        public BusinessLogic() { }
 
         public IQuizAction QuizAction()
         {
-            return new QuizActionExecution(_context);
+            return new QuizExecution();
         }
 
         public IQuestionAction QuestionAction()
         {
-            return new QuestionActionExecution(_context);
+            return new QuestionExecution();
         }
 
         public IAnswerOptionAction AnswerOptionAction()
         {
-            return new AnswerOptionActionExecution(_context);
+            return new AnswerOptionExecution();
         }
         public IUserRegAction UserRegAction()
         {

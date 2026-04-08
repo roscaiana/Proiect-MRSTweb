@@ -5,6 +5,6 @@ namespace e_ElectoralWeb.BusinessLayer.Interfaces
 {
     public interface IUserRegAction
     {
-        public ActionResponse UserRegDataValidation(UserRegisterDto uReg);
+        public ActionResponce UserRegDataValidation(UserRegisterDto uReg);
     }
 }

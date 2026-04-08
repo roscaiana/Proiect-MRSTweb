@@ -1,22 +1,21 @@
 using e_ElectoralWeb.DataAccessLayer.Context;
 using e_ElectoralWeb.Domain.Entities.AnswerOption;
 using e_ElectoralWeb.Domain.Models.AnswerOption;
+using e_ElectoralWeb.Domain.Models.Responses;
 
 namespace e_ElectoralWeb.BusinessLayer.Core
 {
     public class AnswerOptionActions
     {
-        private readonly QuizDbContext _context;
-
-        public AnswerOptionActions(QuizDbContext context)
+        protected AnswerOptionActions()
         {
-            _context = context;
         }
 
-        internal List<AnswerOptionInfoDto> GetAllAnswerOptionsActionExecution()
+        protected List<AnswerOptionDto> GetAllAnswerOptionsActionExecution()
         {
-            var answerOptions = _context.AnswerOptions
-                .Select(a => new AnswerOptionInfoDto()
+            using var context = new AnswerOptionContext();
+            return context.AnswerOptions
+                .Select(a => new AnswerOptionDto
                 {
                     Id = a.Id,
                     Text = a.Text,
@@ -24,15 +23,14 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                     QuestionId = a.QuestionId
                 })
                 .ToList();
-
-            return answerOptions;
         }
 
-        internal AnswerOptionInfoDto? GetAnswerOptionByIdActionExecution(int id)
+        protected AnswerOptionDto? GetAnswerOptionByIdActionExecution(int id)
         {
-            var answerOption = _context.AnswerOptions
+            using var context = new AnswerOptionContext();
+            return context.AnswerOptions
                 .Where(a => a.Id == id)
-                .Select(a => new AnswerOptionInfoDto()
+                .Select(a => new AnswerOptionDto
                 {
                     Id = a.Id,
                     Text = a.Text,
@@ -40,86 +38,200 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                     QuestionId = a.QuestionId
                 })
                 .FirstOrDefault();
-
-            return answerOption;
         }
 
-        internal AnswerOptionInfoDto? CreateAnswerOptionActionExecution(AnswerOptionCreateDto dto)
+        protected List<AnswerOptionDto> GetAnswerOptionsByQuestionActionExecution(int questionId)
         {
-            var questionExists = _context.Questions.Any(q => q.Id == dto.QuestionId);
-
-            if (!questionExists)
-            {
-                return null;
-            }
-
-            var entity = new AnswerOptionEntity()
-            {
-                Text = dto.Text,
-                IsCorrect = dto.IsCorrect,
-                QuestionId = dto.QuestionId
-            };
-
-            _context.AnswerOptions.Add(entity);
-            _context.SaveChanges();
-
-            var result = new AnswerOptionInfoDto()
-            {
-                Id = entity.Id,
-                Text = entity.Text,
-                IsCorrect = entity.IsCorrect,
-                QuestionId = entity.QuestionId
-            };
-
-            return result;
+            using var context = new AnswerOptionContext();
+            return context.AnswerOptions
+                .Where(a => a.QuestionId == questionId)
+                .Select(a => new AnswerOptionDto
+                {
+                    Id = a.Id,
+                    Text = a.Text,
+                    IsCorrect = a.IsCorrect,
+                    QuestionId = a.QuestionId
+                })
+                .ToList();
         }
 
-        internal AnswerOptionInfoDto? UpdateAnswerOptionActionExecution(int id, AnswerOptionUpdateDto dto)
+        protected ActionResponce CreateAnswerOptionActionExecution(AnswerOptionDto data)
         {
-            var entity = _context.AnswerOptions.FirstOrDefault(a => a.Id == id);
-
-            if (entity == null)
+            if (string.IsNullOrWhiteSpace(data.Text))
             {
-                return null;
+                return new ActionResponce
+                {
+                    IsSuccess = false,
+                    Message = "Answer option text is required."
+                };
             }
 
-            var questionExists = _context.Questions.Any(q => q.Id == dto.QuestionId);
-
-            if (!questionExists)
+            using (var context = new AnswerOptionContext())
             {
-                return null;
+                var questionExists = context.Questions.Any(q => q.Id == data.QuestionId);
+                if (!questionExists)
+                {
+                    return new ActionResponce
+                    {
+                        IsSuccess = false,
+                        Message = "Question not found."
+                    };
+                }
+
+                var exists = context.AnswerOptions.Any(a =>
+                    a.QuestionId == data.QuestionId &&
+                    a.Text == data.Text);
+                if (exists)
+                {
+                    return new ActionResponce
+                    {
+                        IsSuccess = false,
+                        Message = "Answer option already exists for this question."
+                    };
+                }
+
+                if (data.IsCorrect)
+                {
+                    var correctExists = context.AnswerOptions.Any(a =>
+                        a.QuestionId == data.QuestionId &&
+                        a.IsCorrect);
+                    if (correctExists)
+                    {
+                        return new ActionResponce
+                        {
+                            IsSuccess = false,
+                            Message = "Only one correct answer is allowed per question."
+                        };
+                    }
+                }
+
+                var entity = new AnswerOptionData
+                {
+                    Text = data.Text,
+                    IsCorrect = data.IsCorrect,
+                    QuestionId = data.QuestionId
+                };
+
+                context.AnswerOptions.Add(entity);
+                context.SaveChanges();
             }
 
-            entity.Text = dto.Text;
-            entity.IsCorrect = dto.IsCorrect;
-            entity.QuestionId = dto.QuestionId;
-
-            _context.SaveChanges();
-
-            var result = new AnswerOptionInfoDto()
+            return new ActionResponce
             {
-                Id = entity.Id,
-                Text = entity.Text,
-                IsCorrect = entity.IsCorrect,
-                QuestionId = entity.QuestionId
+                IsSuccess = true,
+                Message = "Answer option created."
             };
-
-            return result;
         }
 
-        internal bool DeleteAnswerOptionActionExecution(int id)
+        protected ActionResponce UpdateAnswerOptionActionExecution(AnswerOptionDto data)
         {
-            var entity = _context.AnswerOptions.FirstOrDefault(a => a.Id == id);
-
-            if (entity == null)
+            if (data.Id <= 0)
             {
-                return false;
+                return new ActionResponce
+                {
+                    IsSuccess = false,
+                    Message = "Answer option id is required."
+                };
             }
 
-            _context.AnswerOptions.Remove(entity);
-            _context.SaveChanges();
+            if (string.IsNullOrWhiteSpace(data.Text))
+            {
+                return new ActionResponce
+                {
+                    IsSuccess = false,
+                    Message = "Answer option text is required."
+                };
+            }
 
-            return true;
+            using (var context = new AnswerOptionContext())
+            {
+                var entity = context.AnswerOptions.FirstOrDefault(a => a.Id == data.Id);
+                if (entity == null)
+                {
+                    return new ActionResponce
+                    {
+                        IsSuccess = false,
+                        Message = "Answer option not found."
+                    };
+                }
+
+                var questionExists = context.Questions.Any(q => q.Id == data.QuestionId);
+                if (!questionExists)
+                {
+                    return new ActionResponce
+                    {
+                        IsSuccess = false,
+                        Message = "Question not found."
+                    };
+                }
+
+                var exists = context.AnswerOptions.Any(a =>
+                    a.Id != data.Id &&
+                    a.QuestionId == data.QuestionId &&
+                    a.Text == data.Text);
+                if (exists)
+                {
+                    return new ActionResponce
+                    {
+                        IsSuccess = false,
+                        Message = "Answer option already exists for this question."
+                    };
+                }
+
+                if (data.IsCorrect)
+                {
+                    var correctExists = context.AnswerOptions.Any(a =>
+                        a.Id != data.Id &&
+                        a.QuestionId == data.QuestionId &&
+                        a.IsCorrect);
+                    if (correctExists)
+                    {
+                        return new ActionResponce
+                        {
+                            IsSuccess = false,
+                            Message = "Only one correct answer is allowed per question."
+                        };
+                    }
+                }
+
+                entity.Text = data.Text;
+                entity.IsCorrect = data.IsCorrect;
+                entity.QuestionId = data.QuestionId;
+
+                context.AnswerOptions.Update(entity);
+                context.SaveChanges();
+            }
+
+            return new ActionResponce
+            {
+                IsSuccess = true,
+                Message = "Answer option updated."
+            };
+        }
+
+        protected ActionResponce DeleteAnswerOptionActionExecution(int id)
+        {
+            using (var context = new AnswerOptionContext())
+            {
+                var entity = context.AnswerOptions.FirstOrDefault(a => a.Id == id);
+                if (entity == null)
+                {
+                    return new ActionResponce
+                    {
+                        IsSuccess = false,
+                        Message = "Answer option not found."
+                    };
+                }
+
+                context.AnswerOptions.Remove(entity);
+                context.SaveChanges();
+            }
+
+            return new ActionResponce
+            {
+                IsSuccess = true,
+                Message = "Answer option deleted."
+            };
         }
     }
 }

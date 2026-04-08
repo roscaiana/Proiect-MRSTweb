@@ -1,16 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using e_ElectoralWeb.Domain.Models.Question;
-using e_ElectoralWeb.Domain.Models.Quiz;
+using e_ElectoralWeb.Domain.Models.Responses;
 
 namespace e_ElectoralWeb.BusinessLayer.Interfaces
 {
     public interface IQuestionAction
     {
-        List<QuestionInfoDto> GetAllQuestionsAction();
+        List<QuestionDto> GetAllQuestionsAction();
+        QuestionDto? GetQuestionByIdAction(int id);
+        List<QuestionDto> GetQuestionsByQuizAction(int quizId);
+        ActionResponce CreateQuestionAction(QuestionDto data);
+        ActionResponce UpdateQuestionAction(QuestionDto data);
+        ActionResponce DeleteQuestionAction(int id);
     }
 }
-
