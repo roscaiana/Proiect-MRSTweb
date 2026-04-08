@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-hot-toast';
-import { mockRegister } from '../../../utils/authUtils';
+import { registerWithApi } from '../../../api/authService';
 import { notifyAdmins } from '../../../utils/appEventNotifications';
 import { registerSchema, type RegisterFormValues } from '../../../schemas/authSchemas';
 import './RegisterPage.css';
@@ -36,13 +36,13 @@ const RegisterPage = () => {
         setIsLoading(true);
 
         try {
-            const createdUser = await mockRegister(data);
+            await registerWithApi(data);
 
             notifyAdmins({
                 title: 'Cont nou creat',
-                message: `${createdUser.fullName} (${createdUser.email}) și-a creat un cont nou.`,
+                message: `${data.fullName} (${data.email}) și-a creat un cont nou.`,
                 link: '/admin/users',
-                tag: `admin-user-registered-${createdUser.email.trim().toLowerCase()}`,
+                tag: `admin-user-registered-${data.email.trim().toLowerCase()}`,
             });
 
             navigate('/login?registered=true');
