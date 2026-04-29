@@ -15,26 +15,26 @@ namespace e_ElectoralWeb.Domain.Entities.User
         public int Id { get; set; }
 
         [StringLength(30)]
-        public string FirstName { get; set; }
+        public string FirstName { get; set; } = string.Empty;
 
         [StringLength(30)]
-        public string LastName { get; set; }
+        public string LastName { get; set; } = string.Empty;
 
         [Required]
         [StringLength(30, MinimumLength = 4)]
-        public string UserName { get; set; }
+        public string UserName { get; set; } = string.Empty;
         
         [Required]
         [StringLength(30)]
         [DataType(DataType.EmailAddress)]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         [Required]
-        [StringLength(48, MinimumLength = 8)]
-        public string Password { get; set; }
+        [StringLength(48, MinimumLength = 6)]
+        public string Password { get; set; } = string.Empty;
 
         [StringLength(12)]
-        public string Phone { get; set; }
+        public string Phone { get; set; } = string.Empty;
 
         public UserRole Role { get; set; }
 

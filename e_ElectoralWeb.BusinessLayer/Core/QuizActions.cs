@@ -1,58 +1,181 @@
 using e_ElectoralWeb.DataAccessLayer.Context;
 using e_ElectoralWeb.Domain.Entities.Quiz;
 using e_ElectoralWeb.Domain.Models.Quiz;
+using e_ElectoralWeb.Domain.Models.Responses;
 
 namespace e_ElectoralWeb.BusinessLayer.Core
 {
     public class QuizActions
     {
-        internal List<QuizInfoDto> GetAllQuizzesActionExecution()
+        protected QuizActions()
         {
-            using var db = new QuizDbContext();
-            return db.Quizzes
-                .Select(q => new QuizInfoDto { Id = q.Id, Title = q.Title, Description = q.Description })
+        }
+
+        protected List<QuizDto> GetAllQuizzesActionExecution()
+        {
+            using var context = new QuizContext();
+            return context.Quizzes
+                .Select(q => new QuizDto
+                {
+                    Id = q.Id,
+                    Title = q.Title,
+                    Description = q.Description
+                })
                 .ToList();
         }
 
-        internal QuizInfoDto? GetQuizByIdActionExecution(int id)
+        protected QuizDto? GetQuizByIdActionExecution(int id)
         {
-            using var db = new QuizDbContext();
-            return db.Quizzes
+            using var context = new QuizContext();
+            return context.Quizzes
                 .Where(q => q.Id == id)
-                .Select(q => new QuizInfoDto { Id = q.Id, Title = q.Title, Description = q.Description })
+                .Select(q => new QuizDto
+                {
+                    Id = q.Id,
+                    Title = q.Title,
+                    Description = q.Description
+                })
                 .FirstOrDefault();
         }
 
-        internal QuizInfoDto CreateQuizActionExecution(QuizCreateDto dto)
+        protected ActionResponce CreateQuizActionExecution(QuizDto data)
         {
-            using var db = new QuizDbContext();
-            var entity = new QuizEntity { Title = dto.Title, Description = dto.Description };
-            db.Quizzes.Add(entity);
-            db.SaveChanges();
-            return new QuizInfoDto { Id = entity.Id, Title = entity.Title, Description = entity.Description };
+            if (string.IsNullOrWhiteSpace(data.Title))
+            {
+                return new ActionResponce
+                {
+                    IsSuccess = false,
+                    Message = "Quiz title is required."
+                };
+            }
+
+            using (var context = new QuizContext())
+            {
+                var titleExists = context.Quizzes.Any(q => q.Title == data.Title);
+                if (titleExists)
+                {
+                    return new ActionResponce
+                    {
+                        IsSuccess = false,
+                        Message = "Quiz title already exists."
+                    };
+                }
+
+                var entity = new QuizData
+                {
+                    Title = data.Title,
+                    Description = data.Description
+                };
+
+                context.Quizzes.Add(entity);
+                context.SaveChanges();
+            }
+
+            return new ActionResponce
+            {
+                IsSuccess = true,
+                Message = "Quiz created."
+            };
         }
 
-        internal QuizInfoDto? UpdateQuizActionExecution(int id, QuizUpdateDto dto)
+        protected ActionResponce UpdateQuizActionExecution(QuizDto data)
         {
-            using var db = new QuizDbContext();
-            var entity = db.Quizzes.FirstOrDefault(q => q.Id == id);
-            if (entity == null) return null;
+            if (data.Id <= 0)
+            {
+                return new ActionResponce
+                {
+                    IsSuccess = false,
+                    Message = "Quiz id is required."
+                };
+            }
 
-            entity.Title = dto.Title;
-            entity.Description = dto.Description;
-            db.SaveChanges();
-            return new QuizInfoDto { Id = entity.Id, Title = entity.Title, Description = entity.Description };
+            if (string.IsNullOrWhiteSpace(data.Title))
+            {
+                return new ActionResponce
+                {
+                    IsSuccess = false,
+                    Message = "Quiz title is required."
+                };
+            }
+
+            using (var context = new QuizContext())
+            {
+                var entity = context.Quizzes.FirstOrDefault(q => q.Id == data.Id);
+                if (entity == null)
+                {
+                    return new ActionResponce
+                    {
+                        IsSuccess = false,
+                        Message = "Quiz not found."
+                    };
+                }
+
+                var titleExists = context.Quizzes.Any(q =>
+                    q.Id != data.Id &&
+                    q.Title == data.Title);
+                if (titleExists)
+                {
+                    return new ActionResponce
+                    {
+                        IsSuccess = false,
+                        Message = "Quiz title already exists."
+                    };
+                }
+
+                entity.Title = data.Title;
+                entity.Description = data.Description;
+
+                context.Quizzes.Update(entity);
+                context.SaveChanges();
+            }
+
+            return new ActionResponce
+            {
+                IsSuccess = true,
+                Message = "Quiz updated."
+            };
         }
 
-        internal bool DeleteQuizActionExecution(int id)
+        protected ActionResponce DeleteQuizActionExecution(int id)
         {
-            using var db = new QuizDbContext();
-            var entity = db.Quizzes.FirstOrDefault(q => q.Id == id);
-            if (entity == null) return false;
+            using (var context = new QuizContext())
+            {
+                var entity = context.Quizzes.FirstOrDefault(q => q.Id == id);
+                if (entity == null)
+                {
+                    return new ActionResponce
+                    {
+                        IsSuccess = false,
+                        Message = "Quiz not found."
+                    };
+                }
 
-            db.Quizzes.Remove(entity);
-            db.SaveChanges();
-            return true;
+                var questionIds = context.Questions
+                    .Where(q => q.QuizId == entity.Id)
+                    .Select(q => q.Id)
+                    .ToList();
+
+                if (questionIds.Count > 0)
+                {
+                    var options = context.AnswerOptions.Where(a => questionIds.Contains(a.QuestionId)).ToList();
+                    if (options.Count > 0)
+                    {
+                        context.AnswerOptions.RemoveRange(options);
+                    }
+
+                    var questions = context.Questions.Where(q => questionIds.Contains(q.Id)).ToList();
+                    context.Questions.RemoveRange(questions);
+                }
+
+                context.Quizzes.Remove(entity);
+                context.SaveChanges();
+            }
+
+            return new ActionResponce
+            {
+                IsSuccess = true,
+                Message = "Quiz deleted."
+            };
         }
     }
 }

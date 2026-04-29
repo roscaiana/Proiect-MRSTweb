@@ -63,5 +63,33 @@ namespace e_ElectoralWeb.Api.Controller
             if (!deleted) return NotFound();
             return NoContent();
         }
+
+        [HttpGet]
+        public IActionResult GetById([FromQuery] int id)
+        {
+            var quiz = _quiz.GetQuizByIdAction(id);
+            return Ok(quiz);
+        }
+
+        [HttpPost]
+        public IActionResult Create([FromBody] QuizDto quiz)
+        {
+            var result = _quiz.CreateQuizAction(quiz);
+            return Ok(result);
+        }
+
+        [HttpPut]
+        public IActionResult Update([FromBody] QuizDto quiz)
+        {
+            var result = _quiz.UpdateQuizAction(quiz);
+            return Ok(result);
+        }
+
+        [HttpDelete]
+        public IActionResult Delete([FromQuery] int id)
+        {
+            var result = _quiz.DeleteQuizAction(id);
+            return Ok(result);
+        }
     }
 }

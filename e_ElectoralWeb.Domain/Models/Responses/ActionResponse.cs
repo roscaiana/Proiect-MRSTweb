@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace e_ElectoralWeb.Domain.Models.Responses
 {
-    public class ActionResponse
+    public class ActionResponce
     {
         public bool IsSuccess { get; set; }
         public string? Message { get; set; }

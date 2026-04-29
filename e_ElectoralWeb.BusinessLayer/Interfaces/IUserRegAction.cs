@@ -5,6 +5,10 @@ namespace e_ElectoralWeb.BusinessLayer.Interfaces
 {
     public interface IUserRegAction
     {
-        public ActionResponse UserRegDataValidation(UserRegisterDto uReg);
+        ActionResponce UserRegDataValidation(UserRegisterDto uReg);
+        List<UserDto> GetAllUsersAction();
+        UserDto? GetUserByIdAction(int id);
+        ActionResponce UpdateUserAction(UserDto data);
+        ActionResponce DeleteUserAction(int id);
     }
 }

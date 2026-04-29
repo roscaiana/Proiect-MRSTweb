@@ -3,9 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'react-hot-toast';
-import { mockLogin } from '../../../utils/authUtils';
 import { useAuth } from '../../../hooks/useAuth';
 import { loginSchema, type LoginFormValues } from '../../../schemas/authSchemas';
+import { loginWithApi } from '../../../api/authService';
 import './LoginPage.css';
 
 const LoginPage = () => {
@@ -33,11 +33,10 @@ const LoginPage = () => {
         setIsLoading(true);
 
         try {
-            const user = await mockLogin({ email: data.email, password: data.password });
-            const mockToken = `token-${Date.now()}`;
-            login(user, mockToken);
+            const result = await loginWithApi({ email: data.email, password: data.password });
+            login(result.user, result.token);
 
-            if (user.role === 'admin') {
+            if (result.user.role === 'admin') {
                 navigate('/admin');
             } else {
                 navigate('/dashboard');
