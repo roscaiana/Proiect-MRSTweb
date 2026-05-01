@@ -43,7 +43,7 @@ export const loginWithApi = async (
     credentials: AuthCredentials,
 ): Promise<{ user: User; token: string }> => {
     try {
-        const response = await apiClient.post<ApiAuthSuccessResponse>("/auth", credentials);
+        const response = await apiClient.post<ApiAuthSuccessResponse>("/session/auth", credentials);
         const payload = response.data;
 
         if (!payload?.isSuccess || !payload.user || !payload.token) {
@@ -70,7 +70,7 @@ export const loginWithApi = async (
 
 export const registerWithApi = async (data: RegisterData): Promise<void> => {
     try {
-        const response = await apiClient.post<ApiActionResponse>("/register", data);
+        const response = await apiClient.post<ApiActionResponse>("/reg", data);
         const payload = response.data;
 
         if (!payload?.isSuccess) {
