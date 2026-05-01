@@ -8,7 +8,7 @@ namespace e_ElectoralWeb.DataAccessLayer.Context
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseNpgsql(DbSession.ConnectionString);
+            optionsBuilder.UseSqlServer(DbSession.ConnectionString);
         }
     }
 }

@@ -22,15 +22,20 @@ namespace e_ElectoralWeb.BusinessLayer
         {
             return new AnswerOptionExecution();
         }
+
         public IUserRegAction UserRegAction()
         {
             return new UserRegActionExecution();
         }
-        
+
         public IUserLoginAction UserLoginAction()
         {
             return new UserAuthAction();
         }
-     
+
+        public IQuizResultAction QuizResultAction()
+        {
+            return new QuizResultExecution();
+        }
     }
 }

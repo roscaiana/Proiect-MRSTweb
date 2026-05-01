@@ -13,7 +13,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
         protected List<QuestionDto> GetAllQuestionsActionExecution()
         {
-            using var context = new QuestionContext();
+            using var context = new QuizDbContext();
             return context.Questions
                 .Select(q => new QuestionDto
                 {
@@ -26,7 +26,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
         protected QuestionDto? GetQuestionByIdActionExecution(int id)
         {
-            using var context = new QuestionContext();
+            using var context = new QuizDbContext();
             return context.Questions
                 .Where(q => q.Id == id)
                 .Select(q => new QuestionDto
@@ -40,7 +40,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
         protected List<QuestionDto> GetQuestionsByQuizActionExecution(int quizId)
         {
-            using var context = new QuestionContext();
+            using var context = new QuizDbContext();
             return context.Questions
                 .Where(q => q.QuizId == quizId)
                 .Select(q => new QuestionDto
@@ -63,7 +63,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                 };
             }
 
-            using (var context = new QuestionContext())
+            using (var context = new QuizDbContext())
             {
                 var quizExists = context.Quizzes.Any(q => q.Id == data.QuizId);
                 if (!quizExists)
@@ -124,7 +124,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                 };
             }
 
-            using (var context = new QuestionContext())
+            using (var context = new QuizDbContext())
             {
                 var entity = context.Questions.FirstOrDefault(q => q.Id == data.Id);
                 if (entity == null)
@@ -175,7 +175,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
         protected ActionResponce DeleteQuestionActionExecution(int id)
         {
-            using (var context = new QuestionContext())
+            using (var context = new QuizDbContext())
             {
                 var entity = context.Questions.FirstOrDefault(q => q.Id == id);
                 if (entity == null)

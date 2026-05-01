@@ -13,7 +13,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
         protected List<QuizDto> GetAllQuizzesActionExecution()
         {
-            using var context = new QuizContext();
+            using var context = new QuizDbContext();
             return context.Quizzes
                 .Select(q => new QuizDto
                 {
@@ -26,7 +26,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
         protected QuizDto? GetQuizByIdActionExecution(int id)
         {
-            using var context = new QuizContext();
+            using var context = new QuizDbContext();
             return context.Quizzes
                 .Where(q => q.Id == id)
                 .Select(q => new QuizDto
@@ -49,7 +49,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                 };
             }
 
-            using (var context = new QuizContext())
+            using (var context = new QuizDbContext())
             {
                 var titleExists = context.Quizzes.Any(q => q.Title == data.Title);
                 if (titleExists)
@@ -98,7 +98,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                 };
             }
 
-            using (var context = new QuizContext())
+            using (var context = new QuizDbContext())
             {
                 var entity = context.Quizzes.FirstOrDefault(q => q.Id == data.Id);
                 if (entity == null)
@@ -138,7 +138,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
         protected ActionResponce DeleteQuizActionExecution(int id)
         {
-            using (var context = new QuizContext())
+            using (var context = new QuizDbContext())
             {
                 var entity = context.Quizzes.FirstOrDefault(q => q.Id == id);
                 if (entity == null)
