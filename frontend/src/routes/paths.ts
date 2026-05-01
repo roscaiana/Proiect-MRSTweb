@@ -18,6 +18,7 @@ export const ROUTES = {
 
     // Admin protected routes
     ADMIN_DASHBOARD: '/admin',
+    ADMIN_QUIZ_MANAGEMENT: '/admin/quizzes',
 } as const;
 
 export type RoutePath = typeof ROUTES[keyof typeof ROUTES];

@@ -17,39 +17,44 @@ namespace e_ElectoralWeb.Api.Controller
             _quiz = bl.QuizAction();
         }
 
-        [HttpGet("getAll")]
-        public IActionResult GetAllQuizzes()
+        [HttpGet]
+        public IActionResult GetAll()
         {
-            var quizzes = _quiz.GetAllQuizzesAction();
-            return Ok(quizzes);
+            var result = _quiz.GetAllQuizzesAction();
+            return Ok(result);
         }
 
-        [HttpGet]
-        public IActionResult GetById([FromQuery] int id)
+        [HttpGet("{id}")]
+        public IActionResult GetById(int id)
         {
-            var quiz = _quiz.GetQuizByIdAction(id);
-            return Ok(quiz);
+            var result = _quiz.GetQuizByIdAction(id);
+            if (result == null) return NotFound();
+            return Ok(result);
         }
 
         [HttpPost]
-        public IActionResult Create([FromBody] QuizDto quiz)
+        public IActionResult Create([FromBody] QuizDto dto)
         {
-            var result = _quiz.CreateQuizAction(quiz);
+            var result = _quiz.CreateQuizAction(dto);
+            if (!result.IsSuccess) return BadRequest(result.Message);
             return Ok(result);
         }
 
-        [HttpPut]
-        public IActionResult Update([FromBody] QuizDto quiz)
+        [HttpPut("{id}")]
+        public IActionResult Update(int id, [FromBody] QuizDto dto)
         {
-            var result = _quiz.UpdateQuizAction(quiz);
+            dto.Id = id;
+            var result = _quiz.UpdateQuizAction(dto);
+            if (!result.IsSuccess) return BadRequest(result.Message);
             return Ok(result);
         }
 
-        [HttpDelete]
-        public IActionResult Delete([FromQuery] int id)
+        [HttpDelete("{id}")]
+        public IActionResult Delete(int id)
         {
             var result = _quiz.DeleteQuizAction(id);
-            return Ok(result);
+            if (!result.IsSuccess) return NotFound(result.Message);
+            return NoContent();
         }
     }
 }

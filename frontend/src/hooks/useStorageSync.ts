@@ -10,6 +10,7 @@ import { useEffect, useRef } from "react";
 export function useStorageSync(keys: string[], onSync: () => void): void {
     const onSyncRef = useRef(onSync);
     const keysRef = useRef(keys);
+    keysRef.current = keys;
 
     useEffect(() => {
         onSyncRef.current = onSync;

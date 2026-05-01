@@ -3,7 +3,6 @@ using e_ElectoralWeb.DataAccessLayer;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//connection string setup
 DbSession.ConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddControllers();
@@ -14,7 +13,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("FrontendCorsPolicy", policy =>
     {
         policy
-            .WithOrigins("http://localhost:5173")
+            .WithOrigins("http://localhost:5173", "http://localhost:3000")
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -23,14 +22,15 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 await DBSeed.SeedAsync();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
 app.UseCors("FrontendCorsPolicy");
+app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
 

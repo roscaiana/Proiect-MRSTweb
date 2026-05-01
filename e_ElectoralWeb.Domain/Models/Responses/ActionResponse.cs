@@ -10,5 +10,6 @@ namespace e_ElectoralWeb.Domain.Models.Responses
     {
         public bool IsSuccess { get; set; }
         public string? Message { get; set; }
+        public object? Data { get; set; }
     }
 }

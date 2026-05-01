@@ -11,7 +11,7 @@ using e_ElectoralWeb.DataAccessLayer.Context;
 namespace e_ElectoralWeb.DataAccessLayer.Migrations
 {
     [DbContext(typeof(QuizDbContext))]
-    [Migration("20260401091604_Initial")]
+    [Migration("20260501010354_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -24,7 +24,7 @@ namespace e_ElectoralWeb.DataAccessLayer.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("e_ElectoralWeb.Domain.Entities.AnswerOption.AnswerOptionEntity", b =>
+            modelBuilder.Entity("e_ElectoralWeb.Domain.Entities.AnswerOption.AnswerOptionData", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -40,7 +40,8 @@ namespace e_ElectoralWeb.DataAccessLayer.Migrations
 
                     b.Property<string>("Text")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
 
                     b.HasKey("Id");
 
@@ -49,7 +50,7 @@ namespace e_ElectoralWeb.DataAccessLayer.Migrations
                     b.ToTable("AnswerOptions");
                 });
 
-            modelBuilder.Entity("e_ElectoralWeb.Domain.Entities.Question.QuestionEntity", b =>
+            modelBuilder.Entity("e_ElectoralWeb.Domain.Entities.Question.QuestionData", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -62,7 +63,8 @@ namespace e_ElectoralWeb.DataAccessLayer.Migrations
 
                     b.Property<string>("Text")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
 
                     b.HasKey("Id");
 
@@ -71,7 +73,7 @@ namespace e_ElectoralWeb.DataAccessLayer.Migrations
                     b.ToTable("Questions");
                 });
 
-            modelBuilder.Entity("e_ElectoralWeb.Domain.Entities.Quiz.QuizEntity", b =>
+            modelBuilder.Entity("e_ElectoralWeb.Domain.Entities.Quiz.QuizData", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -80,20 +82,22 @@ namespace e_ElectoralWeb.DataAccessLayer.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(400)
+                        .HasColumnType("nvarchar(400)");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 
                     b.ToTable("Quizzes");
                 });
 
-            modelBuilder.Entity("e_ElectoralWeb.Domain.Entities.AnswerOption.AnswerOptionEntity", b =>
+            modelBuilder.Entity("e_ElectoralWeb.Domain.Entities.AnswerOption.AnswerOptionData", b =>
                 {
-                    b.HasOne("e_ElectoralWeb.Domain.Entities.Question.QuestionEntity", "Question")
+                    b.HasOne("e_ElectoralWeb.Domain.Entities.Question.QuestionData", "Question")
                         .WithMany("AnswerOptions")
                         .HasForeignKey("QuestionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -102,9 +106,9 @@ namespace e_ElectoralWeb.DataAccessLayer.Migrations
                     b.Navigation("Question");
                 });
 
-            modelBuilder.Entity("e_ElectoralWeb.Domain.Entities.Question.QuestionEntity", b =>
+            modelBuilder.Entity("e_ElectoralWeb.Domain.Entities.Question.QuestionData", b =>
                 {
-                    b.HasOne("e_ElectoralWeb.Domain.Entities.Quiz.QuizEntity", "Quiz")
+                    b.HasOne("e_ElectoralWeb.Domain.Entities.Quiz.QuizData", "Quiz")
                         .WithMany("Questions")
                         .HasForeignKey("QuizId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -113,12 +117,12 @@ namespace e_ElectoralWeb.DataAccessLayer.Migrations
                     b.Navigation("Quiz");
                 });
 
-            modelBuilder.Entity("e_ElectoralWeb.Domain.Entities.Question.QuestionEntity", b =>
+            modelBuilder.Entity("e_ElectoralWeb.Domain.Entities.Question.QuestionData", b =>
                 {
                     b.Navigation("AnswerOptions");
                 });
 
-            modelBuilder.Entity("e_ElectoralWeb.Domain.Entities.Quiz.QuizEntity", b =>
+            modelBuilder.Entity("e_ElectoralWeb.Domain.Entities.Quiz.QuizData", b =>
                 {
                     b.Navigation("Questions");
                 });

@@ -1,6 +1,6 @@
 ﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useStorageSync } from '../../hooks/useStorageSync';
-import { getCategoryById, getQuestionsByCategory, getQuizCategories } from '../../data/quizData';
+import { getCategoryById, getQuestionsByCategory, getQuizCategories, hydrateQuizDataFromApi } from '../../data/quizData';
 import { useAuth } from '../../hooks/useAuth';
 import type { QuizMode, QuizResult, QuizSession } from '../../types/quiz';
 import type { QuizHistoryRecord } from '../../features/admin/types';
@@ -25,6 +25,12 @@ const TestsPage: React.FC = () => {
     const [completionReason, setCompletionReason] = useState<'manual' | 'timeout' | null>(null);
     const quizUserRef = React.useRef<{ email?: string; fullName?: string } | null>(null);
     const testsView = quizResult ? 'result' : quizSession ? 'session' : 'home';
+
+    useEffect(() => {
+        hydrateQuizDataFromApi().then((loaded) => {
+            if (loaded) setCategories(getQuizCategories());
+        });
+    }, []);
 
     useEffect(() => {
         window.scrollTo({ top: 0, left: 0, behavior: 'auto' });

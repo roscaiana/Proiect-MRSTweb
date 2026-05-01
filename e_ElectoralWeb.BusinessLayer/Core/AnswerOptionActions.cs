@@ -13,7 +13,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
         protected List<AnswerOptionDto> GetAllAnswerOptionsActionExecution()
         {
-            using var context = new AnswerOptionContext();
+            using var context = new QuizDbContext();
             return context.AnswerOptions
                 .Select(a => new AnswerOptionDto
                 {
@@ -27,7 +27,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
         protected AnswerOptionDto? GetAnswerOptionByIdActionExecution(int id)
         {
-            using var context = new AnswerOptionContext();
+            using var context = new QuizDbContext();
             return context.AnswerOptions
                 .Where(a => a.Id == id)
                 .Select(a => new AnswerOptionDto
@@ -42,7 +42,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
         protected List<AnswerOptionDto> GetAnswerOptionsByQuestionActionExecution(int questionId)
         {
-            using var context = new AnswerOptionContext();
+            using var context = new QuizDbContext();
             return context.AnswerOptions
                 .Where(a => a.QuestionId == questionId)
                 .Select(a => new AnswerOptionDto
@@ -66,7 +66,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                 };
             }
 
-            using (var context = new AnswerOptionContext())
+            using (var context = new QuizDbContext())
             {
                 var questionExists = context.Questions.Any(q => q.Id == data.QuestionId);
                 if (!questionExists)
@@ -143,7 +143,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                 };
             }
 
-            using (var context = new AnswerOptionContext())
+            using (var context = new QuizDbContext())
             {
                 var entity = context.AnswerOptions.FirstOrDefault(a => a.Id == data.Id);
                 if (entity == null)
@@ -211,7 +211,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
         protected ActionResponce DeleteAnswerOptionActionExecution(int id)
         {
-            using (var context = new AnswerOptionContext())
+            using (var context = new QuizDbContext())
             {
                 var entity = context.AnswerOptions.FirstOrDefault(a => a.Id == id);
                 if (entity == null)

@@ -41,10 +41,9 @@ export default function TermsAccordionItem({ section, isOpen, onToggle }: TermsA
             <div id={panelId} role="region" aria-labelledby={triggerId} className="terms-accordion-panel">
                 <div className="terms-accordion-panel-inner">
                     <ul className="terms-bullet-list">
-                        {section.points.map((point) => (
-                            <TermsSectionPoint key={point} point={point} />
-                        ))}
-                    </ul>
+                        {section.points.map((point, index) => (
+                            <TermsSectionPoint key={index} point={point} />
+                        ))}                    </ul>
                     {section.note ? <p className="terms-note">{section.note}</p> : null}
                 </div>
             </div>
