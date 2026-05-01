@@ -17,17 +17,18 @@ namespace e_ElectoralWeb.Api.Controller
             _answerOptionAction = bl.AnswerOptionAction();
         }
 
-        [HttpGet("getAll")]
+        [HttpGet]
         public IActionResult GetAll()
         {
             var data = _answerOptionAction.GetAllAnswerOptionsAction();
             return Ok(data);
         }
 
-        [HttpGet]
-        public IActionResult GetById([FromQuery] int id)
+        [HttpGet("{id}")]
+        public IActionResult GetById(int id)
         {
             var result = _answerOptionAction.GetAnswerOptionByIdAction(id);
+            if (result == null) return NotFound();
             return Ok(result);
         }
 
@@ -42,21 +43,25 @@ namespace e_ElectoralWeb.Api.Controller
         public IActionResult Create([FromBody] AnswerOptionDto answerOption)
         {
             var result = _answerOptionAction.CreateAnswerOptionAction(answerOption);
+            if (!result.IsSuccess) return BadRequest(result.Message);
             return Ok(result);
         }
 
-        [HttpPut]
-        public IActionResult Update([FromBody] AnswerOptionDto answerOption)
+        [HttpPut("{id}")]
+        public IActionResult Update(int id, [FromBody] AnswerOptionDto answerOption)
         {
+            answerOption.Id = id;
             var result = _answerOptionAction.UpdateAnswerOptionAction(answerOption);
+            if (!result.IsSuccess) return BadRequest(result.Message);
             return Ok(result);
         }
 
-        [HttpDelete]
-        public IActionResult Delete([FromQuery] int id)
+        [HttpDelete("{id}")]
+        public IActionResult Delete(int id)
         {
             var result = _answerOptionAction.DeleteAnswerOptionAction(id);
-            return Ok(result);
+            if (!result.IsSuccess) return NotFound(result.Message);
+            return NoContent();
         }
     }
 }
