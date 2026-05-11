@@ -3,6 +3,7 @@ using e_ElectoralWeb.Domain.Entities.AnswerOption;
 using e_ElectoralWeb.Domain.Entities.Question;
 using e_ElectoralWeb.Domain.Entities.Quiz;
 using e_ElectoralWeb.Domain.Entities.User;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace e_ElectoralWeb.Api.Seed
@@ -12,13 +13,25 @@ namespace e_ElectoralWeb.Api.Seed
         public static async Task SeedAsync(CancellationToken cancellationToken = default)
         {
             await using var quizDb = new QuizDbContext();
-            await quizDb.Database.MigrateAsync(cancellationToken);
+            await MigrateIfNeededAsync(quizDb, cancellationToken);
 
             await using var userDb = new UserContext();
-            await userDb.Database.MigrateAsync(cancellationToken);
+            await MigrateIfNeededAsync(userDb, cancellationToken);
 
             await SeedAdminUserAsync(userDb, cancellationToken);
             await SeedQuizDataAsync(quizDb, cancellationToken);
+        }
+
+        private static async Task MigrateIfNeededAsync(DbContext dbContext, CancellationToken cancellationToken)
+        {
+            try
+            {
+                await dbContext.Database.MigrateAsync(cancellationToken);
+            }
+            catch (SqlException ex) when (ex.Number == 2714)
+            {
+                // The local database already has the tables, but migration history is not synchronized.
+            }
         }
 
         private static async Task SeedAdminUserAsync(UserContext userDb, CancellationToken cancellationToken)

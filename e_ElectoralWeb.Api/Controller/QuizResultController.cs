@@ -22,7 +22,7 @@ public class QuizResultController : ControllerBase
     {
         var result = _quizResultAction.SubmitQuizResultAction(dto);
         if (!result.IsSuccess) return BadRequest(result);
-        return Ok(result);
+        return Created(string.Empty, result);
     }
 
     [HttpGet("byUser")]

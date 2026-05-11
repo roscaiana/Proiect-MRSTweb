@@ -44,7 +44,7 @@ namespace e_ElectoralWeb.Api.Controller
         {
             var result = _questionAction.CreateQuestionAction(question);
             if (!result.IsSuccess) return BadRequest(result.Message);
-            return Ok(result);
+            return CreatedAtAction(nameof(GetById), new { id = question.Id }, result);
         }
 
         [HttpPut("{id}")]
@@ -52,7 +52,17 @@ namespace e_ElectoralWeb.Api.Controller
         {
             question.Id = id;
             var result = _questionAction.UpdateQuestionAction(question);
-            if (!result.IsSuccess) return BadRequest(result.Message);
+            if (!result.IsSuccess)
+            {
+                var message = result.Message ?? "Question update failed.";
+                if (message.Contains("not found", StringComparison.OrdinalIgnoreCase))
+                {
+                    return NotFound(message);
+                }
+
+                return BadRequest(message);
+            }
+
             return Ok(result);
         }
 
