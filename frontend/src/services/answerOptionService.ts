@@ -1,5 +1,6 @@
 import { apiClient } from "../api/axiosClient";
 import type {
+    ActionResponse,
     AnswerOptionCreateDto,
     AnswerOptionInfoDto,
     AnswerOptionUpdateDto,
@@ -18,13 +19,13 @@ export const answerOptionService = {
         return response.data;
     },
 
-    async create(dto: AnswerOptionCreateDto): Promise<AnswerOptionInfoDto> {
-        const response = await apiClient.post<AnswerOptionInfoDto>(RESOURCE, dto);
+    async create(dto: AnswerOptionCreateDto): Promise<ActionResponse> {
+        const response = await apiClient.post<ActionResponse>(RESOURCE, dto);
         return response.data;
     },
 
-    async update(id: number, dto: AnswerOptionUpdateDto): Promise<AnswerOptionInfoDto> {
-        const response = await apiClient.put<AnswerOptionInfoDto>(`${RESOURCE}/${id}`, dto);
+    async update(id: number, dto: AnswerOptionUpdateDto): Promise<ActionResponse> {
+        const response = await apiClient.put<ActionResponse>(`${RESOURCE}/${id}`, dto);
         return response.data;
     },
 

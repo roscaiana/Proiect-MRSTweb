@@ -4,7 +4,7 @@ import { getCategoryById, getQuestionsByCategory, getQuizCategories, hydrateQuiz
 import { useAuth } from '../../hooks/useAuth';
 import type { QuizMode, QuizResult, QuizSession } from '../../types/quiz';
 import type { QuizHistoryRecord } from '../../features/admin/types';
-import { readAdminTests, readExamSettings, readQuizHistory, STORAGE_KEYS, writeQuizHistory } from '../../features/admin/storage';
+import { readExamSettings, readQuizHistory, STORAGE_KEYS, writeQuizHistory } from '../../features/admin/storage';
 import { notifyQuizCompleted } from '../../utils/appEventNotifications';
 import { inferChapter, normalizeText } from './testsPageUtils';
 import TestsHomeView from './components/TestsHomeView';
@@ -18,7 +18,6 @@ const TestsPage: React.FC = () => {
     const [quizSession, setQuizSession] = useState<QuizSession | null>(null);
     const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
     const [categories, setCategories] = useState(() => getQuizCategories());
-    const [adminTests, setAdminTests] = useState(() => readAdminTests());
     const [examSettings, setExamSettings] = useState(() => readExamSettings());
     const [submitWarning, setSubmitWarning] = useState('');
     const [canForceSubmit, setCanForceSubmit] = useState(false);
@@ -36,21 +35,10 @@ const TestsPage: React.FC = () => {
         window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     }, [testsView]);
 
-    useStorageSync([STORAGE_KEYS.tests, STORAGE_KEYS.settings], () => {
+    useStorageSync([STORAGE_KEYS.settings], () => {
         setCategories(getQuizCategories());
-        setAdminTests(readAdminTests());
         setExamSettings(readExamSettings());
     });
-
-    const durationByCategoryId = useMemo(() => {
-        return adminTests.reduce<Record<string, number>>((acc, test) => {
-            const minutes = Number(test.durationMinutes);
-            if (Number.isFinite(minutes) && minutes > 0) {
-                acc[test.id] = minutes;
-            }
-            return acc;
-        }, {});
-    }, [adminTests]);
 
     const startQuiz = (categoryId: string, mode: QuizMode = quizMode) => {
         quizUserRef.current = { email: user?.email, fullName: user?.fullName };
@@ -58,7 +46,6 @@ const TestsPage: React.FC = () => {
         if (questions.length === 0) return;
         const category = categories.find((item) => item.id === categoryId);
         const durationMinutes =
-            durationByCategoryId[categoryId] ??
             category?.estimatedTime ??
             examSettings.testDurationMinutes ??
             30;
@@ -261,7 +248,7 @@ const TestsPage: React.FC = () => {
             onSelectMode={setQuizMode}
             examSettings={examSettings}
             categories={categories}
-            durationByCategoryId={durationByCategoryId}
+            durationByCategoryId={{}}
             onStartQuiz={startQuiz}
         />
     );

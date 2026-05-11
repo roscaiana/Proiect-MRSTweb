@@ -1,5 +1,5 @@
 import { apiClient } from "../api/axiosClient";
-import type { QuizCreateDto, QuizInfoDto, QuizUpdateDto } from "./types";
+import type { ActionResponse, QuizCreateDto, QuizInfoDto, QuizUpdateDto } from "./types";
 
 const RESOURCE = "/Quiz";
 
@@ -14,13 +14,13 @@ export const quizService = {
         return response.data;
     },
 
-    async create(dto: QuizCreateDto): Promise<QuizInfoDto> {
-        const response = await apiClient.post<QuizInfoDto>(RESOURCE, dto);
+    async create(dto: QuizCreateDto): Promise<ActionResponse> {
+        const response = await apiClient.post<ActionResponse>(RESOURCE, dto);
         return response.data;
     },
 
-    async update(id: number, dto: QuizUpdateDto): Promise<QuizInfoDto> {
-        const response = await apiClient.put<QuizInfoDto>(`${RESOURCE}/${id}`, dto);
+    async update(id: number, dto: QuizUpdateDto): Promise<ActionResponse> {
+        const response = await apiClient.put<ActionResponse>(`${RESOURCE}/${id}`, dto);
         return response.data;
     },
 

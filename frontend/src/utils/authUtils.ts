@@ -109,7 +109,7 @@ const migrateNotificationStorage = (role: 'user' | 'admin', oldEmail: string, ne
     emitNotificationsUpdated(oldKey);
 };
 
-export const mockLogin = async (credentials: AuthCredentials): Promise<User> => {
+export const legacyLocalLogin = async (credentials: AuthCredentials): Promise<User> => {
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     if (normalizeComparableEmail(credentials.email) === normalizeComparableEmail(ADMIN_EMAIL) && credentials.password === ADMIN_PASSWORD) {
@@ -151,7 +151,7 @@ export const mockLogin = async (credentials: AuthCredentials): Promise<User> => 
     return updatedUser;
 };
 
-export const mockRegister = async (data: RegisterData): Promise<User> => {
+export const legacyLocalRegister = async (data: RegisterData): Promise<User> => {
     await new Promise(resolve => setTimeout(resolve, 1000));
 
     const users = getStoredUsers();
