@@ -8,6 +8,18 @@ namespace e_ElectoralWeb.BusinessLayer.Core;
 
 public class UserDbActions
 {
+    private static bool VerifyPassword(string inputPassword, string storedPassword)
+    {
+        try
+        {
+            return BCrypt.Net.BCrypt.Verify(inputPassword, storedPassword);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     private static string NormalizeEmail(string email)
     {
         return email.Trim().ToLowerInvariant();
@@ -84,7 +96,7 @@ public class UserDbActions
         return candidate;
     }
 
-    internal UserDto? UserLoginDataValidationExecution(UserLoginDto udata)
+    internal UserData? UserLoginDataValidationExecution(UserLoginDto udata)
     {
         if (string.IsNullOrWhiteSpace(udata.Email) || string.IsNullOrWhiteSpace(udata.Password))
         {
@@ -94,17 +106,34 @@ public class UserDbActions
         var email = NormalizeEmail(udata.Email);
 
         using var db = new UserContext();
-        var user = db.Users.FirstOrDefault(x =>
-            x.Email.ToLower() == email &&
-            x.Password == udata.Password);
+        var user = db.Users.FirstOrDefault(x => x.Email.ToLower() == email);
 
-        return user == null ? null : MapToDto(user);
+        if (user == null)
+        {
+            return null;
+        }
+
+        var passwordValid = VerifyPassword(udata.Password, user.Password);
+        if (!passwordValid && user.Password == udata.Password)
+        {
+            user.Password = BCrypt.Net.BCrypt.HashPassword(udata.Password);
+            db.Users.Update(user);
+            db.SaveChanges();
+            passwordValid = true;
+        }
+
+        if (!passwordValid)
+        {
+            return null;
+        }
+
+        return user;
     }
 
-    internal string UserTokenGeneration()
+    internal string UserTokenGeneration(UserData user)
     {
         var token = new TokenService();
-        return token.GenerateToken();
+        return token.GenerateToken(user);
     }
 
     internal ActionResponce UserRegDataValidationAction(UserRegisterDto uReg)
@@ -181,7 +210,7 @@ public class UserDbActions
             FirstName = firstName,
             LastName = lastName,
             Email = normalizedEmail,
-            Password = uReg.Password,
+            Password = BCrypt.Net.BCrypt.HashPassword(uReg.Password),
             UserName = BuildUniqueUserName(db, normalizedEmail),
             Phone = string.Empty,
             Role = UserRole.User,
@@ -348,7 +377,7 @@ public class UserDbActions
                 };
             }
 
-            user.Password = data.Password;
+            user.Password = BCrypt.Net.BCrypt.HashPassword(data.Password);
         }
 
         db.Users.Update(user);

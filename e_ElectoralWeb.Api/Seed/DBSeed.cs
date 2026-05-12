@@ -14,11 +14,7 @@ namespace e_ElectoralWeb.Api.Seed
         {
             await using var quizDb = new QuizDbContext();
             await MigrateIfNeededAsync(quizDb, cancellationToken);
-
-            await using var userDb = new UserContext();
-            await MigrateIfNeededAsync(userDb, cancellationToken);
-
-            await SeedAdminUserAsync(userDb, cancellationToken);
+            await SeedAdminUserAsync(quizDb, cancellationToken);
             await SeedQuizDataAsync(quizDb, cancellationToken);
         }
 
@@ -34,29 +30,52 @@ namespace e_ElectoralWeb.Api.Seed
             }
         }
 
-        private static async Task SeedAdminUserAsync(UserContext userDb, CancellationToken cancellationToken)
+        private static async Task SeedAdminUserAsync(QuizDbContext quizDb, CancellationToken cancellationToken)
         {
-            if (userDb.Users.Any(u => u.Email == "admin@electoral.md"))
-                return;
+            var existingAdmin = await quizDb.Users.FirstOrDefaultAsync(u => u.Email == "admin@electoral.md", cancellationToken);
+            if (existingAdmin != null)
+            {
+                try
+                {
+                    var isValidHash = BCrypt.Net.BCrypt.Verify("admin123", existingAdmin.Password);
+                    if (!isValidHash && existingAdmin.Password == "admin123")
+                    {
+                        existingAdmin.Password = BCrypt.Net.BCrypt.HashPassword("admin123");
+                        quizDb.Users.Update(existingAdmin);
+                        await quizDb.SaveChangesAsync(cancellationToken);
+                    }
+                }
+                catch
+                {
+                    if (existingAdmin.Password == "admin123")
+                    {
+                        existingAdmin.Password = BCrypt.Net.BCrypt.HashPassword("admin123");
+                        quizDb.Users.Update(existingAdmin);
+                        await quizDb.SaveChangesAsync(cancellationToken);
+                    }
+                }
 
-            userDb.Users.Add(new UserData
+                return;
+            }
+
+            quizDb.Users.Add(new UserData
             {
                 FirstName = "Administrator",
                 LastName = string.Empty,
                 UserName = "admin",
                 Email = "admin@electoral.md",
-                Password = "admin123",
+                Password = BCrypt.Net.BCrypt.HashPassword("admin123"),
                 Phone = string.Empty,
                 Role = UserRole.Admin,
                 RegisteredOn = DateTime.UtcNow
             });
 
-            await userDb.SaveChangesAsync(cancellationToken);
+            await quizDb.SaveChangesAsync(cancellationToken);
         }
 
         private static async Task SeedQuizDataAsync(QuizDbContext quizDb, CancellationToken cancellationToken)
         {
-            if (quizDb.Quizzes.Any())
+            if (await quizDb.Quizzes.AnyAsync(cancellationToken))
                 return;
 
             var quiz1 = new QuizData

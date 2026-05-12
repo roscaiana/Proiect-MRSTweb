@@ -29,7 +29,7 @@ public class UserConfiguration : IEntityTypeConfiguration<UserData>
 
         builder.Property(u => u.Password)
             .IsRequired()
-            .HasMaxLength(48);
+            .HasMaxLength(200);
 
         builder.Property(u => u.Phone)
             .HasMaxLength(12);
