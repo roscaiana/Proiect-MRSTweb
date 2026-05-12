@@ -8,6 +8,9 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.1" />
+      <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.12.1" />
       <ProjectReference Include="..\e_ElectoralWeb.DataAccessLayer\e_ElectoralWeb.DataAccessLayer.csproj" />
       <ProjectReference Include="..\e_ElectoralWeb.Domain\e_ElectoralWeb.Domain.csproj" />
     </ItemGroup>
