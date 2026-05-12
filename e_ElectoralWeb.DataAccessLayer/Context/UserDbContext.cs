@@ -10,5 +10,10 @@ namespace e_ElectoralWeb.DataAccessLayer.Context
         {
             optionsBuilder.UseSqlServer(DbSession.ConnectionString);
         }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(UserContext).Assembly);
+        }
     }
 }

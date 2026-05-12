@@ -5,6 +5,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using e_ElectoralWeb.Domain.Entities.QuizResult;
 
 namespace e_ElectoralWeb.Domain.Entities.User
 {
@@ -40,5 +41,7 @@ namespace e_ElectoralWeb.Domain.Entities.User
 
         [DataType(DataType.Date)]
         public DateTime RegisteredOn { get; set; }
+
+        public List<QuizResultData> QuizResults { get; set; } = new();
     }
 }
