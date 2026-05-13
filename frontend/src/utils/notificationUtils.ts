@@ -1,6 +1,6 @@
 import { emitNotificationsUpdated } from "./storageEvents";
 
-export type NotificationRole = "admin" | "user";
+export type NotificationRole = "admin" | "manager" | "user";
 
 export type AppNotification = {
     id: string;

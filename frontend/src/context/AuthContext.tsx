@@ -7,6 +7,7 @@ interface AuthContextType {
     user: User | null;
     isAuthenticated: boolean;
     isAdmin: boolean;
+    isManager: boolean;
     isAuthReady: boolean;
     login: (user: User, token: string) => void;
     logout: () => void;
@@ -33,7 +34,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }, []);
 
     useStorageSync(['users'], () => {
-        if (!user || user.role === 'admin') {
+        if (!user || user.role === 'admin' || user.role === 'manager') {
             return;
         }
 
@@ -99,6 +100,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         user,
         isAuthenticated: !!user,
         isAdmin: user?.role === 'admin',
+        isManager: user?.role === 'manager' || user?.role === 'admin',
         isAuthReady,
         login,
         logout,

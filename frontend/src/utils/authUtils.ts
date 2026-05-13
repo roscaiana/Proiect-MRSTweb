@@ -15,7 +15,7 @@ const SESSION_FORM_KEYS = ['appointmentFormDraft', 'appointmentRescheduleDraft']
 
 type AuthStorageUser = {
     email?: string;
-    role?: 'admin' | 'user';
+    role?: 'admin' | 'manager' | 'user';
 };
 
 const normalizeComparableEmail = (value: string): string => value.trim().toLowerCase();
@@ -71,7 +71,7 @@ const migrateArrayUserEmail = (storageKey: string, oldEmail: string, newEmail: s
     }
 };
 
-const migrateNotificationStorage = (role: 'user' | 'admin', oldEmail: string, newEmail: string): void => {
+const migrateNotificationStorage = (role: 'user' | 'manager' | 'admin', oldEmail: string, newEmail: string): void => {
     if (oldEmail === newEmail) {
         return;
     }
@@ -298,7 +298,9 @@ export const getAuthState = (): { user: User | null; token: string | null } => {
 
     try {
         const user = JSON.parse(userStr);
-        return { user: { ...user, createdAt: new Date(user.createdAt) }, token };
+        const normalizedRole =
+            user.role === 'admin' ? 'admin' : user.role === 'manager' ? 'manager' : 'user';
+        return { user: { ...user, role: normalizedRole, createdAt: new Date(user.createdAt) }, token };
     } catch {
         return { user: null, token: null };
     }
@@ -311,7 +313,8 @@ export const clearAuthState = (): void => {
         try {
             const parsed = JSON.parse(rawAuthUser) as AuthStorageUser;
             const normalizedEmail = typeof parsed.email === 'string' ? parsed.email.trim().toLowerCase() : '';
-            const normalizedRole = parsed.role === 'admin' ? 'admin' : parsed.role === 'user' ? 'user' : '';
+            const normalizedRole =
+                parsed.role === 'admin' ? 'admin' : parsed.role === 'manager' ? 'manager' : parsed.role === 'user' ? 'user' : '';
 
             if (normalizedEmail && normalizedRole) {
                 localStorage.removeItem(`notifications_${normalizedRole}_${normalizedEmail}`);
