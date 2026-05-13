@@ -2,6 +2,7 @@ using e_ElectoralWeb.DataAccessLayer.Context;
 using e_ElectoralWeb.Domain.Entities.AnswerOption;
 using e_ElectoralWeb.Domain.Models.AnswerOption;
 using e_ElectoralWeb.Domain.Models.Responses;
+using Microsoft.EntityFrameworkCore;
 
 namespace e_ElectoralWeb.BusinessLayer.Core
 {
@@ -11,10 +12,10 @@ namespace e_ElectoralWeb.BusinessLayer.Core
         {
         }
 
-        protected List<AnswerOptionDto> GetAllAnswerOptionsActionExecution()
+        protected async Task<List<AnswerOptionDto>> GetAllAnswerOptionsActionExecutionAsync()
         {
             using var context = new QuizDbContext();
-            return context.AnswerOptions
+            return await context.AnswerOptions
                 .Select(a => new AnswerOptionDto
                 {
                     Id = a.Id,
@@ -22,13 +23,13 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                     IsCorrect = a.IsCorrect,
                     QuestionId = a.QuestionId
                 })
-                .ToList();
+                .ToListAsync();
         }
 
-        protected AnswerOptionDto? GetAnswerOptionByIdActionExecution(int id)
+        protected async Task<AnswerOptionDto?> GetAnswerOptionByIdActionExecutionAsync(int id)
         {
             using var context = new QuizDbContext();
-            return context.AnswerOptions
+            return await context.AnswerOptions
                 .Where(a => a.Id == id)
                 .Select(a => new AnswerOptionDto
                 {
@@ -37,13 +38,13 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                     IsCorrect = a.IsCorrect,
                     QuestionId = a.QuestionId
                 })
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
         }
 
-        protected List<AnswerOptionDto> GetAnswerOptionsByQuestionActionExecution(int questionId)
+        protected async Task<List<AnswerOptionDto>> GetAnswerOptionsByQuestionActionExecutionAsync(int questionId)
         {
             using var context = new QuizDbContext();
-            return context.AnswerOptions
+            return await context.AnswerOptions
                 .Where(a => a.QuestionId == questionId)
                 .Select(a => new AnswerOptionDto
                 {
@@ -52,10 +53,10 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                     IsCorrect = a.IsCorrect,
                     QuestionId = a.QuestionId
                 })
-                .ToList();
+                .ToListAsync();
         }
 
-        protected ActionResponce CreateAnswerOptionActionExecution(AnswerOptionDto data)
+        protected async Task<ActionResponce> CreateAnswerOptionActionExecutionAsync(AnswerOptionDto data)
         {
             if (string.IsNullOrWhiteSpace(data.Text))
             {
@@ -68,7 +69,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
             using (var context = new QuizDbContext())
             {
-                var questionExists = context.Questions.Any(q => q.Id == data.QuestionId);
+                var questionExists = await context.Questions.AnyAsync(q => q.Id == data.QuestionId);
                 if (!questionExists)
                 {
                     return new ActionResponce
@@ -78,7 +79,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                     };
                 }
 
-                var exists = context.AnswerOptions.Any(a =>
+                var exists = await context.AnswerOptions.AnyAsync(a =>
                     a.QuestionId == data.QuestionId &&
                     a.Text == data.Text);
                 if (exists)
@@ -92,7 +93,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
                 if (data.IsCorrect)
                 {
-                    var correctExists = context.AnswerOptions.Any(a =>
+                    var correctExists = await context.AnswerOptions.AnyAsync(a =>
                         a.QuestionId == data.QuestionId &&
                         a.IsCorrect);
                     if (correctExists)
@@ -113,7 +114,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                 };
 
                 context.AnswerOptions.Add(entity);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
             }
 
             return new ActionResponce
@@ -123,7 +124,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
             };
         }
 
-        protected ActionResponce UpdateAnswerOptionActionExecution(AnswerOptionDto data)
+        protected async Task<ActionResponce> UpdateAnswerOptionActionExecutionAsync(AnswerOptionDto data)
         {
             if (data.Id <= 0)
             {
@@ -145,7 +146,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
             using (var context = new QuizDbContext())
             {
-                var entity = context.AnswerOptions.FirstOrDefault(a => a.Id == data.Id);
+                var entity = await context.AnswerOptions.FirstOrDefaultAsync(a => a.Id == data.Id);
                 if (entity == null)
                 {
                     return new ActionResponce
@@ -155,7 +156,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                     };
                 }
 
-                var questionExists = context.Questions.Any(q => q.Id == data.QuestionId);
+                var questionExists = await context.Questions.AnyAsync(q => q.Id == data.QuestionId);
                 if (!questionExists)
                 {
                     return new ActionResponce
@@ -165,7 +166,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                     };
                 }
 
-                var exists = context.AnswerOptions.Any(a =>
+                var exists = await context.AnswerOptions.AnyAsync(a =>
                     a.Id != data.Id &&
                     a.QuestionId == data.QuestionId &&
                     a.Text == data.Text);
@@ -180,7 +181,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
                 if (data.IsCorrect)
                 {
-                    var correctExists = context.AnswerOptions.Any(a =>
+                    var correctExists = await context.AnswerOptions.AnyAsync(a =>
                         a.Id != data.Id &&
                         a.QuestionId == data.QuestionId &&
                         a.IsCorrect);
@@ -199,7 +200,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                 entity.QuestionId = data.QuestionId;
 
                 context.AnswerOptions.Update(entity);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
             }
 
             return new ActionResponce
@@ -209,11 +210,11 @@ namespace e_ElectoralWeb.BusinessLayer.Core
             };
         }
 
-        protected ActionResponce DeleteAnswerOptionActionExecution(int id)
+        protected async Task<ActionResponce> DeleteAnswerOptionActionExecutionAsync(int id)
         {
             using (var context = new QuizDbContext())
             {
-                var entity = context.AnswerOptions.FirstOrDefault(a => a.Id == id);
+                var entity = await context.AnswerOptions.FirstOrDefaultAsync(a => a.Id == id);
                 if (entity == null)
                 {
                     return new ActionResponce
@@ -224,7 +225,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                 }
 
                 context.AnswerOptions.Remove(entity);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
             }
 
             return new ActionResponce

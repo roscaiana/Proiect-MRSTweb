@@ -5,7 +5,7 @@ namespace e_ElectoralWeb.BusinessLayer.Interfaces;
 
 public interface IQuizResultAction
 {
-    ActionResponce SubmitQuizResultAction(QuizResultSubmitDto data);
-    List<QuizResultDto> GetQuizResultsByUserAction(int userId);
-    QuizResultDto? GetQuizResultByIdAction(int id);
+    Task<ActionResponce> SubmitQuizResultActionAsync(QuizResultSubmitDto data);
+    Task<List<QuizResultDto>> GetQuizResultsByUserActionAsync(int userId);
+    Task<QuizResultDto?> GetQuizResultByIdActionAsync(int id);
 }

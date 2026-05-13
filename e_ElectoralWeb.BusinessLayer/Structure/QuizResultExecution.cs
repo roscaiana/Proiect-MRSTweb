@@ -7,12 +7,12 @@ namespace e_ElectoralWeb.BusinessLayer.Structure;
 
 public class QuizResultExecution : QuizResultActions, IQuizResultAction
 {
-    public ActionResponce SubmitQuizResultAction(QuizResultSubmitDto data)
-        => SubmitQuizResultActionExecution(data);
+    public Task<ActionResponce> SubmitQuizResultActionAsync(QuizResultSubmitDto data)
+        => SubmitQuizResultActionExecutionAsync(data);
 
-    public List<QuizResultDto> GetQuizResultsByUserAction(int userId)
-        => GetQuizResultsByUserActionExecution(userId);
+    public Task<List<QuizResultDto>> GetQuizResultsByUserActionAsync(int userId)
+        => GetQuizResultsByUserActionExecutionAsync(userId);
 
-    public QuizResultDto? GetQuizResultByIdAction(int id)
-        => GetQuizResultByIdActionExecution(id);
+    public Task<QuizResultDto?> GetQuizResultByIdActionAsync(int id)
+        => GetQuizResultByIdActionExecutionAsync(id);
 }

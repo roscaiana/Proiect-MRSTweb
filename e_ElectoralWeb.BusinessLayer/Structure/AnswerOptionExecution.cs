@@ -7,34 +7,34 @@ namespace e_ElectoralWeb.BusinessLayer.Structure
 {
     public class AnswerOptionExecution : AnswerOptionActions, IAnswerOptionAction
     {
-        public List<AnswerOptionDto> GetAllAnswerOptionsAction()
+        public Task<List<AnswerOptionDto>> GetAllAnswerOptionsActionAsync()
         {
-            return GetAllAnswerOptionsActionExecution();
+            return GetAllAnswerOptionsActionExecutionAsync();
         }
 
-        public AnswerOptionDto? GetAnswerOptionByIdAction(int id)
+        public Task<AnswerOptionDto?> GetAnswerOptionByIdActionAsync(int id)
         {
-            return GetAnswerOptionByIdActionExecution(id);
+            return GetAnswerOptionByIdActionExecutionAsync(id);
         }
 
-        public List<AnswerOptionDto> GetAnswerOptionsByQuestionAction(int questionId)
+        public Task<List<AnswerOptionDto>> GetAnswerOptionsByQuestionActionAsync(int questionId)
         {
-            return GetAnswerOptionsByQuestionActionExecution(questionId);
+            return GetAnswerOptionsByQuestionActionExecutionAsync(questionId);
         }
 
-        public ActionResponce CreateAnswerOptionAction(AnswerOptionDto data)
+        public Task<ActionResponce> CreateAnswerOptionActionAsync(AnswerOptionDto data)
         {
-            return CreateAnswerOptionActionExecution(data);
+            return CreateAnswerOptionActionExecutionAsync(data);
         }
 
-        public ActionResponce UpdateAnswerOptionAction(AnswerOptionDto data)
+        public Task<ActionResponce> UpdateAnswerOptionActionAsync(AnswerOptionDto data)
         {
-            return UpdateAnswerOptionActionExecution(data);
+            return UpdateAnswerOptionActionExecutionAsync(data);
         }
 
-        public ActionResponce DeleteAnswerOptionAction(int id)
+        public Task<ActionResponce> DeleteAnswerOptionActionAsync(int id)
         {
-            return DeleteAnswerOptionActionExecution(id);
+            return DeleteAnswerOptionActionExecutionAsync(id);
         }
     }
 }
