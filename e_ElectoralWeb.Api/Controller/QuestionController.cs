@@ -1,6 +1,7 @@
 using e_ElectoralWeb.BusinessLayer;
 using e_ElectoralWeb.BusinessLayer.Interfaces;
 using e_ElectoralWeb.Domain.Models.Question;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace e_ElectoralWeb.Api.Controller
@@ -17,61 +18,114 @@ namespace e_ElectoralWeb.Api.Controller
             _questionAction = bl.QuestionAction();
         }
 
+        [AllowAnonymous]
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            var questions = _questionAction.GetAllQuestionsAction();
-            return Ok(questions);
-        }
-
-        [HttpGet("{id}")]
-        public IActionResult GetById(int id)
-        {
-            var result = _questionAction.GetQuestionByIdAction(id);
-            if (result == null) return NotFound();
-            return Ok(result);
-        }
-
-        [HttpGet("byQuiz")]
-        public IActionResult GetByQuiz([FromQuery] int quizId)
-        {
-            var result = _questionAction.GetQuestionsByQuizAction(quizId);
-            return Ok(result);
-        }
-
-        [HttpPost]
-        public IActionResult Create([FromBody] QuestionDto question)
-        {
-            var result = _questionAction.CreateQuestionAction(question);
-            if (!result.IsSuccess) return BadRequest(result.Message);
-            return CreatedAtAction(nameof(GetById), new { id = question.Id }, result);
-        }
-
-        [HttpPut("{id}")]
-        public IActionResult Update(int id, [FromBody] QuestionDto question)
-        {
-            question.Id = id;
-            var result = _questionAction.UpdateQuestionAction(question);
-            if (!result.IsSuccess)
+            try
             {
-                var message = result.Message ?? "Question update failed.";
-                if (message.Contains("not found", StringComparison.OrdinalIgnoreCase))
+                var questions = await _questionAction.GetAllQuestionsActionAsync();
+                return Ok(questions);
+            }
+            catch (Exception)
+            {
+                return DatabaseError();
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            try
+            {
+                var result = await _questionAction.GetQuestionByIdActionAsync(id);
+                if (result == null) return NotFound();
+                return Ok(result);
+            }
+            catch (Exception)
+            {
+                return DatabaseError();
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet("byQuiz")]
+        public async Task<IActionResult> GetByQuiz([FromQuery] int quizId)
+        {
+            try
+            {
+                var result = await _questionAction.GetQuestionsByQuizActionAsync(quizId);
+                return Ok(result);
+            }
+            catch (Exception)
+            {
+                return DatabaseError();
+            }
+        }
+
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] QuestionDto question)
+        {
+            try
+            {
+                var result = await _questionAction.CreateQuestionActionAsync(question);
+                if (!result.IsSuccess) return BadRequest(result.Message);
+                return CreatedAtAction(nameof(GetById), new { id = question.Id }, result);
+            }
+            catch (Exception)
+            {
+                return DatabaseError();
+            }
+        }
+
+        [Authorize(Roles = "Admin,Manager")]
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] QuestionDto question)
+        {
+            try
+            {
+                question.Id = id;
+                var result = await _questionAction.UpdateQuestionActionAsync(question);
+                if (!result.IsSuccess)
                 {
-                    return NotFound(message);
+                    var message = result.Message ?? "Question update failed.";
+                    if (message.Contains("not found", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return NotFound(message);
+                    }
+
+                    return BadRequest(message);
                 }
 
-                return BadRequest(message);
+                return Ok(result);
             }
-
-            return Ok(result);
+            catch (Exception)
+            {
+                return DatabaseError();
+            }
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var result = _questionAction.DeleteQuestionAction(id);
-            if (!result.IsSuccess) return NotFound(result.Message);
-            return NoContent();
+            try
+            {
+                var result = await _questionAction.DeleteQuestionActionAsync(id);
+                if (!result.IsSuccess) return NotFound(result.Message);
+                return NoContent();
+            }
+            catch (Exception)
+            {
+                return DatabaseError();
+            }
+        }
+
+        private IActionResult DatabaseError()
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "Database error.");
         }
     }
 }
