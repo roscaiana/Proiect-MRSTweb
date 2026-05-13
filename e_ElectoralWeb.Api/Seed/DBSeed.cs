@@ -3,6 +3,7 @@ using e_ElectoralWeb.Domain.Entities.AnswerOption;
 using e_ElectoralWeb.Domain.Entities.Question;
 using e_ElectoralWeb.Domain.Entities.Quiz;
 using e_ElectoralWeb.Domain.Entities.User;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace e_ElectoralWeb.Api.Seed
@@ -12,38 +13,69 @@ namespace e_ElectoralWeb.Api.Seed
         public static async Task SeedAsync(CancellationToken cancellationToken = default)
         {
             await using var quizDb = new QuizDbContext();
-            await quizDb.Database.MigrateAsync(cancellationToken);
-
-            await using var userDb = new UserContext();
-            await userDb.Database.MigrateAsync(cancellationToken);
-
-            await SeedAdminUserAsync(userDb, cancellationToken);
+            await MigrateIfNeededAsync(quizDb, cancellationToken);
+            await SeedAdminUserAsync(quizDb, cancellationToken);
             await SeedQuizDataAsync(quizDb, cancellationToken);
         }
 
-        private static async Task SeedAdminUserAsync(UserContext userDb, CancellationToken cancellationToken)
+        private static async Task MigrateIfNeededAsync(DbContext dbContext, CancellationToken cancellationToken)
         {
-            if (userDb.Users.Any(u => u.Email == "admin@electoral.md"))
-                return;
+            try
+            {
+                await dbContext.Database.MigrateAsync(cancellationToken);
+            }
+            catch (SqlException ex) when (ex.Number == 2714)
+            {
+                // The local database already has the tables, but migration history is not synchronized.
+            }
+        }
 
-            userDb.Users.Add(new UserData
+        private static async Task SeedAdminUserAsync(QuizDbContext quizDb, CancellationToken cancellationToken)
+        {
+            var existingAdmin = await quizDb.Users.FirstOrDefaultAsync(u => u.Email == "admin@electoral.md", cancellationToken);
+            if (existingAdmin != null)
+            {
+                try
+                {
+                    var isValidHash = BCrypt.Net.BCrypt.Verify("admin123", existingAdmin.Password);
+                    if (!isValidHash && existingAdmin.Password == "admin123")
+                    {
+                        existingAdmin.Password = BCrypt.Net.BCrypt.HashPassword("admin123");
+                        quizDb.Users.Update(existingAdmin);
+                        await quizDb.SaveChangesAsync(cancellationToken);
+                    }
+                }
+                catch
+                {
+                    if (existingAdmin.Password == "admin123")
+                    {
+                        existingAdmin.Password = BCrypt.Net.BCrypt.HashPassword("admin123");
+                        quizDb.Users.Update(existingAdmin);
+                        await quizDb.SaveChangesAsync(cancellationToken);
+                    }
+                }
+
+                return;
+            }
+
+            quizDb.Users.Add(new UserData
             {
                 FirstName = "Administrator",
                 LastName = string.Empty,
                 UserName = "admin",
                 Email = "admin@electoral.md",
-                Password = "admin123",
+                Password = BCrypt.Net.BCrypt.HashPassword("admin123"),
                 Phone = string.Empty,
                 Role = UserRole.Admin,
                 RegisteredOn = DateTime.UtcNow
             });
 
-            await userDb.SaveChangesAsync(cancellationToken);
+            await quizDb.SaveChangesAsync(cancellationToken);
         }
 
         private static async Task SeedQuizDataAsync(QuizDbContext quizDb, CancellationToken cancellationToken)
         {
-            if (quizDb.Quizzes.Any())
+            if (await quizDb.Quizzes.AnyAsync(cancellationToken))
                 return;
 
             var quiz1 = new QuizData

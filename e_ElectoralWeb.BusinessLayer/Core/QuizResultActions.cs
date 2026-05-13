@@ -10,7 +10,7 @@ public class QuizResultActions
 {
     protected QuizResultActions() { }
 
-    protected ActionResponce SubmitQuizResultActionExecution(QuizResultSubmitDto data)
+    protected async Task<ActionResponce> SubmitQuizResultActionExecutionAsync(QuizResultSubmitDto data)
     {
         if (data.QuizId <= 0)
             return new ActionResponce { IsSuccess = false, Message = "QuizId is required." };
@@ -25,9 +25,13 @@ public class QuizResultActions
 
         using var context = new QuizDbContext();
 
-        var quizExists = context.Quizzes.Any(q => q.Id == data.QuizId);
+        var quizExists = await context.Quizzes.AnyAsync(q => q.Id == data.QuizId);
         if (!quizExists)
             return new ActionResponce { IsSuccess = false, Message = "Quiz not found." };
+
+        var userExists = await context.Users.AnyAsync(u => u.Id == data.UserId);
+        if (!userExists)
+            return new ActionResponce { IsSuccess = false, Message = "User not found." };
 
         var entity = new QuizResultData
         {
@@ -44,15 +48,15 @@ public class QuizResultActions
         };
 
         context.QuizResults.Add(entity);
-        context.SaveChanges();
+        await context.SaveChangesAsync();
 
         return new ActionResponce { IsSuccess = true, Message = "Rezultat salvat.", Data = entity.Id };
     }
 
-    protected List<QuizResultDto> GetQuizResultsByUserActionExecution(int userId)
+    protected async Task<List<QuizResultDto>> GetQuizResultsByUserActionExecutionAsync(int userId)
     {
         using var context = new QuizDbContext();
-        return context.QuizResults
+        return await context.QuizResults
             .Include(r => r.Quiz)
             .Where(r => r.UserId == userId)
             .OrderByDescending(r => r.CompletedAt)
@@ -71,13 +75,13 @@ public class QuizResultActions
                 Mode = r.Mode,
                 CompletedAt = r.CompletedAt
             })
-            .ToList();
+            .ToListAsync();
     }
 
-    protected QuizResultDto? GetQuizResultByIdActionExecution(int id)
+    protected async Task<QuizResultDto?> GetQuizResultByIdActionExecutionAsync(int id)
     {
         using var context = new QuizDbContext();
-        return context.QuizResults
+        return await context.QuizResults
             .Include(r => r.Quiz)
             .Where(r => r.Id == id)
             .Select(r => new QuizResultDto
@@ -95,6 +99,6 @@ public class QuizResultActions
                 Mode = r.Mode,
                 CompletedAt = r.CompletedAt
             })
-            .FirstOrDefault();
+            .FirstOrDefaultAsync();
     }
 }

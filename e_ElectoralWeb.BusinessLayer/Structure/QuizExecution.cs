@@ -7,29 +7,29 @@ namespace e_ElectoralWeb.BusinessLayer.Structure
 {
     public class QuizExecution : QuizActions, IQuizAction
     {
-        public List<QuizDto> GetAllQuizzesAction()
+        public Task<List<QuizDto>> GetAllQuizzesActionAsync()
         {
-            return GetAllQuizzesActionExecution();
+            return GetAllQuizzesActionExecutionAsync();
         }
 
-        public QuizDto? GetQuizByIdAction(int id)
+        public Task<QuizDto?> GetQuizByIdActionAsync(int id)
         {
-            return GetQuizByIdActionExecution(id);
+            return GetQuizByIdActionExecutionAsync(id);
         }
 
-        public ActionResponce CreateQuizAction(QuizDto data)
+        public Task<ActionResponce> CreateQuizActionAsync(QuizDto data)
         {
-            return CreateQuizActionExecution(data);
+            return CreateQuizActionExecutionAsync(data);
         }
 
-        public ActionResponce UpdateQuizAction(QuizDto data)
+        public Task<ActionResponce> UpdateQuizActionAsync(QuizDto data)
         {
-            return UpdateQuizActionExecution(data);
+            return UpdateQuizActionExecutionAsync(data);
         }
 
-        public ActionResponce DeleteQuizAction(int id)
+        public Task<ActionResponce> DeleteQuizActionAsync(int id)
         {
-            return DeleteQuizActionExecution(id);
+            return DeleteQuizActionExecutionAsync(id);
         }
     }
 }

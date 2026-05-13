@@ -43,10 +43,11 @@ function ScrollToTop() {
 type ProtectedRouteProps = {
     children: ReactElement;
     requireAdmin?: boolean;
+    allowRoles?: Array<"user" | "manager" | "admin">;
 };
 
-const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps) => {
-    const { isAuthenticated, isAdmin, isAuthReady } = useAuth();
+const ProtectedRoute = ({ children, requireAdmin = false, allowRoles }: ProtectedRouteProps) => {
+    const { isAuthenticated, isAdmin, isAuthReady, user } = useAuth();
     const location = useLocation();
 
     if (!isAuthReady) {
@@ -54,10 +55,14 @@ const ProtectedRoute = ({ children, requireAdmin = false }: ProtectedRouteProps)
     }
 
     if (!isAuthenticated) {
-        return <Navigate to={APP_ROUTES.unauthorized} replace state={{ from: location.pathname }} />;
+        return <Navigate to={APP_ROUTES.login} replace state={{ from: location.pathname }} />;
     }
 
     if (requireAdmin && !isAdmin) {
+        return <Navigate to={APP_ROUTES.forbidden} replace />;
+    }
+
+    if (allowRoles && user && !allowRoles.includes(user.role)) {
         return <Navigate to={APP_ROUTES.forbidden} replace />;
     }
 

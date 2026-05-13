@@ -3,38 +3,39 @@ import { apiClient } from "./axiosClient";
 import type { AuthCredentials, RegisterData, User } from "../types/user";
 
 type ApiUserDto = {
-    id?: number | string;
-    fullName?: string;
+    userId?: number | string;
     email?: string;
+    userName?: string;
     role?: string;
-    registeredOn?: string;
-    phone?: string;
-};
-
-type ApiAuthSuccessResponse = {
-    isSuccess?: boolean;
     token?: string;
-    user?: ApiUserDto;
-    message?: string;
 };
 
-type ApiActionResponse = {
+type ApiActionResponse<TData> = {
     isSuccess?: boolean;
     message?: string;
+    data?: TData;
 };
 
 const toFrontendRole = (role: string | undefined): User["role"] => {
-    return role?.trim().toLowerCase() === "admin" ? "admin" : "user";
+    const normalizedRole = role?.trim().toLowerCase();
+    if (normalizedRole === "admin") {
+        return "admin";
+    }
+
+    if (normalizedRole === "manager") {
+        return "manager";
+    }
+
+    return "user";
 };
 
 const toFrontendUser = (apiUser: ApiUserDto): User => {
     return {
-        id: String(apiUser.id ?? ""),
-        fullName: apiUser.fullName ?? "",
+        id: String(apiUser.userId ?? ""),
+        fullName: apiUser.userName ?? apiUser.email ?? "",
         email: apiUser.email ?? "",
         role: toFrontendRole(apiUser.role),
-        createdAt: apiUser.registeredOn ? new Date(apiUser.registeredOn) : new Date(),
-        phoneNumber: apiUser.phone || undefined,
+        createdAt: new Date(),
         isBlocked: false,
     };
 };
@@ -43,20 +44,22 @@ export const loginWithApi = async (
     credentials: AuthCredentials,
 ): Promise<{ user: User; token: string }> => {
     try {
-        const response = await apiClient.post<ApiAuthSuccessResponse>("/session/auth", credentials);
+        const response = await apiClient.post<ApiActionResponse<ApiUserDto>>("/auth/login", credentials);
         const payload = response.data;
 
-        if (!payload?.isSuccess || !payload.user || !payload.token) {
+        if (!payload?.isSuccess || !payload.data?.token) {
             throw new Error(payload?.message || "Autentificare esuata");
         }
 
         return {
-            user: toFrontendUser(payload.user),
-            token: payload.token,
+            user: toFrontendUser(payload.data),
+            token: payload.data.token,
         };
     } catch (error: unknown) {
-        if (isAxiosError<ApiAuthSuccessResponse>(error)) {
-            const apiMessage = error.response?.data?.message;
+        if (isAxiosError(error)) {
+            const apiMessage = typeof error.response?.data === "string"
+                ? error.response.data
+                : (error.response?.data as ApiActionResponse<ApiUserDto> | undefined)?.message;
             throw new Error(apiMessage || "Autentificare esuata");
         }
 
@@ -70,15 +73,17 @@ export const loginWithApi = async (
 
 export const registerWithApi = async (data: RegisterData): Promise<void> => {
     try {
-        const response = await apiClient.post<ApiActionResponse>("/reg", data);
+        const response = await apiClient.post<ApiActionResponse<unknown>>("/auth/register", data);
         const payload = response.data;
 
         if (!payload?.isSuccess) {
             throw new Error(payload?.message || "Inregistrare esuata");
         }
     } catch (error: unknown) {
-        if (isAxiosError<ApiActionResponse>(error)) {
-            const apiMessage = error.response?.data?.message;
+        if (isAxiosError(error)) {
+            const apiMessage = typeof error.response?.data === "string"
+                ? error.response.data
+                : (error.response?.data as ApiActionResponse<unknown> | undefined)?.message;
             throw new Error(apiMessage || "Inregistrare esuata");
         }
 

@@ -2,6 +2,7 @@ using e_ElectoralWeb.Domain.Entities.AnswerOption;
 using e_ElectoralWeb.Domain.Entities.Question;
 using e_ElectoralWeb.Domain.Entities.Quiz;
 using e_ElectoralWeb.Domain.Entities.QuizResult;
+using e_ElectoralWeb.Domain.Entities.User;
 using Microsoft.EntityFrameworkCore;
 
 namespace e_ElectoralWeb.DataAccessLayer.Context;
@@ -12,6 +13,7 @@ public class QuizDbContext : DbContext
     public DbSet<QuestionData> Questions { get; set; }
     public DbSet<AnswerOptionData> AnswerOptions { get; set; }
     public DbSet<QuizResultData> QuizResults { get; set; }
+    public DbSet<UserData> Users { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -20,10 +22,6 @@ public class QuizDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<QuizResultData>()
-            .HasOne(r => r.Quiz)
-            .WithMany()
-            .HasForeignKey(r => r.QuizId)
-            .OnDelete(DeleteBehavior.Cascade);
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(QuizDbContext).Assembly);
     }
 }

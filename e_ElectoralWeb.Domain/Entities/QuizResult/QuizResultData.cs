@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using e_ElectoralWeb.Domain.Entities.Quiz;
+using e_ElectoralWeb.Domain.Entities.User;
 
 namespace e_ElectoralWeb.Domain.Entities.QuizResult;
 
@@ -14,6 +15,7 @@ public class QuizResultData
     public QuizData Quiz { get; set; } = null!;
 
     public int UserId { get; set; }
+    public UserData User { get; set; } = null!;
 
     public int TotalQuestions { get; set; }
     public int CorrectAnswers { get; set; }

@@ -1,9 +1,7 @@
-import axios from "axios";
-import { API_BASE_URL } from "../api/axiosClient";
+import { apiClient } from "../api/axiosClient";
 
 // Standalone instance — intentionally bypasses the global error interceptor
 // so that a missing/offline backend doesn't show the error banner.
-const quizApiClient = axios.create({ baseURL: API_BASE_URL, headers: { "Content-Type": "application/json" } });
 import { QuizCategory, Question } from '../types/quiz';
 
 export const quizCategories: QuizCategory[] = [
@@ -425,9 +423,9 @@ const mapApiQuizData = (
 
 export const hydrateQuizDataFromApi = (): Promise<boolean> => {
     return Promise.all([
-        quizApiClient.get<ApiQuiz[]>(`${QUIZ_API_BASE_URL}/Quiz`),
-        quizApiClient.get<ApiQuestion[]>(`${QUIZ_API_BASE_URL}/Question`),
-        quizApiClient.get<ApiAnswerOption[]>(`${QUIZ_API_BASE_URL}/AnswerOption`),
+        apiClient.get<ApiQuiz[]>(`${QUIZ_API_BASE_URL}/Quiz`),
+        apiClient.get<ApiQuestion[]>(`${QUIZ_API_BASE_URL}/Question`),
+        apiClient.get<ApiAnswerOption[]>(`${QUIZ_API_BASE_URL}/AnswerOption`),
     ])
         .then(([quizzesResponse, questionsResponse, answerOptionsResponse]) => {
             const mapped = mapApiQuizData(
@@ -453,34 +451,12 @@ export const getQuestionsByCategory = (categoryId: string): Question[] => {
         return apiQuestions;
     }
 
-    const adminBank = getAdminQuestionBank();
-    if (adminBank[categoryId]) {
-        return adminBank[categoryId];
-    }
-
-    return questionBanks[categoryId] || [];
+    return [];
 };
 
 export const getCategoryById = (categoryId: string): QuizCategory | undefined => {
     return getQuizCategories().find(cat => cat.id === categoryId);
 };
-
-type StoredAdminQuestion = {
-    id?: string;
-    text?: string;
-    options?: string[];
-    correctAnswer?: number;
-};
-
-type StoredAdminTest = {
-    id?: string;
-    title?: string;
-    description?: string;
-    durationMinutes?: number;
-    questions?: StoredAdminQuestion[];
-};
-
-const ADMIN_TESTS_STORAGE_KEY = "adminTests";
 
 const toDifficulty = (questionCount: number): QuizCategory["difficulty"] => {
     if (questionCount <= 8) return "beginner";
@@ -488,46 +464,21 @@ const toDifficulty = (questionCount: number): QuizCategory["difficulty"] => {
     return "advanced";
 };
 
-const getAdminTests = (): StoredAdminTest[] => {
-    const raw = localStorage.getItem(ADMIN_TESTS_STORAGE_KEY);
-    if (!raw) return [];
-
-    try {
-        const parsed = JSON.parse(raw) as StoredAdminTest[];
-        return Array.isArray(parsed) ? parsed : [];
-    } catch {
-        return [];
-    }
-};
-
-const getAdminQuestionBank = (): Record<string, Question[]> => {
-    const tests = getAdminTests();
-    if (tests.length === 0) return {};
-
-    return tests.reduce<Record<string, Question[]>>((acc, test, testIndex) => {
-        const testId = test.id || `admin-test-${testIndex + 1}`;
-        const questions = Array.isArray(test.questions)
-            ? test.questions.map((question, questionIndex) => ({
-                  id: question.id || `${testId}-q-${questionIndex + 1}`,
-                  text: question.text || "",
-                  options: Array.isArray(question.options) ? question.options : [],
-                  correctAnswer:
-                      typeof question.correctAnswer === "number" ? question.correctAnswer : 0,
-              }))
-            : [];
-
-        acc[testId] = questions;
-        return acc;
-    }, {});
-};
+const getApiOnlyTests = (): Array<{
+    id?: string;
+    title?: string;
+    description?: string;
+    durationMinutes?: number;
+    questions?: unknown[];
+}> => [];
 
 export const getQuizCategories = (): QuizCategory[] => {
     if (apiQuizCategoriesCache && apiQuizCategoriesCache.length > 0) {
         return apiQuizCategoriesCache;
     }
 
-    const tests = getAdminTests();
-    if (tests.length === 0) return quizCategories;
+    const tests = getApiOnlyTests();
+    if (tests.length === 0) return [];
 
     return tests.map((test, index) => {
         const id = test.id || `admin-test-${index + 1}`;

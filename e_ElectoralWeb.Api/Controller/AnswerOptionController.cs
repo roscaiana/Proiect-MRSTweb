@@ -1,6 +1,7 @@
 using e_ElectoralWeb.BusinessLayer;
 using e_ElectoralWeb.BusinessLayer.Interfaces;
 using e_ElectoralWeb.Domain.Models.AnswerOption;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace e_ElectoralWeb.Api.Controller
@@ -17,51 +18,114 @@ namespace e_ElectoralWeb.Api.Controller
             _answerOptionAction = bl.AnswerOptionAction();
         }
 
+        [AllowAnonymous]
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            var data = _answerOptionAction.GetAllAnswerOptionsAction();
-            return Ok(data);
+            try
+            {
+                var data = await _answerOptionAction.GetAllAnswerOptionsActionAsync();
+                return Ok(data);
+            }
+            catch (Exception)
+            {
+                return DatabaseError();
+            }
         }
 
+        [AllowAnonymous]
         [HttpGet("{id}")]
-        public IActionResult GetById(int id)
+        public async Task<IActionResult> GetById(int id)
         {
-            var result = _answerOptionAction.GetAnswerOptionByIdAction(id);
-            if (result == null) return NotFound();
-            return Ok(result);
+            try
+            {
+                var result = await _answerOptionAction.GetAnswerOptionByIdActionAsync(id);
+                if (result == null) return NotFound();
+                return Ok(result);
+            }
+            catch (Exception)
+            {
+                return DatabaseError();
+            }
         }
 
+        [AllowAnonymous]
         [HttpGet("byQuestion")]
-        public IActionResult GetByQuestion([FromQuery] int questionId)
+        public async Task<IActionResult> GetByQuestion([FromQuery] int questionId)
         {
-            var result = _answerOptionAction.GetAnswerOptionsByQuestionAction(questionId);
-            return Ok(result);
+            try
+            {
+                var result = await _answerOptionAction.GetAnswerOptionsByQuestionActionAsync(questionId);
+                return Ok(result);
+            }
+            catch (Exception)
+            {
+                return DatabaseError();
+            }
         }
 
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPost]
-        public IActionResult Create([FromBody] AnswerOptionDto answerOption)
+        public async Task<IActionResult> Create([FromBody] AnswerOptionDto answerOption)
         {
-            var result = _answerOptionAction.CreateAnswerOptionAction(answerOption);
-            if (!result.IsSuccess) return BadRequest(result.Message);
-            return Ok(result);
+            try
+            {
+                var result = await _answerOptionAction.CreateAnswerOptionActionAsync(answerOption);
+                if (!result.IsSuccess) return BadRequest(result.Message);
+                return CreatedAtAction(nameof(GetById), new { id = answerOption.Id }, result);
+            }
+            catch (Exception)
+            {
+                return DatabaseError();
+            }
         }
 
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPut("{id}")]
-        public IActionResult Update(int id, [FromBody] AnswerOptionDto answerOption)
+        public async Task<IActionResult> Update(int id, [FromBody] AnswerOptionDto answerOption)
         {
-            answerOption.Id = id;
-            var result = _answerOptionAction.UpdateAnswerOptionAction(answerOption);
-            if (!result.IsSuccess) return BadRequest(result.Message);
-            return Ok(result);
+            try
+            {
+                answerOption.Id = id;
+                var result = await _answerOptionAction.UpdateAnswerOptionActionAsync(answerOption);
+                if (!result.IsSuccess)
+                {
+                    var message = result.Message ?? "Answer option update failed.";
+                    if (message.Contains("not found", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return NotFound(message);
+                    }
+
+                    return BadRequest(message);
+                }
+
+                return Ok(result);
+            }
+            catch (Exception)
+            {
+                return DatabaseError();
+            }
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var result = _answerOptionAction.DeleteAnswerOptionAction(id);
-            if (!result.IsSuccess) return NotFound(result.Message);
-            return NoContent();
+            try
+            {
+                var result = await _answerOptionAction.DeleteAnswerOptionActionAsync(id);
+                if (!result.IsSuccess) return NotFound(result.Message);
+                return NoContent();
+            }
+            catch (Exception)
+            {
+                return DatabaseError();
+            }
+        }
+
+        private IActionResult DatabaseError()
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "Database error.");
         }
     }
 }

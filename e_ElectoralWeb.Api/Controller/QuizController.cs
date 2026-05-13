@@ -1,6 +1,7 @@
 using e_ElectoralWeb.BusinessLayer;
 using e_ElectoralWeb.BusinessLayer.Interfaces;
 using e_ElectoralWeb.Domain.Models.Quiz;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace e_ElectoralWeb.Api.Controller
@@ -17,44 +18,99 @@ namespace e_ElectoralWeb.Api.Controller
             _quiz = bl.QuizAction();
         }
 
+        [AllowAnonymous]
         [HttpGet]
-        public IActionResult GetAll()
+        public async Task<IActionResult> GetAll()
         {
-            var result = _quiz.GetAllQuizzesAction();
-            return Ok(result);
+            try
+            {
+                var result = await _quiz.GetAllQuizzesActionAsync();
+                return Ok(result);
+            }
+            catch (Exception)
+            {
+                return DatabaseError();
+            }
         }
 
+        [AllowAnonymous]
         [HttpGet("{id}")]
-        public IActionResult GetById(int id)
+        public async Task<IActionResult> GetById(int id)
         {
-            var result = _quiz.GetQuizByIdAction(id);
-            if (result == null) return NotFound();
-            return Ok(result);
+            try
+            {
+                var result = await _quiz.GetQuizByIdActionAsync(id);
+                if (result == null) return NotFound();
+                return Ok(result);
+            }
+            catch (Exception)
+            {
+                return DatabaseError();
+            }
         }
 
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPost]
-        public IActionResult Create([FromBody] QuizDto dto)
+        public async Task<IActionResult> Create([FromBody] QuizDto dto)
         {
-            var result = _quiz.CreateQuizAction(dto);
-            if (!result.IsSuccess) return BadRequest(result.Message);
-            return Ok(result);
+            try
+            {
+                var result = await _quiz.CreateQuizActionAsync(dto);
+                if (!result.IsSuccess) return BadRequest(result.Message);
+                return CreatedAtAction(nameof(GetById), new { id = dto.Id }, result);
+            }
+            catch (Exception)
+            {
+                return DatabaseError();
+            }
         }
 
+        [Authorize(Roles = "Admin,Manager")]
         [HttpPut("{id}")]
-        public IActionResult Update(int id, [FromBody] QuizDto dto)
+        public async Task<IActionResult> Update(int id, [FromBody] QuizDto dto)
         {
-            dto.Id = id;
-            var result = _quiz.UpdateQuizAction(dto);
-            if (!result.IsSuccess) return BadRequest(result.Message);
-            return Ok(result);
+            try
+            {
+                dto.Id = id;
+                var result = await _quiz.UpdateQuizActionAsync(dto);
+                if (!result.IsSuccess)
+                {
+                    var message = result.Message ?? "Quiz update failed.";
+                    if (message.Contains("not found", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return NotFound(message);
+                    }
+
+                    return BadRequest(message);
+                }
+
+                return Ok(result);
+            }
+            catch (Exception)
+            {
+                return DatabaseError();
+            }
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var result = _quiz.DeleteQuizAction(id);
-            if (!result.IsSuccess) return NotFound(result.Message);
-            return NoContent();
+            try
+            {
+                var result = await _quiz.DeleteQuizActionAsync(id);
+                if (!result.IsSuccess) return NotFound(result.Message);
+                return NoContent();
+            }
+            catch (Exception)
+            {
+                return DatabaseError();
+            }
+        }
+
+        private IActionResult DatabaseError()
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, "Database error.");
         }
     }
 }

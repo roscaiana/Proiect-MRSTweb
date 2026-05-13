@@ -334,3 +334,4 @@ deploy/environments/**/database-secret.yaml
 **/.env.*
 !**/.env.example
 Chat/
+db-backup/

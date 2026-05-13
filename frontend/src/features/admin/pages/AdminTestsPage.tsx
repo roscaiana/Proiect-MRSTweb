@@ -8,13 +8,17 @@ import TestForm from "../components/TestForm";
 import { useAdminPanel } from "../hooks/useAdminPanel";
 import type { AdminTest, ExamSettings } from "../types";
 import { adminSettingsSchema, type AdminSettingsFormValues } from "../../../schemas/adminSchemas";
+import { quizService } from "../../../services/quizService";
+import type { QuizInfoDto } from "../../../services/types";
 
 const AdminTestsPage: React.FC = () => {
-    const { state, createTest, updateTest, deleteTest, updateSettings } = useAdminPanel();
+    const { state, updateSettings } = useAdminPanel();
     const [creating, setCreating] = useState(false);
     const [editingTestId, setEditingTestId] = useState<string | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [pendingDelete, setPendingDelete] = useState<AdminTest | null>(null);
+    const [apiTests, setApiTests] = useState<AdminTest[]>([]);
+    const [loadingTests, setLoadingTests] = useState(false);
 
     const {
         register,
@@ -48,13 +52,46 @@ const AdminTestsPage: React.FC = () => {
         });
     }, [reset, state.settings]);
 
+    const mapQuizToAdminTest = (quiz: QuizInfoDto): AdminTest => {
+        const now = new Date().toISOString();
+
+        return {
+            id: String(quiz.id),
+            title: quiz.title,
+            description: quiz.description ?? "",
+            durationMinutes: state.settings.testDurationMinutes,
+            passingScore: state.settings.passingThreshold,
+            questions: [],
+            createdAt: now,
+            updatedAt: now,
+        };
+    };
+
+    const loadApiTests = async () => {
+        setLoadingTests(true);
+
+        try {
+            const quizzes = await quizService.getAll();
+            setApiTests(quizzes.map(mapQuizToAdminTest));
+        } catch {
+            setApiTests([]);
+            toast.error("Testele nu au putut fi incarcate din API.");
+        } finally {
+            setLoadingTests(false);
+        }
+    };
+
+    useEffect(() => {
+        void loadApiTests();
+    }, []);
+
     const editingTest = useMemo<AdminTest | undefined>(() => {
         if (!editingTestId) {
             return undefined;
         }
 
-        return state.tests.find((test) => test.id === editingTestId);
-    }, [editingTestId, state.tests]);
+        return apiTests.find((test) => test.id === editingTestId);
+    }, [apiTests, editingTestId]);
 
     const openDeleteDialog = (test: AdminTest) => {
         setPendingDelete(test);
@@ -66,9 +103,12 @@ const AdminTestsPage: React.FC = () => {
         setPendingDelete(null);
     };
 
-    const confirmDelete = () => {
+    const confirmDelete = async () => {
         if (!pendingDelete) return;
-        deleteTest(pendingDelete.id);
+
+        await quizService.remove(Number(pendingDelete.id));
+        await loadApiTests();
+
         toast.success("Testul a fost șters.");
         closeDeleteDialog();
     };
@@ -217,8 +257,13 @@ const AdminTestsPage: React.FC = () => {
                     <TestForm
                         mode="create"
                         onCancel={() => setCreating(false)}
-                        onSubmit={(payload) => {
-                            createTest(payload);
+                        onSubmit={async (payload) => {
+                            await quizService.create({
+                                title: payload.title,
+                                description: payload.description,
+                            });
+                            await loadApiTests();
+
                             setCreating(false);
                         }}
                     />
@@ -229,8 +274,13 @@ const AdminTestsPage: React.FC = () => {
                         mode="edit"
                         initialValue={editingTest}
                         onCancel={() => setEditingTestId(null)}
-                        onSubmit={(payload) => {
-                            updateTest(editingTest.id, payload);
+                        onSubmit={async (payload) => {
+                            await quizService.update(Number(editingTest.id), {
+                                title: payload.title,
+                                description: payload.description,
+                            });
+                            await loadApiTests();
+
                             setEditingTestId(null);
                         }}
                     />
@@ -248,7 +298,12 @@ const AdminTestsPage: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {state.tests.map((test) => (
+                            {loadingTests && (
+                                <tr>
+                                    <td colSpan={5}>Se incarca testele...</td>
+                                </tr>
+                            )}
+                            {!loadingTests && apiTests.map((test) => (
                                 <AdminTestRow
                                     key={test.id}
                                     test={test}

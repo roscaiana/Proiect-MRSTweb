@@ -5,11 +5,11 @@ namespace e_ElectoralWeb.BusinessLayer.Interfaces
 {
     public interface IAnswerOptionAction
     {
-        List<AnswerOptionDto> GetAllAnswerOptionsAction();
-        AnswerOptionDto? GetAnswerOptionByIdAction(int id);
-        List<AnswerOptionDto> GetAnswerOptionsByQuestionAction(int questionId);
-        ActionResponce CreateAnswerOptionAction(AnswerOptionDto data);
-        ActionResponce UpdateAnswerOptionAction(AnswerOptionDto data);
-        ActionResponce DeleteAnswerOptionAction(int id);
+        Task<List<AnswerOptionDto>> GetAllAnswerOptionsActionAsync();
+        Task<AnswerOptionDto?> GetAnswerOptionByIdActionAsync(int id);
+        Task<List<AnswerOptionDto>> GetAnswerOptionsByQuestionActionAsync(int questionId);
+        Task<ActionResponce> CreateAnswerOptionActionAsync(AnswerOptionDto data);
+        Task<ActionResponce> UpdateAnswerOptionActionAsync(AnswerOptionDto data);
+        Task<ActionResponce> DeleteAnswerOptionActionAsync(int id);
     }
 }

@@ -2,6 +2,7 @@ using e_ElectoralWeb.DataAccessLayer.Context;
 using e_ElectoralWeb.Domain.Entities.Question;
 using e_ElectoralWeb.Domain.Models.Question;
 using e_ElectoralWeb.Domain.Models.Responses;
+using Microsoft.EntityFrameworkCore;
 
 namespace e_ElectoralWeb.BusinessLayer.Core
 {
@@ -11,23 +12,23 @@ namespace e_ElectoralWeb.BusinessLayer.Core
         {
         }
 
-        protected List<QuestionDto> GetAllQuestionsActionExecution()
+        protected async Task<List<QuestionDto>> GetAllQuestionsActionExecutionAsync()
         {
             using var context = new QuizDbContext();
-            return context.Questions
+            return await context.Questions
                 .Select(q => new QuestionDto
                 {
                     Id = q.Id,
                     Text = q.Text,
                     QuizId = q.QuizId
                 })
-                .ToList();
+                .ToListAsync();
         }
 
-        protected QuestionDto? GetQuestionByIdActionExecution(int id)
+        protected async Task<QuestionDto?> GetQuestionByIdActionExecutionAsync(int id)
         {
             using var context = new QuizDbContext();
-            return context.Questions
+            return await context.Questions
                 .Where(q => q.Id == id)
                 .Select(q => new QuestionDto
                 {
@@ -35,13 +36,13 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                     Text = q.Text,
                     QuizId = q.QuizId
                 })
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
         }
 
-        protected List<QuestionDto> GetQuestionsByQuizActionExecution(int quizId)
+        protected async Task<List<QuestionDto>> GetQuestionsByQuizActionExecutionAsync(int quizId)
         {
             using var context = new QuizDbContext();
-            return context.Questions
+            return await context.Questions
                 .Where(q => q.QuizId == quizId)
                 .Select(q => new QuestionDto
                 {
@@ -49,10 +50,10 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                     Text = q.Text,
                     QuizId = q.QuizId
                 })
-                .ToList();
+                .ToListAsync();
         }
 
-        protected ActionResponce CreateQuestionActionExecution(QuestionDto data)
+        protected async Task<ActionResponce> CreateQuestionActionExecutionAsync(QuestionDto data)
         {
             if (string.IsNullOrWhiteSpace(data.Text))
             {
@@ -65,7 +66,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
             using (var context = new QuizDbContext())
             {
-                var quizExists = context.Quizzes.Any(q => q.Id == data.QuizId);
+                var quizExists = await context.Quizzes.AnyAsync(q => q.Id == data.QuizId);
                 if (!quizExists)
                 {
                     return new ActionResponce
@@ -75,7 +76,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                     };
                 }
 
-                var exists = context.Questions.Any(q =>
+                var exists = await context.Questions.AnyAsync(q =>
                     q.QuizId == data.QuizId &&
                     q.Text == data.Text);
                 if (exists)
@@ -94,7 +95,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                 };
 
                 context.Questions.Add(entity);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
             }
 
             return new ActionResponce
@@ -104,7 +105,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
             };
         }
 
-        protected ActionResponce UpdateQuestionActionExecution(QuestionDto data)
+        protected async Task<ActionResponce> UpdateQuestionActionExecutionAsync(QuestionDto data)
         {
             if (data.Id <= 0)
             {
@@ -126,7 +127,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
             using (var context = new QuizDbContext())
             {
-                var entity = context.Questions.FirstOrDefault(q => q.Id == data.Id);
+                var entity = await context.Questions.FirstOrDefaultAsync(q => q.Id == data.Id);
                 if (entity == null)
                 {
                     return new ActionResponce
@@ -136,7 +137,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                     };
                 }
 
-                var quizExists = context.Quizzes.Any(q => q.Id == data.QuizId);
+                var quizExists = await context.Quizzes.AnyAsync(q => q.Id == data.QuizId);
                 if (!quizExists)
                 {
                     return new ActionResponce
@@ -146,7 +147,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                     };
                 }
 
-                var exists = context.Questions.Any(q =>
+                var exists = await context.Questions.AnyAsync(q =>
                     q.Id != data.Id &&
                     q.QuizId == data.QuizId &&
                     q.Text == data.Text);
@@ -163,7 +164,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                 entity.QuizId = data.QuizId;
 
                 context.Questions.Update(entity);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
             }
 
             return new ActionResponce
@@ -173,11 +174,11 @@ namespace e_ElectoralWeb.BusinessLayer.Core
             };
         }
 
-        protected ActionResponce DeleteQuestionActionExecution(int id)
+        protected async Task<ActionResponce> DeleteQuestionActionExecutionAsync(int id)
         {
             using (var context = new QuizDbContext())
             {
-                var entity = context.Questions.FirstOrDefault(q => q.Id == id);
+                var entity = await context.Questions.FirstOrDefaultAsync(q => q.Id == id);
                 if (entity == null)
                 {
                     return new ActionResponce
@@ -187,14 +188,14 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                     };
                 }
 
-                var options = context.AnswerOptions.Where(a => a.QuestionId == entity.Id).ToList();
+                var options = await context.AnswerOptions.Where(a => a.QuestionId == entity.Id).ToListAsync();
                 if (options.Count > 0)
                 {
                     context.AnswerOptions.RemoveRange(options);
                 }
 
                 context.Questions.Remove(entity);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
             }
 
             return new ActionResponce
