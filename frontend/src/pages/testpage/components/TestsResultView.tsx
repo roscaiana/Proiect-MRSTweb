@@ -20,6 +20,7 @@ const TestsResultView: React.FC<TestsResultViewProps> = ({
     onRetry,
 }) => {
     const passed = quizResult.score >= passingThreshold;
+    const showEvaluation = quizResult.mode === 'training';
     const strongChapters = quizResult.chapterStats.filter((x) => x.accuracy >= 70);
     const weakChapters = quizResult.chapterStats.filter((x) => x.accuracy < 70);
 
@@ -30,34 +31,34 @@ const TestsResultView: React.FC<TestsResultViewProps> = ({
                     <div className={`result-badge ${passed ? 'success' : 'warning'}`}>
                         {passed ? 'Promovat' : 'Nepromovat'}
                     </div>
-                    <h2>{passed ? 'Rezultat bun' : 'Mai ai loc de îmbunătățire'}</h2>
+                    <h2>{passed ? 'Rezultat bun' : 'Mai ai loc de imbunatatire'}</h2>
                     <p className="result-message">
                         {completionReason === 'timeout'
-                            ? 'Timpul a expirat și testul a fost finalizat automat.'
-                            : `Ai finalizat testul în modul ${modeLabel(quizResult.mode)}.`}
+                            ? 'Timpul a expirat si testul a fost finalizat automat.'
+                            : `Ai finalizat testul in modul ${modeLabel(quizResult.mode)}.`}
                     </p>
 
                     <div className="result-actions result-actions-top">
-                        <button className="btn-primary" onClick={onReset}>Înapoi la categorii</button>
+                        <button className="btn-primary" onClick={onReset}>Inapoi la categorii</button>
                         <button className="btn-secondary" onClick={() => onRetry(quizResult.categoryId, quizResult.mode)}>
-                            Reîncearcă același mod
+                            Reincearca acelasi mod
                         </button>
                     </div>
 
                     <div className="result-stats">
                         <div className="stat-item"><div className="stat-value">{quizResult.score}%</div><div className="stat-label">Scor final</div></div>
                         <div className="stat-item"><div className="stat-value">{quizResult.correctAnswers}</div><div className="stat-label">Corecte</div></div>
-                        <div className="stat-item"><div className="stat-value">{quizResult.wrongAnswers}</div><div className="stat-label">Greșite</div></div>
-                        <div className="stat-item"><div className="stat-value">{quizResult.unanswered}</div><div className="stat-label">Nerăspunse</div></div>
+                        <div className="stat-item"><div className="stat-value">{quizResult.wrongAnswers}</div><div className="stat-label">Gresite</div></div>
+                        <div className="stat-item"><div className="stat-value">{quizResult.unanswered}</div><div className="stat-label">Neraspunse</div></div>
                         <div className="stat-item"><div className="stat-value">{fmt(quizResult.timeTaken)}</div><div className="stat-label">Timp folosit</div></div>
-                        <div className="stat-item"><div className="stat-value">{quizResult.totalQuestions}</div><div className="stat-label">Întrebări total</div></div>
+                        <div className="stat-item"><div className="stat-value">{quizResult.totalQuestions}</div><div className="stat-label">Intrebari total</div></div>
                     </div>
 
                     <div className="chapter-feedback-grid">
                         <article className="chapter-feedback-card">
                             <h3>Capitole bune</h3>
                             {strongChapters.length === 0 ? (
-                                <p className="chapter-feedback-empty">Niciun capitol peste 70% în această încercare.</p>
+                                <p className="chapter-feedback-empty">Niciun capitol peste 70% in aceasta incercare.</p>
                             ) : (
                                 <ul>
                                     {strongChapters.map((x) => (
@@ -81,7 +82,7 @@ const TestsResultView: React.FC<TestsResultViewProps> = ({
                     </div>
 
                     <div className="result-details">
-                        <h3>Detalii răspunsuri</h3>
+                        <h3>Detalii raspunsuri</h3>
                         <div className="answer-list">
                             {quizResult.answers.map((answer, index) => (
                                 <QuizAnswerResultItem
@@ -91,17 +92,17 @@ const TestsResultView: React.FC<TestsResultViewProps> = ({
                                     chapterTitle={answer.chapterTitle}
                                     questionText={answer.questionText}
                                     userAnswerText={answer.userAnswerText}
-                                    correctAnswerText={answer.correctAnswerText}
-                                    isCorrect={answer.isCorrect}
+                                    correctAnswerText={showEvaluation ? answer.correctAnswerText : undefined}
+                                    isCorrect={showEvaluation ? answer.isCorrect : undefined}
                                 />
                             ))}
                         </div>
                     </div>
 
                     <div className="result-actions">
-                        <button className="btn-primary" onClick={onReset}>Înapoi la categorii</button>
+                        <button className="btn-primary" onClick={onReset}>Inapoi la categorii</button>
                         <button className="btn-secondary" onClick={() => onRetry(quizResult.categoryId, quizResult.mode)}>
-                            Reîncearcă același mod
+                            Reincearca acelasi mod
                         </button>
                     </div>
                 </div>

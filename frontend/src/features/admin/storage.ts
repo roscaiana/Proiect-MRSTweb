@@ -64,8 +64,10 @@ const createSeedTests = (): AdminTest[] => {
         const questions = (questionBanks[category.id] || []).map((question, index) => ({
             id: question.id || `${category.id}-q-${index + 1}`,
             text: question.text || `Întrebarea ${index + 1}`,
-            options: Array.isArray(question.options) ? question.options.slice(0, 4) : [],
-            correctAnswer: typeof question.correctAnswer === "number" ? question.correctAnswer : 0,
+            options: Array.isArray(question.options)
+                ? question.options.slice(0, 4).map((option) => option.text || "")
+                : [],
+            correctAnswer: 0,
         }));
 
         return {

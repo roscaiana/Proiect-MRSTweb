@@ -18,6 +18,38 @@ public class QuizResultController : ControllerBase
         _quizResultAction = bl.QuizResultAction();
     }
 
+    [AllowAnonymous]
+    [HttpPost("check-answer")]
+    public async Task<IActionResult> CheckAnswer([FromBody] QuizAnswerCheckRequestDto dto)
+    {
+        try
+        {
+            var result = await _quizResultAction.CheckAnswerActionAsync(dto);
+            if (!result.IsSuccess) return BadRequest(result.Message);
+            return Ok(result);
+        }
+        catch (Exception)
+        {
+            return DatabaseError();
+        }
+    }
+
+    [AllowAnonymous]
+    [HttpPost("evaluate")]
+    public async Task<IActionResult> Evaluate([FromBody] QuizEvaluationRequestDto dto)
+    {
+        try
+        {
+            var result = await _quizResultAction.EvaluateQuizActionAsync(dto);
+            if (!result.IsSuccess) return BadRequest(result.Message);
+            return Ok(result);
+        }
+        catch (Exception)
+        {
+            return DatabaseError();
+        }
+    }
+
     [Authorize(Roles = "User,Manager,Admin")]
     [HttpPost("submit")]
     public async Task<IActionResult> Submit([FromBody] QuizResultSubmitDto dto)

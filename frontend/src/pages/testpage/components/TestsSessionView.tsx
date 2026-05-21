@@ -13,7 +13,7 @@ type TestsSessionViewProps = {
     unansweredIndexes: number[];
     onReset: () => void;
     onGoToQuestion: (index: number) => void;
-    onSetAnswer: (answer: number) => void;
+    onSetAnswer: (answerOptionId: number) => void;
     onSubmit: () => void;
 };
 
@@ -56,50 +56,49 @@ const TestsSessionView: React.FC<TestsSessionViewProps> = ({
     }
 
     const currentAnswer = quizSession.answers[quizSession.currentQuestionIndex];
+    const currentFeedback = quizSession.answerFeedback[quizSession.currentQuestionIndex];
     const isLast = quizSession.currentQuestionIndex === quizSession.questions.length - 1;
-    const showFeedback = quizSession.mode === 'training' && currentAnswer !== null;
-    const isCorrect = currentAnswer !== null && currentAnswer === currentQuestion.correctAnswer;
-    const correctCount = quizSession.answers.reduce<number>((acc, answer, index) => {
-        if (answer === null) return acc;
-        return acc + (answer === quizSession.questions[index].correctAnswer ? 1 : 0);
-    }, 0);
-    const incorrectCount = quizSession.answers.reduce<number>((acc, answer, index) => {
-        if (answer === null) return acc;
-        return acc + (answer !== quizSession.questions[index].correctAnswer ? 1 : 0);
-    }, 0);
+    const showEvaluation = quizSession.mode === 'training' && currentAnswer !== null && currentFeedback !== null;
+    const correctCount = quizSession.answerFeedback.filter((item) => item?.isCorrect).length;
+    const incorrectCount = quizSession.answerFeedback.filter((item) => item && !item.isCorrect).length;
 
     return (
         <div className="tests-page tests-page-session">
             <div className="container">
                 <header className="quiz-sticky-header">
                     <div className="quiz-header-top">
-                        <button className="back-btn" onClick={onReset}>Înapoi la categorii</button>
+                        <button className="back-btn" onClick={onReset}>Inapoi la categorii</button>
                         <div className={`mode-badge ${quizSession.mode}`}>{modeLabel(quizSession.mode)}</div>
                     </div>
                     <h2>{normalizeText(getCategoryById(quizSession.categoryId)?.title || 'Test')}</h2>
                     <div className="quiz-header-meta">
                         <span className={`timer-chip ${quizSession.remainingTimeSeconds <= 60 ? 'danger' : ''}`}>
-                            Timp rămas: {fmt(quizSession.remainingTimeSeconds)}
+                            Timp ramas: {fmt(quizSession.remainingTimeSeconds)}
                         </span>
-                        <span className="meta-chip">Întrebarea {quizSession.currentQuestionIndex + 1}/{quizSession.questions.length}</span>
-                        <span className="meta-chip">Răspunse: {answeredCount}</span>
+                        <span className="meta-chip">Intrebarea {quizSession.currentQuestionIndex + 1}/{quizSession.questions.length}</span>
+                        <span className="meta-chip">Raspunse: {answeredCount}</span>
                     </div>
                     <div className="quiz-progress">
                         <div className="progress-bar">
                             <div className="progress-fill" style={{ width: `${progress}%` }} />
                         </div>
                     </div>
-                    <div className="mobile-quick-nav" aria-label="Navigare rapidă">
+                    <div className="mobile-quick-nav" aria-label="Navigare rapida">
                         <div className="mobile-quick-nav-header">
                             <span className="mobile-quick-nav-title">Navigare</span>
                             <span className="mobile-quick-nav-meta">
-                                {quizSession.currentQuestionIndex + 1}/{quizSession.questions.length} • {correctCount} corecte • {incorrectCount} greșite
+                                {quizSession.currentQuestionIndex + 1}/{quizSession.questions.length}
+                                {quizSession.mode === 'training'
+                                    ? ` • ${correctCount} corecte • ${incorrectCount} gresite`
+                                    : ` • ${answeredCount} raspunse`}
                             </span>
                         </div>
                         <QuestionNavigationGrid
                             questions={quizSession.questions}
                             answers={quizSession.answers}
+                            answerFeedback={quizSession.answerFeedback}
                             currentQuestionIndex={quizSession.currentQuestionIndex}
+                            showEvaluation={quizSession.mode === 'training'}
                             onSelectQuestion={onGoToQuestion}
                             gridRef={mobileQuestionGridRef}
                             keyPrefix="mobile-nav"
@@ -112,33 +111,38 @@ const TestsSessionView: React.FC<TestsSessionViewProps> = ({
                 <div className="quiz-layout">
                     <section className="quiz-question-card">
                         <div className="question-top-row">
-                            <div className="question-number">Întrebarea {quizSession.currentQuestionIndex + 1}</div>
+                            <div className="question-number">Intrebarea {quizSession.currentQuestionIndex + 1}</div>
                         </div>
 
                         <h3 className="question-text">{normalizeText(currentQuestion.text)}</h3>
 
                         <div className="question-options">
                             {currentQuestion.options.map((option, index) => {
-                                const selected = currentAnswer === index;
-                                const correctOption = index === currentQuestion.correctAnswer;
-                                const state = showFeedback ? (correctOption ? 'correct' : selected ? 'incorrect' : '') : '';
+                                const selected = currentAnswer === option.id;
+                                const state =
+                                    showEvaluation && selected
+                                        ? currentFeedback?.isCorrect ? 'correct' : 'incorrect'
+                                        : '';
+
                                 return (
                                     <QuestionOptionButton
-                                        key={index}
+                                        key={option.id}
                                         index={index}
-                                        option={normalizeText(option)}
+                                        option={normalizeText(option.text)}
                                         selected={selected}
                                         stateClass={state}
-                                        onSelect={onSetAnswer}
+                                        onSelect={() => onSetAnswer(option.id)}
                                     />
                                 );
                             })}
                         </div>
 
-                        {showFeedback && (
-                            <div className={`instant-feedback ${isCorrect ? 'correct' : 'incorrect'}`}>
-                                <strong>{isCorrect ? 'Răspuns corect.' : 'Răspuns greșit.'}</strong>
-                                {currentQuestion.explanation && <p>{normalizeText(currentQuestion.explanation)}</p>}
+                        {showEvaluation && currentFeedback && (
+                            <div className={`instant-feedback ${currentFeedback.isCorrect ? 'correct' : 'incorrect'}`}>
+                                <strong>{currentFeedback.isCorrect ? 'Raspuns corect.' : 'Raspuns gresit.'}</strong>
+                                {!currentFeedback.isCorrect && currentFeedback.correctAnswerText && (
+                                    <p>Corect: {normalizeText(currentFeedback.correctAnswerText)}</p>
+                                )}
                             </div>
                         )}
 
@@ -149,7 +153,7 @@ const TestsSessionView: React.FC<TestsSessionViewProps> = ({
                                 disabled={quizSession.currentQuestionIndex === 0}
                                 onClick={() => onGoToQuestion(quizSession.currentQuestionIndex - 1)}
                             >
-                                Înapoi
+                                Inapoi
                             </button>
                             <button
                                 className="btn-secondary"
@@ -157,9 +161,9 @@ const TestsSessionView: React.FC<TestsSessionViewProps> = ({
                                 disabled={isLast}
                                 onClick={() => onGoToQuestion(quizSession.currentQuestionIndex + 1)}
                             >
-                                Următoarea
+                                Urmatoarea
                             </button>
-                            <button className="btn-submit" type="button" onClick={onSubmit}>Finalizează testul</button>
+                            <button className="btn-submit" type="button" onClick={onSubmit}>Finalizeaza testul</button>
                             {canForceSubmit && unansweredIndexes.length > 0 && (
                                 <button className="btn-warning" type="button" onClick={onSubmit}>Trimite oricum</button>
                             )}
@@ -168,24 +172,32 @@ const TestsSessionView: React.FC<TestsSessionViewProps> = ({
 
                     <aside className="quiz-sidebar">
                         <div className="sidebar-header">
-                            <h3>Navigare rapidă</h3>
-                            <p>Apasă pe un număr pentru salt direct la întrebare.</p>
+                            <h3>Navigare rapida</h3>
+                            <p>Apasa pe un numar pentru salt direct la intrebare.</p>
                         </div>
                         <QuestionNavigationGrid
                             questions={quizSession.questions}
                             answers={quizSession.answers}
+                            answerFeedback={quizSession.answerFeedback}
                             currentQuestionIndex={quizSession.currentQuestionIndex}
+                            showEvaluation={quizSession.mode === 'training'}
                             onSelectQuestion={onGoToQuestion}
                             gridRef={sidebarQuestionGridRef}
                             keyPrefix="sidebar-nav"
                         />
                         <div className="legend">
-                            <span className="legend-item"><i className="dot correct" />Corectă</span>
-                            <span className="legend-item"><i className="dot incorrect" />Greșită</span>
-                            <span className="legend-item"><i className="dot empty" />Necompletată</span>
+                            {quizSession.mode === 'training' ? (
+                                <>
+                                    <span className="legend-item"><i className="dot correct" />Corecta</span>
+                                    <span className="legend-item"><i className="dot incorrect" />Gresita</span>
+                                </>
+                            ) : (
+                                <span className="legend-item"><i className="dot answered" />Raspunsa</span>
+                            )}
+                            <span className="legend-item"><i className="dot empty" />Necompletata</span>
                         </div>
                         {unansweredIndexes.length > 0 && (
-                            <p className="sidebar-note">Mai sunt {unansweredIndexes.length} întrebări necompletate.</p>
+                            <p className="sidebar-note">Mai sunt {unansweredIndexes.length} intrebari necompletate.</p>
                         )}
                     </aside>
                 </div>

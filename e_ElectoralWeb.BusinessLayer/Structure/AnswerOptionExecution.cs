@@ -12,6 +12,11 @@ namespace e_ElectoralWeb.BusinessLayer.Structure
             return GetAllAnswerOptionsActionExecutionAsync();
         }
 
+        public Task<List<AnswerOptionPublicDto>> GetAllPublicAnswerOptionsActionAsync()
+        {
+            return GetAllPublicAnswerOptionsActionExecutionAsync();
+        }
+
         public Task<AnswerOptionDto?> GetAnswerOptionByIdActionAsync(int id)
         {
             return GetAnswerOptionByIdActionExecutionAsync(id);
@@ -20,6 +25,11 @@ namespace e_ElectoralWeb.BusinessLayer.Structure
         public Task<List<AnswerOptionDto>> GetAnswerOptionsByQuestionActionAsync(int questionId)
         {
             return GetAnswerOptionsByQuestionActionExecutionAsync(questionId);
+        }
+
+        public Task<List<AnswerOptionPublicDto>> GetPublicAnswerOptionsByQuestionActionAsync(int questionId)
+        {
+            return GetPublicAnswerOptionsByQuestionActionExecutionAsync(questionId);
         }
 
         public Task<ActionResponce> CreateAnswerOptionActionAsync(AnswerOptionDto data)

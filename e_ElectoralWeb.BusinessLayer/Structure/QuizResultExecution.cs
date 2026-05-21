@@ -7,6 +7,12 @@ namespace e_ElectoralWeb.BusinessLayer.Structure;
 
 public class QuizResultExecution : QuizResultActions, IQuizResultAction
 {
+    public Task<ActionResponce> CheckAnswerActionAsync(QuizAnswerCheckRequestDto data)
+        => CheckAnswerActionExecutionAsync(data);
+
+    public Task<ActionResponce> EvaluateQuizActionAsync(QuizEvaluationRequestDto data)
+        => EvaluateQuizActionExecutionAsync(data);
+
     public Task<ActionResponce> SubmitQuizResultActionAsync(QuizResultSubmitDto data)
         => SubmitQuizResultActionExecutionAsync(data);
 
