@@ -801,9 +801,10 @@
 .admin-app-header-row {
     max-width: 1460px;
     margin: 0 auto;
-    display: flex;
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
     padding: 14px 20px;
 }
 
@@ -812,6 +813,7 @@
     align-items: center;
     gap: 10px;
     min-width: 0;
+    flex-shrink: 0;
     text-decoration: none;
     color: inherit;
 }
@@ -829,13 +831,13 @@
 
 .admin-app-logo-text strong {
     color: #003366;
-    font-size: 1.65rem;
+    font-size: 1.45rem;
     letter-spacing: -0.02em;
 }
 
 .admin-app-logo-text span {
     color: #74849a;
-    font-size: 0.78rem;
+    font-size: 0.72rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.11em;
@@ -844,18 +846,30 @@
 .admin-app-header-nav {
     display: flex;
     align-items: center;
-    gap: 8px;
+    justify-content: flex-start;
+    gap: 4px;
     min-width: 0;
-    flex-wrap: wrap;
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.admin-app-header-nav::-webkit-scrollbar {
+    display: none;
 }
 
 .admin-app-header-link {
+    display: inline-flex;
+    align-items: center;
     border-radius: 5px;
-    padding: 8px 12px;
+    padding: 8px 10px;
     color: #1f4a78;
     font-weight: 600;
-    font-size: 0.9rem;
+    font-size: 0.84rem;
     text-decoration: none;
+    white-space: nowrap;
+    flex-shrink: 0;
     transition: background-color 0.14s ease, color 0.14s ease;
 }
 
@@ -877,6 +891,8 @@
     gap: 8px;
     flex-wrap: wrap;
     justify-content: flex-end;
+    flex-shrink: 0;
+    min-width: max-content;
 }
 
 .admin-app-user-chip {
@@ -1484,7 +1500,7 @@
         gap: 12px;
         align-items: center;
         flex-wrap: wrap;
-        flex-direction: row;
+        grid-template-columns: auto 1fr auto;
     }
 
     .admin-app-header-nav {
@@ -1678,7 +1694,7 @@
 @media (max-width: 900px) {
     .admin-app-header-row {
         align-items: center;
-        flex-wrap: wrap;
+        grid-template-columns: auto auto;
     }
 
     .admin-mobile-menu-btn { order: 1; }

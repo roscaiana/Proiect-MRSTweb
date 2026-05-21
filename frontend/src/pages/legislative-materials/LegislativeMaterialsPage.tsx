@@ -1,6 +1,9 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { FileText } from "lucide-react";
+import { readAdminNews, STORAGE_KEYS } from "../../features/admin/storage";
 import { useEscapeKey } from "../../hooks/useEscapeKey";
+import { useStorageSync } from "../../hooks/useStorageSync";
+import { formatDateLong } from "../../utils/dateUtils";
 import LegislativeHeroTag from "./LegislativeHeroTag";
 import LegislativeResourceCard, { type ResourceCard } from "./LegislativeResourceCard";
 import LegislativeSidebarLink from "./LegislativeSidebarLink";
@@ -12,64 +15,53 @@ type NavItem = {
     description: string;
 };
 
-const NAV_ITEMS: NavItem[] = [
-    {
-        id: "bibliografie",
-        label: "Bibliografia",
-        description: "Lista documentelor și materialelor obligatorii pentru studiu.",
-    },
-    {
-        id: "banca",
-        label: "Banca de întrebări",
-        description: "Structura întrebărilor și tematicile acoperite în evaluare.",
-    },
-    {
-        id: "cursuri",
-        label: "Cursuri",
-        description: "Module de instruire organizate pe capitole și teme.",
-    },
-    {
-        id: "elearning",
-        label: "eLearning",
-        description: "Resurse digitale și materiale interactive pentru învățare.",
-    },
-    {
-        id: "video",
-        label: "Materiale video",
-        description: "Resurse multimedia pentru aprofundarea conținutului.",
-    },
-];
-
-const RESOURCE_CARDS: ResourceCard[] = [
-    {
-        title: "Bibliografia",
-        description: "Documentele principale și sursele oficiale recomandate pentru studiu.",
-        tag: "Documente",
-    },
-    {
-        title: "Banca de întrebări",
-        description: "Exemple și structură pentru întrebările utilizate în evaluare.",
-        tag: "Întrebări",
-    },
-    {
-        title: "Cursuri",
-        description: "Module de instruire organizate pe capitole și niveluri.",
-        tag: "Formare",
-    },
-    {
-        title: "eLearning",
-        description: "Platformă online cu materiale interactive și resurse digitale.",
-        tag: "Online",
-    },
-];
+type LegislativeContentItem = NavItem & ResourceCard;
 
 const HERO_TAGS = ["Sesiunea 2026", "Actualizări legislative", "Resurse oficiale"];
 
+const FALLBACK_ITEMS: LegislativeContentItem[] = [
+    {
+        id: "material-1",
+        label: "Actualizări ale Codului Electoral",
+        title: "Actualizări ale Codului Electoral",
+        description: "Analiza principalelor modificări aduse cadrului normativ electoral.",
+        tag: "Legislativ",
+    },
+];
+
+function loadLegislativeItems(): LegislativeContentItem[] {
+    const legislativeArticles = readAdminNews().filter((item) => item.category === "Legislativ");
+
+    if (legislativeArticles.length === 0) {
+        return FALLBACK_ITEMS;
+    }
+
+    return legislativeArticles.map((item) => ({
+        id: item.id,
+        label: item.title,
+        title: item.title,
+        description: item.description,
+        tag: `${item.category} • ${formatDateLong(item.publishedAt)}`,
+    }));
+}
+
 export default function LegislativeMaterialsPage() {
-    const [activeId, setActiveId] = useState(NAV_ITEMS[0]?.id ?? "intro");
+    const [items, setItems] = useState<LegislativeContentItem[]>(() => loadLegislativeItems());
+    const [activeId, setActiveId] = useState(() => loadLegislativeItems()[0]?.id ?? "intro");
     const [activeCard, setActiveCard] = useState<ResourceCard | null>(null);
 
-    const activeItem = NAV_ITEMS.find((item) => item.id === activeId) ?? NAV_ITEMS[0];
+    useStorageSync([STORAGE_KEYS.news], () => {
+        const nextItems = loadLegislativeItems();
+        setItems(nextItems);
+        setActiveId((current) =>
+            nextItems.some((item) => item.id === current) ? current : (nextItems[0]?.id ?? "intro"),
+        );
+    });
+
+    const activeItem = useMemo(
+        () => items.find((item) => item.id === activeId) ?? items[0],
+        [items, activeId],
+    );
 
     useEscapeKey(() => setActiveCard(null), activeCard !== null);
 
@@ -88,7 +80,7 @@ export default function LegislativeMaterialsPage() {
                             Materiale legislative <span className="hero-title-highlight">pentru certificare</span>
                         </h1>
                         <p>
-                            Acces rapid la cadrul normativ actualizat, structurat pe categorii, pentru o pregătire eficientă și riguroasă.
+                            Acces rapid la materialele legislative administrate din panoul intern, actualizate pentru pregătirea de certificare.
                         </p>
                         <div className="hero-tags">
                             {HERO_TAGS.map((tag) => (
@@ -107,7 +99,7 @@ export default function LegislativeMaterialsPage() {
                             <strong>2026</strong>
                         </div>
                         <div className="sidebar-links">
-                            {NAV_ITEMS.map((item) => (
+                            {items.map((item) => (
                                 <LegislativeSidebarLink
                                     key={item.id}
                                     id={item.id}
@@ -119,7 +111,7 @@ export default function LegislativeMaterialsPage() {
                         </div>
                         <div className="sidebar-note">
                             <div className="note-badge">Actualizat</div>
-                            <p>Elementele esențiale sunt marcate cu accente galbene pentru claritate.</p>
+                            <p>Conținutul de pe această pagină poate fi gestionat direct din panoul de administrare.</p>
                         </div>
                     </aside>
 
@@ -131,8 +123,8 @@ export default function LegislativeMaterialsPage() {
                         </div>
 
                         <div className="legislative-cards">
-                            {RESOURCE_CARDS.map((card) => (
-                                <LegislativeResourceCard key={card.title} card={card} onOpen={setActiveCard} />
+                            {items.map((card) => (
+                                <LegislativeResourceCard key={card.id} card={card} onOpen={setActiveCard} />
                             ))}
                         </div>
 
@@ -143,7 +135,7 @@ export default function LegislativeMaterialsPage() {
                             <div>
                                 <h4>Notă importantă</h4>
                                 <p>
-                                    Toate materialele sunt prezentate pentru studiu și informare. Versiunile oficiale pot fi consultate în format complet pe site-ul oficial CICDE.
+                                    Materialele legislative publicate aici sunt actualizate din zona de administrare și pot fi revizuite ori de câte ori apar modificări.
                                 </p>
                             </div>
                         </div>
@@ -165,7 +157,7 @@ export default function LegislativeMaterialsPage() {
                         <span className="legislative-modal-tag">{activeCard.tag}</span>
                         <h2>{activeCard.title}</h2>
                         <p>{activeCard.description}</p>
-                        <p>Materialele complete pot fi consultate în format oficial pe site-ul CICDE.</p>
+                        <p>Acest material a fost publicat din panoul de administrare pentru utilizatorii platformei.</p>
                     </div>
                     <button
                         type="button"

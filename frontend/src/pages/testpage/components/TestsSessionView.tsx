@@ -67,23 +67,23 @@ const TestsSessionView: React.FC<TestsSessionViewProps> = ({
             <div className="container">
                 <header className="quiz-sticky-header">
                     <div className="quiz-header-top">
-                        <button className="back-btn" onClick={onReset}>Inapoi la categorii</button>
+                        <button className="back-btn" onClick={onReset}>Înapoi la categorii</button>
                         <div className={`mode-badge ${quizSession.mode}`}>{modeLabel(quizSession.mode)}</div>
                     </div>
                     <h2>{normalizeText(getCategoryById(quizSession.categoryId)?.title || 'Test')}</h2>
                     <div className="quiz-header-meta">
                         <span className={`timer-chip ${quizSession.remainingTimeSeconds <= 60 ? 'danger' : ''}`}>
-                            Timp ramas: {fmt(quizSession.remainingTimeSeconds)}
+                            Timp rămas: {fmt(quizSession.remainingTimeSeconds)}
                         </span>
-                        <span className="meta-chip">Intrebarea {quizSession.currentQuestionIndex + 1}/{quizSession.questions.length}</span>
-                        <span className="meta-chip">Raspunse: {answeredCount}</span>
+                        <span className="meta-chip">Întrebarea {quizSession.currentQuestionIndex + 1}/{quizSession.questions.length}</span>
+                        <span className="meta-chip">Răspunse: {answeredCount}</span>
                     </div>
                     <div className="quiz-progress">
                         <div className="progress-bar">
                             <div className="progress-fill" style={{ width: `${progress}%` }} />
                         </div>
                     </div>
-                    <div className="mobile-quick-nav" aria-label="Navigare rapida">
+                    <div className="mobile-quick-nav" aria-label="Navigare rapidă">
                         <div className="mobile-quick-nav-header">
                             <span className="mobile-quick-nav-title">Navigare</span>
                             <span className="mobile-quick-nav-meta">
@@ -111,7 +111,7 @@ const TestsSessionView: React.FC<TestsSessionViewProps> = ({
                 <div className="quiz-layout">
                     <section className="quiz-question-card">
                         <div className="question-top-row">
-                            <div className="question-number">Intrebarea {quizSession.currentQuestionIndex + 1}</div>
+                            <div className="question-number">Întrebarea {quizSession.currentQuestionIndex + 1}</div>
                         </div>
 
                         <h3 className="question-text">{normalizeText(currentQuestion.text)}</h3>
@@ -139,7 +139,7 @@ const TestsSessionView: React.FC<TestsSessionViewProps> = ({
 
                         {showEvaluation && currentFeedback && (
                             <div className={`instant-feedback ${currentFeedback.isCorrect ? 'correct' : 'incorrect'}`}>
-                                <strong>{currentFeedback.isCorrect ? 'Raspuns corect.' : 'Raspuns gresit.'}</strong>
+                                <strong>{currentFeedback.isCorrect ? 'Răspuns corect.' : 'Răspuns greșit.'}</strong>
                                 {!currentFeedback.isCorrect && currentFeedback.correctAnswerText && (
                                     <p>Corect: {normalizeText(currentFeedback.correctAnswerText)}</p>
                                 )}
@@ -153,7 +153,7 @@ const TestsSessionView: React.FC<TestsSessionViewProps> = ({
                                 disabled={quizSession.currentQuestionIndex === 0}
                                 onClick={() => onGoToQuestion(quizSession.currentQuestionIndex - 1)}
                             >
-                                Inapoi
+                                Înapoi
                             </button>
                             <button
                                 className="btn-secondary"
@@ -161,9 +161,9 @@ const TestsSessionView: React.FC<TestsSessionViewProps> = ({
                                 disabled={isLast}
                                 onClick={() => onGoToQuestion(quizSession.currentQuestionIndex + 1)}
                             >
-                                Urmatoarea
+                                Următoarea
                             </button>
-                            <button className="btn-submit" type="button" onClick={onSubmit}>Finalizeaza testul</button>
+                            <button className="btn-submit" type="button" onClick={onSubmit}>Finalizează testul</button>
                             {canForceSubmit && unansweredIndexes.length > 0 && (
                                 <button className="btn-warning" type="button" onClick={onSubmit}>Trimite oricum</button>
                             )}
@@ -172,8 +172,8 @@ const TestsSessionView: React.FC<TestsSessionViewProps> = ({
 
                     <aside className="quiz-sidebar">
                         <div className="sidebar-header">
-                            <h3>Navigare rapida</h3>
-                            <p>Apasa pe un numar pentru salt direct la intrebare.</p>
+                            <h3>Navigare rapidă</h3>
+                            <p>Apasă pe un număr pentru salt direct la întrebare.</p>
                         </div>
                         <QuestionNavigationGrid
                             questions={quizSession.questions}
@@ -188,16 +188,16 @@ const TestsSessionView: React.FC<TestsSessionViewProps> = ({
                         <div className="legend">
                             {quizSession.mode === 'training' ? (
                                 <>
-                                    <span className="legend-item"><i className="dot correct" />Corecta</span>
-                                    <span className="legend-item"><i className="dot incorrect" />Gresita</span>
+                                    <span className="legend-item"><i className="dot correct" />Corectă</span>
+                                    <span className="legend-item"><i className="dot incorrect" />Greșită</span>
                                 </>
                             ) : (
-                                <span className="legend-item"><i className="dot answered" />Raspunsa</span>
+                                <span className="legend-item"><i className="dot answered" />Răspunsă</span>
                             )}
                             <span className="legend-item"><i className="dot empty" />Necompletata</span>
                         </div>
                         {unansweredIndexes.length > 0 && (
-                            <p className="sidebar-note">Mai sunt {unansweredIndexes.length} intrebari necompletate.</p>
+                            <p className="sidebar-note">Mai sunt {unansweredIndexes.length} întrebări necompletate.</p>
                         )}
                     </aside>
                 </div>

@@ -267,7 +267,7 @@ const TestsPage: React.FC = () => {
         if (!quizSession) return;
         if (unansweredIndexes.length > 0 && !canForceSubmit) {
             const preview = unansweredIndexes.slice(0, 6).map((index) => index + 1).join(', ');
-            setSubmitWarning(`Ai ${unansweredIndexes.length} intrebari necompletate (${preview}${unansweredIndexes.length > 6 ? ', ...' : ''}). Completeaza-le sau apasa "Trimite oricum".`);
+            setSubmitWarning(`Ai ${unansweredIndexes.length} întrebări necompletate (${preview}${unansweredIndexes.length > 6 ? ', ...' : ''}). Completează-le sau apasă "Trimite oricum".`);
             setCanForceSubmit(true);
             goToQuestion(unansweredIndexes[0]);
             return;

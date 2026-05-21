@@ -11,6 +11,7 @@ const navItems = [
     { to: "/admin/appointments", label: "Programări", iconClass: "fas fa-calendar-check" },
     { to: "/admin/notifications", label: "Notificări", iconClass: "fas fa-bell" },
     { to: "/admin/news", label: "Noutăți", iconClass: "fas fa-newspaper" },
+    { to: "/admin/legislative-materials", label: "Materiale", iconClass: "fas fa-book-open" },
 ];
 
 const AdminPanelLayout: React.FC = () => {
