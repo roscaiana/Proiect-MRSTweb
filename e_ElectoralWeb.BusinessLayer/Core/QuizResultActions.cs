@@ -50,17 +50,26 @@ public class QuizResultActions
             return new ActionResponce { IsSuccess = false, Message = "QuizId is required." };
         if (string.IsNullOrWhiteSpace(data.Mode))
             return new ActionResponce { IsSuccess = false, Message = "Mode is required." };
+        if (data.QuestionIds == null || data.QuestionIds.Count == 0)
+            return new ActionResponce { IsSuccess = false, Message = "QuestionIds are required." };
 
         using var context = new QuizDbContext();
 
+        var requestedQuestionIds = data.QuestionIds
+            .Where(id => id > 0)
+            .Distinct()
+            .ToList();
+
         var questions = await context.Questions
             .Include(q => q.AnswerOptions)
-            .Where(q => q.QuizId == data.QuizId)
+            .Where(q => q.QuizId == data.QuizId && requestedQuestionIds.Contains(q.Id))
             .OrderBy(q => q.Id)
             .ToListAsync();
 
         if (questions.Count == 0)
             return new ActionResponce { IsSuccess = false, Message = "Quiz questions not found." };
+        if (questions.Count != requestedQuestionIds.Count)
+            return new ActionResponce { IsSuccess = false, Message = "One or more questions are invalid for this quiz." };
 
         var answersByQuestionId = data.Answers
             .GroupBy(a => a.QuestionId)
@@ -102,7 +111,7 @@ public class QuizResultActions
             });
         }
 
-        var totalQuestions = questions.Count;
+        var totalQuestions = requestedQuestionIds.Count;
         var wrongAnswers = totalQuestions - correctAnswers - unanswered;
         var score = totalQuestions > 0 ? (int)Math.Round((double)correctAnswers / totalQuestions * 100) : 0;
 

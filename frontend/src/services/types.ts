@@ -71,6 +71,26 @@ export type ActionResponse<T = unknown> = {
     data?: T | null;
 };
 
+export type UserInfoDto = {
+    id: number;
+    fullName: string;
+    email: string;
+    password?: string;
+    confirmPassword?: string;
+    userName: string;
+    phone?: string;
+    role: string;
+    isBlocked: boolean;
+    registeredOn: string;
+};
+
+export type ContactMessageDto = {
+    name: string;
+    email: string;
+    subject: string;
+    message: string;
+};
+
 export type QuizAnswerCheckRequestDto = {
     questionId: number;
     answerOptionId: number;
@@ -94,6 +114,7 @@ export type QuizEvaluationRequestDto = {
     timeTaken: number;
     durationSeconds: number;
     completedAt: string;
+    questionIds: number[];
     answers: QuizEvaluationSubmissionDto[];
 };
 

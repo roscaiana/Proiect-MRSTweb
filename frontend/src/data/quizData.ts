@@ -19,6 +19,11 @@ type ApiAnswerOption = {
     questionId: number;
 };
 
+const CERTIFICATION_2026_TITLE =
+    "Banca de întrebări pentru examenul de certificare general (Sesiunea de certificare 2026)";
+const TEST_QUESTION_COUNT = 30;
+const TEST_DURATION_MINUTES = 30;
+
 export const quizCategories: QuizCategory[] = [];
 export const questionBanks: Record<string, Question[]> = {};
 
@@ -28,8 +33,8 @@ let apiQuizCategoriesCache: QuizCategory[] | null = null;
 let apiQuestionBankCache: Record<string, Question[]> | null = null;
 
 const toDifficulty = (questionCount: number): QuizCategory["difficulty"] => {
-    if (questionCount <= 8) return "beginner";
-    if (questionCount <= 12) return "intermediate";
+    if (questionCount <= 40) return "beginner";
+    if (questionCount <= 120) return "intermediate";
     return "advanced";
 };
 
@@ -38,6 +43,11 @@ const mapApiQuizData = (
     questions: ApiQuestion[],
     answerOptions: ApiAnswerOption[],
 ): { categories: QuizCategory[]; questionBank: Record<string, Question[]> } => {
+    const certificationQuiz = quizzes.find((quiz) => (quiz.title || "").trim() === CERTIFICATION_2026_TITLE);
+    if (!certificationQuiz) {
+        return { categories: [], questionBank: {} };
+    }
+
     const answerOptionsByQuestionId = answerOptions.reduce<Record<number, ApiAnswerOption[]>>((acc, option) => {
         if (!acc[option.questionId]) {
             acc[option.questionId] = [];
@@ -70,25 +80,23 @@ const mapApiQuizData = (
         return acc;
     }, {});
 
-    const categories = quizzes.map((quiz) => {
-        const quizQuestions = questionsByQuizId[quiz.id] || [];
-        const questionCount = quizQuestions.length;
+    const bankQuestions = questionsByQuizId[certificationQuiz.id] || [];
 
-        return {
-            id: String(quiz.id),
-            title: quiz.title || "Test",
-            description: quiz.description || "Test disponibil in platforma",
+    const categories: QuizCategory[] = [
+        {
+            id: String(certificationQuiz.id),
+            title: certificationQuiz.title || "Test certificare 2026",
+            description: `Fiecare sesiune generează ${TEST_QUESTION_COUNT} întrebări aleatorii din banca oficială.`,
             icon: "📝",
-            questionCount,
-            estimatedTime: Math.max(10, questionCount * 2),
-            difficulty: toDifficulty(questionCount),
-        } satisfies QuizCategory;
-    });
+            questionCount: TEST_QUESTION_COUNT,
+            estimatedTime: TEST_DURATION_MINUTES,
+            difficulty: toDifficulty(bankQuestions.length),
+        },
+    ];
 
-    const questionBank = categories.reduce<Record<string, Question[]>>((acc, category) => {
-        acc[category.id] = questionsByQuizId[Number(category.id)] || [];
-        return acc;
-    }, {});
+    const questionBank: Record<string, Question[]> = {
+        [String(certificationQuiz.id)]: bankQuestions,
+    };
 
     return { categories, questionBank };
 };

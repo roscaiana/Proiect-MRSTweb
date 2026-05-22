@@ -45,6 +45,18 @@ namespace e_ElectoralWeb.Api.Controller
             return Ok(result);
         }
 
+        [HttpPatch("{id}/toggle-block")]
+        public IActionResult ToggleBlock(int id)
+        {
+            var result = _userReg.ToggleUserBlockedAction(id);
+            if (!result.IsSuccess)
+            {
+                return NotFound(result.Message);
+            }
+
+            return Ok(result);
+        }
+
         [HttpDelete]
         public IActionResult Delete([FromQuery] int id)
         {

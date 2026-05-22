@@ -22,14 +22,19 @@ namespace e_ElectoralWeb.BusinessLayer.Configuration
             return GetUserByIdActionExecution(id);
         }
 
-        public ActionResponce UpdateUserAction(UserDto data)
-        {
-            return UpdateUserActionExecution(data);
-        }
-
-        public ActionResponce DeleteUserAction(int id)
-        {
-            return DeleteUserActionExecution(id);
-        }
+    public ActionResponce UpdateUserAction(UserDto data)
+    {
+        return UpdateUserActionExecution(data);
     }
+
+    public ActionResponce ToggleUserBlockedAction(int id)
+    {
+        return ToggleUserBlockedActionExecution(id);
+    }
+
+    public ActionResponce DeleteUserAction(int id)
+    {
+        return DeleteUserActionExecution(id);
+    }
+}
 }

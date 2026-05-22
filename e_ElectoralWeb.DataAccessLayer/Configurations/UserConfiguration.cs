@@ -37,6 +37,10 @@ public class UserConfiguration : IEntityTypeConfiguration<UserData>
         builder.Property(u => u.Role)
             .IsRequired();
 
+        builder.Property(u => u.IsBlocked)
+            .IsRequired()
+            .HasDefaultValue(false);
+
         builder.Property(u => u.RegisteredOn)
             .IsRequired();
 

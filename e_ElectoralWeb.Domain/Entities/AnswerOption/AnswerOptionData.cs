@@ -11,7 +11,7 @@ public class AnswerOptionData
     public int Id { get; set; }
 
     [Required]
-    [StringLength(400)]
+    [StringLength(1000)]
     public string Text { get; set; } = string.Empty;
     public bool IsCorrect { get; set; }
 

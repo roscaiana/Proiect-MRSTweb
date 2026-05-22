@@ -9,7 +9,6 @@ import { useAppointmentDraft } from '../../hooks/useAppointmentDraft';
 import type { AdminAppointmentRecord } from '../../features/admin/types';
 import { readAppointments, readExamSettings, STORAGE_KEYS } from '../../features/admin/storage';
 import { clampMonth as clampMonthToRange, startOfMonth } from '../../utils/calendarUtils';
-import type { SlotFilter } from './AppointmentStep3Slots';
 import type { AppointmentWizardTab } from './appointmentController.constants';
 import {
     buildAppointmentSchema,
@@ -24,7 +23,6 @@ export const useAppointmentControllerState = () => {
 
     const [examSettings, setExamSettings] = useState(() => readExamSettings());
     const [appointments, setAppointments] = useState(() => readAppointments());
-    const [slotFilter, setSlotFilter] = useState<SlotFilter>('all');
     const [submitMessage, setSubmitMessage] = useState('');
     const [submittedAppointment, setSubmittedAppointment] = useState<AdminAppointmentRecord | null>(null);
     const [rescheduleSourceId, setRescheduleSourceId] = useState<string | null>(null);
@@ -172,8 +170,6 @@ export const useAppointmentControllerState = () => {
         setExamSettings,
         appointments,
         setAppointments,
-        slotFilter,
-        setSlotFilter,
         submitMessage,
         setSubmitMessage,
         submittedAppointment,

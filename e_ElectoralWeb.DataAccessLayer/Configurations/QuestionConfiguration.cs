@@ -12,7 +12,7 @@ public class QuestionConfiguration : IEntityTypeConfiguration<QuestionData>
 
         builder.Property(q => q.Text)
             .IsRequired()
-            .HasMaxLength(400);
+            .HasMaxLength(2000);
 
         builder.HasOne(q => q.Quiz)
             .WithMany(q => q.Questions)

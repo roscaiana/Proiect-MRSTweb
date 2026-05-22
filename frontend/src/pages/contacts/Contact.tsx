@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 import { Mail, Phone, MapPin, Send, MessageSquare, User, AtSign, CheckCircle2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import toast from 'react-hot-toast';
 import { contactSchema, type ContactFormValues } from '../../schemas/contactSchema';
+import { contactService } from '../../services';
 import Sidebar from "../../components/SideBar/SideBar";
 import './Contact.css';
 
@@ -27,13 +29,26 @@ const Contact = () => {
         reValidateMode: 'onChange',
     });
 
-    const onSubmit = () => {
+    const onSubmit = async (data: ContactFormValues) => {
         setIsSubmitting(true);
-        setTimeout(() => {
+
+        try {
+            const result = await contactService.send(data);
+
+            if (!result.isSuccess) {
+                toast.error(result.message || 'Mesajul nu a putut fi trimis.');
+                return;
+            }
+
             setIsSubmitting(false);
             setIsSubmitted(true);
             reset();
-        }, 1500);
+        } catch (error) {
+            const message =
+                error instanceof Error ? error.message : 'Mesajul nu a putut fi trimis.';
+            toast.error(message);
+            setIsSubmitting(false);
+        }
     };
 
     useEffect(() => {
