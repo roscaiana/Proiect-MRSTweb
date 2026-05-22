@@ -8,6 +8,7 @@ import type { ExamSettings } from '../features/admin/types';
 import type { TimeSlot } from '../types/appointment';
 
 const baseSettings: ExamSettings = {
+    testQuestionCount: 30,
     testDurationMinutes: 30,
     passingThreshold: 70,
     appointmentsPerDay: 10,

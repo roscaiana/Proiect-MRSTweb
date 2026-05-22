@@ -7,6 +7,7 @@ import AdminTestsPage from '../features/admin/pages/AdminTestsPage';
 const mockPanel = {
     state: {
         settings: {
+            testQuestionCount: 30,
             testDurationMinutes: 30,
             passingThreshold: 70,
             appointmentsPerDay: 30,

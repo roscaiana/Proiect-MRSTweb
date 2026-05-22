@@ -28,27 +28,17 @@ const AdminTestsPage: React.FC = () => {
     } = useForm<AdminSettingsFormValues>({
         resolver: zodResolver(adminSettingsSchema),
         defaultValues: {
+            testQuestionCount: state.settings.testQuestionCount,
             testDurationMinutes: state.settings.testDurationMinutes,
             passingThreshold: state.settings.passingThreshold,
-            appointmentsPerDay: state.settings.appointmentsPerDay,
-            appointmentLeadTimeHours: state.settings.appointmentLeadTimeHours,
-            maxReschedulesPerUser: state.settings.maxReschedulesPerUser,
-            rejectionCooldownDays: state.settings.rejectionCooldownDays,
-            appointmentLocation: state.settings.appointmentLocation,
-            appointmentRoom: state.settings.appointmentRoom,
         },
     });
 
     useEffect(() => {
         reset({
+            testQuestionCount: state.settings.testQuestionCount,
             testDurationMinutes: state.settings.testDurationMinutes,
             passingThreshold: state.settings.passingThreshold,
-            appointmentsPerDay: state.settings.appointmentsPerDay,
-            appointmentLeadTimeHours: state.settings.appointmentLeadTimeHours,
-            maxReschedulesPerUser: state.settings.maxReschedulesPerUser,
-            rejectionCooldownDays: state.settings.rejectionCooldownDays,
-            appointmentLocation: state.settings.appointmentLocation,
-            appointmentRoom: state.settings.appointmentRoom,
         });
     }, [reset, state.settings]);
 
@@ -75,7 +65,7 @@ const AdminTestsPage: React.FC = () => {
             setApiTests(quizzes.map(mapQuizToAdminTest));
         } catch {
             setApiTests([]);
-            toast.error("Testele nu au putut fi incarcate din API.");
+            toast.error("Testele nu au putut fi încărcate din API.");
         } finally {
             setLoadingTests(false);
         }
@@ -119,7 +109,7 @@ const AdminTestsPage: React.FC = () => {
             ...data,
         };
         updateSettings(nextSettings);
-        toast.success("Setările au fost actualizate.");
+        toast.success("Setările testului au fost actualizate.");
     };
 
     const handleSettingsInvalid = () => {
@@ -130,14 +120,27 @@ const AdminTestsPage: React.FC = () => {
         <div className="admin-page-content">
             <section className="admin-page-header">
                 <h2>Management teste</h2>
-                <p>Creează, editează și șterge teste. Ajustează parametrii globali ai examenului.</p>
+                <p>Administrează testele disponibile și parametrii globali ai evaluării.</p>
             </section>
 
             <section className="admin-panel-card">
                 <div className="admin-card-header">
-                    <h3><i className="fas fa-sliders admin-card-header-icon"></i> Setări globale examen</h3>
+                    <h3><i className="fas fa-sliders admin-card-header-icon"></i> Setări test</h3>
                 </div>
                 <form className="admin-inline-form" onSubmit={handleSubmit(handleSaveSettings, handleSettingsInvalid)} noValidate>
+                    <label className="admin-field">
+                        <span>Număr întrebări</span>
+                        <input
+                            type="number"
+                            min={1}
+                            max={100}
+                            {...register("testQuestionCount", { valueAsNumber: true })}
+                        />
+                        {errors.testQuestionCount?.message && (
+                            <span className="admin-field-error" role="alert">{errors.testQuestionCount.message}</span>
+                        )}
+                    </label>
+
                     <label className="admin-field">
                         <span>Durata test (minute)</span>
                         <input
@@ -162,74 +165,6 @@ const AdminTestsPage: React.FC = () => {
                         {errors.passingThreshold?.message && (
                             <span className="admin-field-error" role="alert">{errors.passingThreshold.message}</span>
                         )}
-                    </label>
-
-                    <label className="admin-field">
-                        <span>Programări/zi</span>
-                        <input
-                            type="number"
-                            min={1}
-                            max={500}
-                            {...register("appointmentsPerDay", { valueAsNumber: true })}
-                        />
-                        {errors.appointmentsPerDay?.message && (
-                            <span className="admin-field-error" role="alert">{errors.appointmentsPerDay.message}</span>
-                        )}
-                    </label>
-
-                    <label className="admin-field">
-                        <span>Lead time programare (ore)</span>
-                        <input
-                            type="number"
-                            min={0}
-                            max={720}
-                            {...register("appointmentLeadTimeHours", { valueAsNumber: true })}
-                        />
-                        {errors.appointmentLeadTimeHours?.message && (
-                            <span className="admin-field-error" role="alert">{errors.appointmentLeadTimeHours.message}</span>
-                        )}
-                    </label>
-
-                    <label className="admin-field">
-                        <span>Max reprogramări / cerere</span>
-                        <input
-                            type="number"
-                            min={0}
-                            max={20}
-                            {...register("maxReschedulesPerUser", { valueAsNumber: true })}
-                        />
-                        {errors.maxReschedulesPerUser?.message && (
-                            <span className="admin-field-error" role="alert">{errors.maxReschedulesPerUser.message}</span>
-                        )}
-                    </label>
-
-                    <label className="admin-field">
-                        <span>Cooldown după respingere (zile)</span>
-                        <input
-                            type="number"
-                            min={0}
-                            max={365}
-                            {...register("rejectionCooldownDays", { valueAsNumber: true })}
-                        />
-                        {errors.rejectionCooldownDays?.message && (
-                            <span className="admin-field-error" role="alert">{errors.rejectionCooldownDays.message}</span>
-                        )}
-                    </label>
-
-                    <label className="admin-field">
-                        <span>Locație examen</span>
-                        <input
-                            type="text"
-                            {...register("appointmentLocation")}
-                        />
-                    </label>
-
-                    <label className="admin-field">
-                        <span>Sală</span>
-                        <input
-                            type="text"
-                            {...register("appointmentRoom")}
-                        />
                     </label>
 
                     <button className="admin-btn primary" type="submit">
@@ -300,13 +235,23 @@ const AdminTestsPage: React.FC = () => {
                         <tbody>
                             {loadingTests && (
                                 <tr>
-                                    <td colSpan={5}>Se incarca testele...</td>
+                                    <td colSpan={5}>Se încarcă testele...</td>
                                 </tr>
                             )}
                             {!loadingTests && apiTests.map((test) => (
                                 <AdminTestRow
                                     key={test.id}
-                                    test={test}
+                                    test={{
+                                        ...test,
+                                        durationMinutes: state.settings.testDurationMinutes,
+                                        passingScore: state.settings.passingThreshold,
+                                        questions: new Array(state.settings.testQuestionCount).fill(null).map((_, index) => ({
+                                            id: `placeholder-${index + 1}`,
+                                            text: "",
+                                            options: [],
+                                            correctAnswer: 0,
+                                        })),
+                                    }}
                                     onEdit={(testId) => {
                                         setEditingTestId(testId);
                                         setCreating(false);

@@ -27,6 +27,7 @@ const ensureNoSimulatedServerError = (): void => {
 };
 
 const DEFAULT_SETTINGS: ExamSettings = {
+    testQuestionCount: 30,
     testDurationMinutes: 30,
     passingThreshold: 70,
     appointmentsPerDay: 30,
@@ -139,6 +140,8 @@ export const readExamSettings = (): ExamSettings => {
     try {
         const parsed = JSON.parse(raw) as Partial<ExamSettings>;
         return {
+            testQuestionCount:
+                Number(parsed.testQuestionCount) || DEFAULT_SETTINGS.testQuestionCount,
             testDurationMinutes:
                 Number(parsed.testDurationMinutes) || DEFAULT_SETTINGS.testDurationMinutes,
             passingThreshold: Number(parsed.passingThreshold) || DEFAULT_SETTINGS.passingThreshold,
