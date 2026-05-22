@@ -12,7 +12,7 @@ public class QuestionData
     public int Id { get; set; }
 
     [Required]
-    [StringLength(400)]
+    [StringLength(2000)]
     public string Text { get; set; } = string.Empty;
 
     public int QuizId { get; set; }

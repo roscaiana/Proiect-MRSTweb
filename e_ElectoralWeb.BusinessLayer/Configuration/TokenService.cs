@@ -19,6 +19,8 @@ public class TokenService
         var configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: false)
+            .AddUserSecrets<TokenService>(optional: true)
+            .AddEnvironmentVariables()
             .Build();
 
         _issuer = configuration["Jwt:Issuer"] ?? throw new InvalidOperationException("Jwt:Issuer is missing.");

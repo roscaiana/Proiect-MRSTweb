@@ -33,6 +33,11 @@ namespace e_ElectoralWeb.BusinessLayer
             return new UserAuthAction();
         }
 
+        public IContactAction ContactAction()
+        {
+            return new ContactExecution();
+        }
+
         public IQuizResultAction QuizResultAction()
         {
             return new QuizResultExecution();

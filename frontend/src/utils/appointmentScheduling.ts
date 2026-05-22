@@ -78,7 +78,6 @@ export const buildAvailableSlotsForDate = (
         activeOnly: true,
         excludeId: options?.excludeAppointmentId,
     });
-    const occupiedSlots = new Set(dayAppointments.map((a) => `${a.slotStart}-${a.slotEnd}`));
     const dateBlocked = isDateBlocked(settings, dateKey);
     const capacityReached = dayAppointments.length >= capacity;
 
@@ -87,8 +86,7 @@ export const buildAvailableSlotsForDate = (
         available:
             !dateBlocked &&
             !capacityReached &&
-            (slot.available ?? true) &&
-            !occupiedSlots.has(`${slot.startTime}-${slot.endTime}`),
+            (slot.available ?? true),
     }));
 };
 

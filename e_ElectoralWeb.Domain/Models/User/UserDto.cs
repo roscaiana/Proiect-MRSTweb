@@ -10,5 +10,6 @@ public class UserDto
     public string UserName { get; set; } = string.Empty;
     public string Phone { get; set; } = string.Empty;
     public string Role { get; set; } = "User";
+    public bool IsBlocked { get; set; }
     public DateTime RegisteredOn { get; set; }
 }

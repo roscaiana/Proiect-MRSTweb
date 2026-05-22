@@ -8,7 +8,6 @@ import {
     getDailyCapacity,
     getNextEligibleDates,
 } from '../../utils/appointmentScheduling';
-import type { SlotFilter } from './AppointmentStep3Slots';
 import type { AppointmentFormValues } from '../../schemas/appointmentSchema';
 
 type UseAppointmentControllerSlotDataParams = {
@@ -16,7 +15,6 @@ type UseAppointmentControllerSlotDataParams = {
     appointments: AdminAppointmentRecord[];
     examSettings: ExamSettings;
     rescheduleSourceId: string | null;
-    slotFilter: SlotFilter;
     formData: AppointmentFormData;
     setValue: UseFormSetValue<AppointmentFormValues>;
     trigger: UseFormTrigger<AppointmentFormValues>;
@@ -29,7 +27,6 @@ export const useAppointmentControllerSlotData = ({
     appointments,
     examSettings,
     rescheduleSourceId,
-    slotFilter,
     formData,
     setValue,
     trigger,
@@ -61,16 +58,6 @@ export const useAppointmentControllerSlotData = ({
         });
     }, [appointments, examSettings, selectedDateKey, rescheduleSourceId]);
 
-    const availableSlots = useMemo(() => {
-        return allAvailableSlots.filter((slot) => {
-            const hour = Number(slot.startTime.split(':')[0] || 0);
-            if (slotFilter === 'midday') return hour < 14;
-            if (slotFilter === 'afternoon') return hour >= 14;
-            return true;
-        });
-    }, [allAvailableSlots, slotFilter]);
-
-    const recommendedSlot = useMemo(() => allAvailableSlots.find((slot) => slot.available) || null, [allAvailableSlots]);
     const availabilityPreviewDays = useMemo(
         () => getNextEligibleDates(examSettings, appointments, { count: 12, startDate: new Date(), maxDate }),
         [appointments, examSettings, maxDate]
@@ -88,8 +75,7 @@ export const useAppointmentControllerSlotData = ({
 
     return {
         allAvailableSlots,
-        availableSlots,
-        recommendedSlot,
+        availableSlots: allAvailableSlots,
         availabilityPreviewDays,
         currentDayCapacity,
         remainingAppointmentsForDay,

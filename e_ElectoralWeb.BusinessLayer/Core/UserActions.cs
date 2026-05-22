@@ -57,6 +57,7 @@ public class UserDbActions
             UserName = user.UserName,
             Phone = user.Phone,
             Role = user.Role.ToString(),
+            IsBlocked = user.IsBlocked,
             RegisteredOn = user.RegisteredOn,
             Password = string.Empty,
             ConfirmPassword = string.Empty
@@ -125,6 +126,11 @@ public class UserDbActions
         if (!passwordValid)
         {
             return null;
+        }
+
+        if (user.IsBlocked)
+        {
+            return user;
         }
 
         return user;
@@ -214,6 +220,7 @@ public class UserDbActions
             UserName = BuildUniqueUserName(db, normalizedEmail),
             Phone = string.Empty,
             Role = UserRole.User,
+            IsBlocked = false,
             RegisteredOn = DateTime.UtcNow
         };
 
@@ -357,6 +364,8 @@ public class UserDbActions
             user.Role = role;
         }
 
+        user.IsBlocked = data.IsBlocked;
+
         if (!string.IsNullOrWhiteSpace(data.Password) || !string.IsNullOrWhiteSpace(data.ConfirmPassword))
         {
             if (data.Password != data.ConfirmPassword)
@@ -387,6 +396,30 @@ public class UserDbActions
         {
             IsSuccess = true,
             Message = "User updated."
+        };
+    }
+
+    internal ActionResponce ToggleUserBlockedActionExecution(int id)
+    {
+        using var db = new UserContext();
+        var user = db.Users.FirstOrDefault(u => u.Id == id);
+        if (user == null)
+        {
+            return new ActionResponce
+            {
+                IsSuccess = false,
+                Message = "User not found."
+            };
+        }
+
+        user.IsBlocked = !user.IsBlocked;
+        db.Users.Update(user);
+        db.SaveChanges();
+
+        return new ActionResponce
+        {
+            IsSuccess = true,
+            Message = user.IsBlocked ? "User blocked." : "User unblocked."
         };
     }
 

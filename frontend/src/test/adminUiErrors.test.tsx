@@ -14,6 +14,7 @@ vi.mock('../features/admin/hooks/useAdminPanel', () => ({
 }));
 
 const baseSettings: ExamSettings = {
+    testQuestionCount: 30,
     testDurationMinutes: 30,
     passingThreshold: 70,
     appointmentsPerDay: 10,

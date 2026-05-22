@@ -26,6 +26,19 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                 .ToListAsync();
         }
 
+        protected async Task<List<AnswerOptionPublicDto>> GetAllPublicAnswerOptionsActionExecutionAsync()
+        {
+            using var context = new QuizDbContext();
+            return await context.AnswerOptions
+                .Select(a => new AnswerOptionPublicDto
+                {
+                    Id = a.Id,
+                    Text = a.Text,
+                    QuestionId = a.QuestionId
+                })
+                .ToListAsync();
+        }
+
         protected async Task<AnswerOptionDto?> GetAnswerOptionByIdActionExecutionAsync(int id)
         {
             using var context = new QuizDbContext();
@@ -51,6 +64,20 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                     Id = a.Id,
                     Text = a.Text,
                     IsCorrect = a.IsCorrect,
+                    QuestionId = a.QuestionId
+                })
+                .ToListAsync();
+        }
+
+        protected async Task<List<AnswerOptionPublicDto>> GetPublicAnswerOptionsByQuestionActionExecutionAsync(int questionId)
+        {
+            using var context = new QuizDbContext();
+            return await context.AnswerOptions
+                .Where(a => a.QuestionId == questionId)
+                .Select(a => new AnswerOptionPublicDto
+                {
+                    Id = a.Id,
+                    Text = a.Text,
                     QuestionId = a.QuestionId
                 })
                 .ToListAsync();

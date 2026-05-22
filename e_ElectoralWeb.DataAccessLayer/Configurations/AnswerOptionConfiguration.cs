@@ -12,7 +12,7 @@ public class AnswerOptionConfiguration : IEntityTypeConfiguration<AnswerOptionDa
 
         builder.Property(a => a.Text)
             .IsRequired()
-            .HasMaxLength(400);
+            .HasMaxLength(1000);
 
         builder.Property(a => a.IsCorrect)
             .IsRequired();

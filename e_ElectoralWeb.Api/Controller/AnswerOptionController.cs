@@ -34,6 +34,21 @@ namespace e_ElectoralWeb.Api.Controller
         }
 
         [AllowAnonymous]
+        [HttpGet("public")]
+        public async Task<IActionResult> GetAllPublic()
+        {
+            try
+            {
+                var data = await _answerOptionAction.GetAllPublicAnswerOptionsActionAsync();
+                return Ok(data);
+            }
+            catch (Exception)
+            {
+                return DatabaseError();
+            }
+        }
+
+        [AllowAnonymous]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -56,6 +71,21 @@ namespace e_ElectoralWeb.Api.Controller
             try
             {
                 var result = await _answerOptionAction.GetAnswerOptionsByQuestionActionAsync(questionId);
+                return Ok(result);
+            }
+            catch (Exception)
+            {
+                return DatabaseError();
+            }
+        }
+
+        [AllowAnonymous]
+        [HttpGet("public/byQuestion")]
+        public async Task<IActionResult> GetPublicByQuestion([FromQuery] int questionId)
+        {
+            try
+            {
+                var result = await _answerOptionAction.GetPublicAnswerOptionsByQuestionActionAsync(questionId);
                 return Ok(result);
             }
             catch (Exception)

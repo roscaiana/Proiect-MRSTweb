@@ -24,4 +24,10 @@
       <ProjectReference Include="..\e_ElectoralWeb.Domain\e_ElectoralWeb.Domain.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="Seed\Data\certification-session-2026.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

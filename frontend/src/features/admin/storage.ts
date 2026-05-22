@@ -27,6 +27,7 @@ const ensureNoSimulatedServerError = (): void => {
 };
 
 const DEFAULT_SETTINGS: ExamSettings = {
+    testQuestionCount: 30,
     testDurationMinutes: 30,
     passingThreshold: 70,
     appointmentsPerDay: 30,
@@ -64,8 +65,10 @@ const createSeedTests = (): AdminTest[] => {
         const questions = (questionBanks[category.id] || []).map((question, index) => ({
             id: question.id || `${category.id}-q-${index + 1}`,
             text: question.text || `Întrebarea ${index + 1}`,
-            options: Array.isArray(question.options) ? question.options.slice(0, 4) : [],
-            correctAnswer: typeof question.correctAnswer === "number" ? question.correctAnswer : 0,
+            options: Array.isArray(question.options)
+                ? question.options.slice(0, 4).map((option) => option.text || "")
+                : [],
+            correctAnswer: 0,
         }));
 
         return {
@@ -137,6 +140,8 @@ export const readExamSettings = (): ExamSettings => {
     try {
         const parsed = JSON.parse(raw) as Partial<ExamSettings>;
         return {
+            testQuestionCount:
+                Number(parsed.testQuestionCount) || DEFAULT_SETTINGS.testQuestionCount,
             testDurationMinutes:
                 Number(parsed.testDurationMinutes) || DEFAULT_SETTINGS.testDurationMinutes,
             passingThreshold: Number(parsed.passingThreshold) || DEFAULT_SETTINGS.passingThreshold,

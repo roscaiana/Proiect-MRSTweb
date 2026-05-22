@@ -36,11 +36,8 @@ export default function AppointmentWizardTabContent({ controller }: AppointmentW
         formatDate,
         allowedWeekdayNames,
         availableSlots,
-        slotFilter,
-        recommendedSlot,
         remainingAppointmentsForDay,
         currentDayCapacity,
-        setSlotFilter,
         handleSlotSelect,
         handleFullNameChange,
         handleIdOrPhoneChange,
@@ -86,14 +83,11 @@ export default function AppointmentWizardTabContent({ controller }: AppointmentW
                 {activeTab === 2 && (
                     <AppointmentStep3Slots
                         availableSlots={availableSlots}
-                        slotFilter={slotFilter}
                         selectedSlotId={formData.selectedSlot?.id}
-                        recommendedSlot={recommendedSlot}
                         remainingAppointmentsForDay={remainingAppointmentsForDay}
                         currentDayCapacity={currentDayCapacity}
                         selectedDate={formData.selectedDate}
                         error={errors.slot}
-                        onFilterChange={setSlotFilter}
                         onSlotSelect={handleSlotSelect}
                     />
                 )}

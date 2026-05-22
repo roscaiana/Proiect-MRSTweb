@@ -1,29 +1,40 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { useStorageSync } from '../../hooks/useStorageSync';
-import { getCategoryById, getQuestionsByCategory, getQuizCategories, hydrateQuizDataFromApi } from '../../data/quizData';
-import { useAuth } from '../../hooks/useAuth';
-import type { QuizMode, QuizResult, QuizSession } from '../../types/quiz';
-import type { QuizHistoryRecord } from '../../features/admin/types';
-import { readExamSettings, readQuizHistory, STORAGE_KEYS, writeQuizHistory } from '../../features/admin/storage';
-import { notifyQuizCompleted } from '../../utils/appEventNotifications';
-import { inferChapter, normalizeText } from './testsPageUtils';
-import TestsHomeView from './components/TestsHomeView';
-import TestsResultView from './components/TestsResultView';
-import TestsSessionView from './components/TestsSessionView';
-import './TestsPage.css';
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useStorageSync } from "../../hooks/useStorageSync";
+import { getCategoryById, getQuestionsByCategory, getQuizCategories, hydrateQuizDataFromApi } from "../../data/quizData";
+import { useAuth } from "../../hooks/useAuth";
+import type { QuizMode, QuizResult, QuizSession } from "../../types/quiz";
+import type { QuizHistoryRecord } from "../../features/admin/types";
+import { readExamSettings, readQuizHistory, STORAGE_KEYS, writeQuizHistory } from "../../features/admin/storage";
+import { notifyQuizCompleted } from "../../utils/appEventNotifications";
+import { inferChapter, normalizeText } from "./testsPageUtils";
+import TestsHomeView from "./components/TestsHomeView";
+import TestsResultView from "./components/TestsResultView";
+import TestsSessionView from "./components/TestsSessionView";
+import { quizResultService } from "../../services";
+import "./TestsPage.css";
+
+const shuffleQuestions = <T,>(items: T[]): T[] => {
+    const shuffled = [...items];
+    for (let index = shuffled.length - 1; index > 0; index -= 1) {
+        const swapIndex = Math.floor(Math.random() * (index + 1));
+        [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
+    }
+
+    return shuffled;
+};
 
 const TestsPage: React.FC = () => {
     const { user } = useAuth();
-    const [quizMode, setQuizMode] = useState<QuizMode>('training');
+    const [quizMode, setQuizMode] = useState<QuizMode>("training");
     const [quizSession, setQuizSession] = useState<QuizSession | null>(null);
     const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
     const [categories, setCategories] = useState(() => getQuizCategories());
     const [examSettings, setExamSettings] = useState(() => readExamSettings());
-    const [submitWarning, setSubmitWarning] = useState('');
+    const [submitWarning, setSubmitWarning] = useState("");
     const [canForceSubmit, setCanForceSubmit] = useState(false);
-    const [completionReason, setCompletionReason] = useState<'manual' | 'timeout' | null>(null);
+    const [completionReason, setCompletionReason] = useState<"manual" | "timeout" | null>(null);
     const quizUserRef = React.useRef<{ email?: string; fullName?: string } | null>(null);
-    const testsView = quizResult ? 'result' : quizSession ? 'session' : 'home';
+    const testsView = quizResult ? "result" : quizSession ? "session" : "home";
 
     useEffect(() => {
         hydrateQuizDataFromApi().then((loaded) => {
@@ -32,7 +43,7 @@ const TestsPage: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        window.scrollTo({ top: 0, left: 0, behavior: "auto" });
     }, [testsView]);
 
     useStorageSync([STORAGE_KEYS.settings], () => {
@@ -42,16 +53,18 @@ const TestsPage: React.FC = () => {
 
     const startQuiz = (categoryId: string, mode: QuizMode = quizMode) => {
         quizUserRef.current = { email: user?.email, fullName: user?.fullName };
-        const questions = getQuestionsByCategory(categoryId);
-        if (questions.length === 0) return;
-        const category = categories.find((item) => item.id === categoryId);
-        const durationMinutes =
-            category?.estimatedTime ??
-            examSettings.testDurationMinutes ??
-            30;
-        const durationSeconds = Math.max(1, durationMinutes) * 60;
+        const questionBank = getQuestionsByCategory(categoryId);
+
+        if (questionBank.length < examSettings.testQuestionCount) {
+            setSubmitWarning("Banca de întrebări nu conține suficiente întrebări pentru a porni testul.");
+            return;
+        }
+
+        const questions = shuffleQuestions(questionBank).slice(0, examSettings.testQuestionCount);
+        const durationSeconds = examSettings.testDurationMinutes * 60;
+
         setQuizMode(mode);
-        setSubmitWarning('');
+        setSubmitWarning("");
         setCanForceSubmit(false);
         setCompletionReason(null);
         setQuizResult(null);
@@ -61,6 +74,7 @@ const TestsPage: React.FC = () => {
             questions,
             currentQuestionIndex: 0,
             answers: new Array(questions.length).fill(null),
+            answerFeedback: new Array(questions.length).fill(null),
             flaggedQuestions: new Array(questions.length).fill(false),
             durationSeconds,
             remainingTimeSeconds: durationSeconds,
@@ -71,66 +85,78 @@ const TestsPage: React.FC = () => {
     const resetQuiz = () => {
         setQuizSession(null);
         setQuizResult(null);
-        setSubmitWarning('');
+        setSubmitWarning("");
         setCanForceSubmit(false);
         setCompletionReason(null);
     };
 
-    const finalizeQuiz = useCallback((session: QuizSession, reason: 'manual' | 'timeout') => {
-        const end = new Date();
-        const elapsed = Math.max(0, Math.floor((end.getTime() - session.startTime.getTime()) / 1000));
-        const timeTaken = session.mode === 'exam' ? Math.min(elapsed, session.durationSeconds) : elapsed;
-        const categoryTitle = normalizeText(getCategoryById(session.categoryId)?.title || 'Test');
-        let correctAnswers = 0;
-        let unanswered = 0;
-        const answers = session.questions.map((q, i) => {
-            const userAnswer = session.answers[i];
-            const chapter = inferChapter(q, session.categoryId, categoryTitle);
-            const isCorrect = userAnswer !== null && userAnswer === q.correctAnswer;
-            if (isCorrect) correctAnswers += 1;
-            if (userAnswer === null) unanswered += 1;
+    const buildQuizResult = useCallback((
+        session: QuizSession,
+        evaluation: Awaited<ReturnType<typeof quizResultService.evaluate>>,
+        reason: "manual" | "timeout",
+    ) => {
+        const categoryTitle = normalizeText(getCategoryById(session.categoryId)?.title || "Test");
+        const answers = evaluation.answers.map((answer) => {
+            const question = session.questions.find((item) => Number(item.id) === answer.questionId);
+            const chapter = inferChapter(question || {
+                id: String(answer.questionId),
+                text: answer.questionText,
+                options: [],
+            }, session.categoryId, categoryTitle);
+
             return {
-                questionId: q.id,
-                questionText: normalizeText(q.text),
+                questionId: String(answer.questionId),
+                questionText: normalizeText(answer.questionText),
                 chapterId: chapter.chapterId,
                 chapterTitle: chapter.chapterTitle,
-                userAnswer,
-                userAnswerText: userAnswer === null ? null : normalizeText(q.options[userAnswer] || ''),
-                correctAnswer: q.correctAnswer,
-                correctAnswerText: normalizeText(q.options[q.correctAnswer] || ''),
-                isCorrect,
-                wasFlagged: Boolean(session.flaggedQuestions[i]),
+                userAnswer: answer.userAnswerId ?? null,
+                userAnswerText: answer.userAnswerText ? normalizeText(answer.userAnswerText) : null,
+                correctAnswerText: session.mode === "training" && answer.correctAnswerText
+                    ? normalizeText(answer.correctAnswerText)
+                    : null,
+                isCorrect: answer.isCorrect,
+                wasFlagged: false,
             };
         });
+
         const chapterMap = new Map<string, { chapterId: string; chapterTitle: string; total: number; correct: number }>();
-        answers.forEach((a) => {
-            const entry = chapterMap.get(a.chapterId) || { chapterId: a.chapterId, chapterTitle: a.chapterTitle, total: 0, correct: 0 };
+        answers.forEach((answer) => {
+            const entry = chapterMap.get(answer.chapterId) || {
+                chapterId: answer.chapterId,
+                chapterTitle: answer.chapterTitle,
+                total: 0,
+                correct: 0,
+            };
             entry.total += 1;
-            if (a.isCorrect) entry.correct += 1;
-            chapterMap.set(a.chapterId, entry);
+            if (answer.isCorrect) {
+                entry.correct += 1;
+            }
+            chapterMap.set(answer.chapterId, entry);
         });
-        const chapterStats = Array.from(chapterMap.values()).map((x) => ({
-            ...x,
-            accuracy: x.total > 0 ? Math.round((x.correct / x.total) * 100) : 0,
-        })).sort((a, b) => b.accuracy - a.accuracy);
-        const totalQuestions = session.questions.length;
-        const wrongAnswers = totalQuestions - correctAnswers - unanswered;
-        const score = totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0;
+
+        const chapterStats = Array.from(chapterMap.values())
+            .map((item) => ({
+                ...item,
+                accuracy: item.total > 0 ? Math.round((item.correct / item.total) * 100) : 0,
+            }))
+            .sort((a, b) => b.accuracy - a.accuracy);
+
         const result: QuizResult = {
             categoryId: session.categoryId,
             categoryTitle,
             mode: session.mode,
-            totalQuestions,
-            correctAnswers,
-            wrongAnswers,
-            unanswered,
-            score,
-            timeTaken,
-            durationSeconds: session.durationSeconds,
-            completedAt: end.toISOString(),
+            totalQuestions: evaluation.totalQuestions,
+            correctAnswers: evaluation.correctAnswers,
+            wrongAnswers: evaluation.wrongAnswers,
+            unanswered: evaluation.unanswered,
+            score: evaluation.score,
+            timeTaken: evaluation.timeTaken,
+            durationSeconds: evaluation.durationSeconds,
+            completedAt: evaluation.completedAt,
             answers,
             chapterStats,
         };
+
         const historyEntry: QuizHistoryRecord = {
             categoryId: result.categoryId,
             categoryTitle: result.categoryTitle,
@@ -147,6 +173,7 @@ const TestsPage: React.FC = () => {
             userEmail: quizUserRef.current?.email,
             userName: quizUserRef.current?.fullName,
         };
+
         const nextHistory = [historyEntry, ...readQuizHistory()].slice(0, 100);
         writeQuizHistory(nextHistory);
         notifyQuizCompleted({
@@ -155,12 +182,34 @@ const TestsPage: React.FC = () => {
             score: result.score,
             passed: result.score >= examSettings.passingThreshold,
         });
+
         setCompletionReason(reason);
         setQuizResult(result);
         setQuizSession(null);
-        setSubmitWarning(reason === 'timeout' ? 'Timpul a expirat. Testul a fost trimis automat.' : '');
+        setSubmitWarning(reason === "timeout" ? "Timpul a expirat. Testul a fost trimis automat." : "");
         setCanForceSubmit(false);
-    }, []);
+    }, [examSettings.passingThreshold]);
+
+    const finalizeQuiz = useCallback(async (session: QuizSession, reason: "manual" | "timeout") => {
+        const end = new Date();
+        const elapsed = Math.max(0, Math.floor((end.getTime() - session.startTime.getTime()) / 1000));
+        const timeTaken = Math.min(elapsed, session.durationSeconds);
+
+        const evaluation = await quizResultService.evaluate({
+            quizId: Number(session.categoryId),
+            mode: session.mode,
+            timeTaken,
+            durationSeconds: session.durationSeconds,
+            completedAt: end.toISOString(),
+            questionIds: session.questions.map((question) => Number(question.id)),
+            answers: session.questions.map((question, index) => ({
+                questionId: Number(question.id),
+                answerOptionId: session.answers[index],
+            })),
+        });
+
+        buildQuizResult(session, evaluation, reason);
+    }, [buildQuizResult]);
 
     useEffect(() => {
         if (!quizSession) return;
@@ -174,8 +223,10 @@ const TestsPage: React.FC = () => {
     }, [Boolean(quizSession)]);
 
     useEffect(() => {
-        if (quizSession && quizSession.mode === 'exam' && quizSession.remainingTimeSeconds === 0) {
-            finalizeQuiz(quizSession, 'timeout');
+        if (quizSession && quizSession.remainingTimeSeconds === 0) {
+            finalizeQuiz(quizSession, "timeout").catch(() => {
+                setSubmitWarning("Nu s-a putut evalua testul.");
+            });
         }
     }, [quizSession, finalizeQuiz]);
 
@@ -183,38 +234,67 @@ const TestsPage: React.FC = () => {
         () =>
             quizSession
                 ? quizSession.answers
-                      .map((a, i) => ({ a, i }))
-                      .filter((x) => x.a === null)
-                      .map((x) => x.i)
+                    .map((answer, index) => ({ answer, index }))
+                    .filter((item) => item.answer === null)
+                    .map((item) => item.index)
                 : [],
-        [quizSession]
+        [quizSession],
     );
+
     const goToQuestion = (index: number) => {
         if (!quizSession || index < 0 || index >= quizSession.questions.length) return;
         setQuizSession({ ...quizSession, currentQuestionIndex: index });
     };
-    const setAnswer = (answer: number) => {
+
+    const setAnswer = async (answerOptionId: number) => {
         if (!quizSession) return;
+
+        const currentQuestion = quizSession.questions[quizSession.currentQuestionIndex];
+        const feedback =
+            quizSession.mode === "training"
+                ? await quizResultService.checkAnswer({
+                    questionId: Number(currentQuestion.id),
+                    answerOptionId,
+                })
+                : null;
+
         setQuizSession((prev) => {
             if (!prev) return prev;
             const answers = [...prev.answers];
-            answers[prev.currentQuestionIndex] = answer;
-            return { ...prev, answers };
+            const answerFeedback = [...prev.answerFeedback];
+            answers[prev.currentQuestionIndex] = answerOptionId;
+            answerFeedback[prev.currentQuestionIndex] = feedback
+                ? {
+                    isCorrect: feedback.isCorrect,
+                    correctAnswerText: feedback.correctAnswerText,
+                }
+                : null;
+
+            return { ...prev, answers, answerFeedback };
         });
-        setSubmitWarning('');
+
+        setSubmitWarning("");
         setCanForceSubmit(false);
     };
-    const submitQuiz = () => {
+
+    const submitQuiz = async () => {
         if (!quizSession) return;
+
         if (unansweredIndexes.length > 0 && !canForceSubmit) {
-            const preview = unansweredIndexes.slice(0, 6).map((x) => x + 1).join(', ');
-            setSubmitWarning(`Ai ${unansweredIndexes.length} întrebări necompletate (${preview}${unansweredIndexes.length > 6 ? ', ...' : ''}). Completează-le sau apasă "Trimite oricum".`);
+            const preview = unansweredIndexes.slice(0, 6).map((index) => index + 1).join(", ");
+            setSubmitWarning(`Ai ${unansweredIndexes.length} întrebări necompletate (${preview}${unansweredIndexes.length > 6 ? ", ..." : ""}). Completează-le sau apasă "Trimite oricum".`);
             setCanForceSubmit(true);
             goToQuestion(unansweredIndexes[0]);
             return;
         }
-        finalizeQuiz(quizSession, 'manual');
+
+        try {
+            await finalizeQuiz(quizSession, "manual");
+        } catch {
+            setSubmitWarning("Nu s-a putut evalua testul.");
+        }
     };
+
     if (quizResult) {
         return (
             <TestsResultView
@@ -236,8 +316,8 @@ const TestsPage: React.FC = () => {
                 unansweredIndexes={unansweredIndexes}
                 onReset={resetQuiz}
                 onGoToQuestion={goToQuestion}
-                onSetAnswer={setAnswer}
-                onSubmit={submitQuiz}
+                onSetAnswer={(answerOptionId) => { void setAnswer(answerOptionId); }}
+                onSubmit={() => { void submitQuiz(); }}
             />
         );
     }
@@ -255,7 +335,3 @@ const TestsPage: React.FC = () => {
 };
 
 export default TestsPage;
-
-
-
-

@@ -1,8 +1,12 @@
+export interface QuestionOption {
+  id: number;
+  text: string;
+}
+
 export interface Question {
   id: string;
   text: string;
-  options: string[];
-  correctAnswer: number; // Index of the correct option
+  options: QuestionOption[];
   explanation?: string;
   chapterId?: string;
   chapterTitle?: string;
@@ -14,7 +18,7 @@ export interface QuizCategory {
   description: string;
   icon: string;
   questionCount: number;
-  estimatedTime: number; // in minutes
+  estimatedTime: number;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
 }
 
@@ -26,6 +30,10 @@ export interface QuizSession {
   questions: Question[];
   currentQuestionIndex: number;
   answers: (number | null)[];
+  answerFeedback: Array<{
+    isCorrect: boolean;
+    correctAnswerText: string;
+  } | null>;
   flaggedQuestions: boolean[];
   durationSeconds: number;
   remainingTimeSeconds: number;
@@ -41,8 +49,8 @@ export interface QuizResult {
   correctAnswers: number;
   wrongAnswers: number;
   unanswered: number;
-  score: number; // percentage
-  timeTaken: number; // in seconds
+  score: number;
+  timeTaken: number;
   durationSeconds: number;
   completedAt: string;
   answers: {
@@ -52,8 +60,7 @@ export interface QuizResult {
     chapterTitle: string;
     userAnswer: number | null;
     userAnswerText: string | null;
-    correctAnswer: number;
-    correctAnswerText: string;
+    correctAnswerText?: string | null;
     isCorrect: boolean;
     wasFlagged: boolean;
   }[];

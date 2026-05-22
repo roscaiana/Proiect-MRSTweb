@@ -3,7 +3,6 @@ import "./Footer.css";
 import { APP_ROUTES } from "../../routes/appRoutes";
 
 export default function Footer() {
-    const stop = (e: React.MouseEvent<HTMLAnchorElement>) => e.preventDefault();
     const stopSubmit = (e: React.FormEvent<HTMLFormElement>) => e.preventDefault();
 
     return (
@@ -22,15 +21,30 @@ export default function Footer() {
                         Chișinău, Republica Moldova
                     </p>
                     <div className="social-links">
-                        <Link to="#" onClick={stop} aria-label="Facebook">
+                        <a
+                            href="https://www.facebook.com/CICDE?locale=ro_RO"
+                            target="_blank"
+                            rel="noreferrer"
+                            aria-label="Facebook"
+                        >
                             <i className="fab fa-facebook-f" />
-                        </Link>
-                        <Link to="#" onClick={stop} aria-label="LinkedIn">
+                        </a>
+                        <a
+                            href="https://www.linkedin.com/company/the-centre-for-continuous-electoral-training-moldova/"
+                            target="_blank"
+                            rel="noreferrer"
+                            aria-label="LinkedIn"
+                        >
                             <i className="fab fa-linkedin-in" />
-                        </Link>
-                        <Link to="#" onClick={stop} aria-label="YouTube">
+                        </a>
+                        <a
+                            href="https://www.youtube.com/@CentrulCICDE"
+                            target="_blank"
+                            rel="noreferrer"
+                            aria-label="YouTube"
+                        >
                             <i className="fab fa-youtube" />
-                        </Link>
+                        </a>
                     </div>
                 </div>
                 <div className="footer-col">

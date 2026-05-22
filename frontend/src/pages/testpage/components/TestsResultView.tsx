@@ -20,6 +20,7 @@ const TestsResultView: React.FC<TestsResultViewProps> = ({
     onRetry,
 }) => {
     const passed = quizResult.score >= passingThreshold;
+    const showEvaluation = quizResult.mode === 'training';
     const strongChapters = quizResult.chapterStats.filter((x) => x.accuracy >= 70);
     const weakChapters = quizResult.chapterStats.filter((x) => x.accuracy < 70);
 
@@ -91,8 +92,8 @@ const TestsResultView: React.FC<TestsResultViewProps> = ({
                                     chapterTitle={answer.chapterTitle}
                                     questionText={answer.questionText}
                                     userAnswerText={answer.userAnswerText}
-                                    correctAnswerText={answer.correctAnswerText}
-                                    isCorrect={answer.isCorrect}
+                                    correctAnswerText={showEvaluation ? answer.correctAnswerText : undefined}
+                                    isCorrect={showEvaluation ? answer.isCorrect : undefined}
                                 />
                             ))}
                         </div>

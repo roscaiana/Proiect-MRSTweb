@@ -6,8 +6,10 @@ namespace e_ElectoralWeb.BusinessLayer.Interfaces
     public interface IAnswerOptionAction
     {
         Task<List<AnswerOptionDto>> GetAllAnswerOptionsActionAsync();
+        Task<List<AnswerOptionPublicDto>> GetAllPublicAnswerOptionsActionAsync();
         Task<AnswerOptionDto?> GetAnswerOptionByIdActionAsync(int id);
         Task<List<AnswerOptionDto>> GetAnswerOptionsByQuestionActionAsync(int questionId);
+        Task<List<AnswerOptionPublicDto>> GetPublicAnswerOptionsByQuestionActionAsync(int questionId);
         Task<ActionResponce> CreateAnswerOptionActionAsync(AnswerOptionDto data);
         Task<ActionResponce> UpdateAnswerOptionActionAsync(AnswerOptionDto data);
         Task<ActionResponce> DeleteAnswerOptionActionAsync(int id);

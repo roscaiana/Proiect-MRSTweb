@@ -39,6 +39,8 @@ namespace e_ElectoralWeb.Domain.Entities.User
 
         public UserRole Role { get; set; }
 
+        public bool IsBlocked { get; set; }
+
         [DataType(DataType.Date)]
         public DateTime RegisteredOn { get; set; }
 

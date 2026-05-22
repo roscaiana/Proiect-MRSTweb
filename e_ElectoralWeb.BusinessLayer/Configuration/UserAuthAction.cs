@@ -14,6 +14,15 @@ namespace e_ElectoralWeb.BusinessLayer.Configuration
             var user = UserLoginDataValidationExecution(udata);
             if (user != null)
             {
+                if (user.IsBlocked)
+                {
+                    return new ActionResponce
+                    {
+                        IsSuccess = false,
+                        Message = "User is blocked."
+                    };
+                }
+
                 var token = UserTokenGeneration(user);
                 return new ActionResponce
                 {

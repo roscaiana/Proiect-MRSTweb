@@ -24,6 +24,15 @@ type AppointmentPdfProps = {
     confirmationLocation: string;
 };
 
+const toPdfSafeText = (value: string) =>
+    value
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[șş]/g, 's')
+        .replace(/[ȘŞ]/g, 'S')
+        .replace(/[țţ]/g, 't')
+        .replace(/[ȚŢ]/g, 'T');
+
 const pdfStyles = StyleSheet.create({
     page: {
         paddingTop: 32,
@@ -163,15 +172,15 @@ const AppointmentConfirmationPdf = ({
                     <Text style={pdfStyles.detailValue}>{confirmationTimeLabel}</Text>
                 </View>
                 <View style={[pdfStyles.detailRow, { marginBottom: 0, borderBottomWidth: 0, paddingBottom: 0 }]}>
-                    <Text style={pdfStyles.detailLabel}>Locație</Text>
+                    <Text style={pdfStyles.detailLabel}>Locatie</Text>
                     <Text style={pdfStyles.detailValue}>{confirmationLocation}</Text>
                 </View>
             </View>
 
             <View style={pdfStyles.note}>
                 <Text>
-                    <Text style={pdfStyles.noteLabel}>Notă:</Text> Vă rugăm să vă prezentați cu 15 minute înainte de ora
-                    programării, cu actul de identitate.
+                    <Text style={pdfStyles.noteLabel}>Nota:</Text> Va rugam sa va prezentati cu 15 minute inainte de ora
+                    programarii, cu actul de identitate.
                 </Text>
             </View>
         </Page>
@@ -217,11 +226,11 @@ export default function AppointmentStep5Confirm({
             const blob = await pdf(
                 <AppointmentConfirmationPdf
                     confirmationCode={confirmationCode}
-                    confirmationStatus={confirmationStatus}
-                    candidateName={candidateName}
-                    confirmationDateLabel={confirmationDateLabel}
-                    confirmationTimeLabel={confirmationTimeLabel}
-                    confirmationLocation={confirmationLocation}
+                    confirmationStatus={toPdfSafeText(confirmationStatus)}
+                    candidateName={toPdfSafeText(candidateName)}
+                    confirmationDateLabel={toPdfSafeText(confirmationDateLabel)}
+                    confirmationTimeLabel={toPdfSafeText(confirmationTimeLabel)}
+                    confirmationLocation={toPdfSafeText(confirmationLocation)}
                 />
             ).toBlob();
 
@@ -251,7 +260,7 @@ export default function AppointmentStep5Confirm({
                             <path d="M8 12l2 2 4-4" stroke="#FFCC00" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                         </svg>
                     </div>
-                    <h2>Programare Confirmată!</h2>
+                    <h2>Programare confirmată!</h2>
                     <p className="success-message">
                         {submitMessage || "Programarea dumneavoastră pentru examenul de certificare a fost înregistrată cu succes."}
                     </p>
@@ -291,7 +300,7 @@ export default function AppointmentStep5Confirm({
                     </div>
                     <div className="success-actions">
                         <button className="success-btn success-btn-primary" onClick={onNewAppointment}>
-                            Programare Nouă
+                            Programare nouă
                         </button>
                         <button
                             className="success-btn success-btn-secondary"

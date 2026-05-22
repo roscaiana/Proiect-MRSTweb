@@ -30,6 +30,12 @@ export const adminNotificationSchema = z
 export type AdminNotificationFormValues = z.infer<typeof adminNotificationSchema>;
 
 export const adminSettingsSchema = z.object({
+    testQuestionCount: z
+        .coerce
+        .number()
+        .int()
+        .min(1, 'Numărul de întrebări trebuie să fie între 1 și 100.')
+        .max(100, 'Numărul de întrebări trebuie să fie între 1 și 100.'),
     testDurationMinutes: z
         .coerce
         .number()

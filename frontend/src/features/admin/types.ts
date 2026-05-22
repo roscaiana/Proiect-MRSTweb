@@ -48,6 +48,7 @@ export interface AdminTestInput {
 }
 
 export interface ExamSettings {
+    testQuestionCount: number;
     testDurationMinutes: number;
     passingThreshold: number;
     appointmentsPerDay: number;
