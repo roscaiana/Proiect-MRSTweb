@@ -45,9 +45,9 @@
 }
 
 .legislative-hero h1 {
-    font-size: clamp(2.2rem, 4.5vw, 3.2rem);
+    font-size: clamp(2rem, 4vw, 3.25rem);
     line-height: 1.15;
-    margin-bottom: 1rem;
+    margin: 0 0 1rem;
 }
 
 .hero-title-highlight {
@@ -59,6 +59,9 @@
 
 .legislative-hero p {
     font-size: 1.05rem;
+    line-height: 1.6;
+    max-width: 760px;
+    margin: 0 auto;
     color: rgba(255, 255, 255, 0.85);
 }
 

@@ -905,8 +905,8 @@
 }
 
 .tests-hero-title {
-    margin: 0 0 10px;
-    font-size: clamp(34px, 5vw, 54px);
+    margin: 0 0 1rem;
+    font-size: clamp(2rem, 4vw, 3.25rem);
     line-height: 1.05;
     font-weight: 800;
     color: #fff;
@@ -922,7 +922,7 @@
     margin: 0 auto;
     max-width: 760px;
     color: #d9e8f8;
-    font-size: 17px;
+    font-size: 1.05rem;
     line-height: 1.6;
 }
 
@@ -1337,7 +1337,7 @@
     }
 
     .tests-hero-subtitle {
-        font-size: 14px;
+        font-size: 1.05rem;
     }
 
     .tests-hero-stats {
@@ -1473,9 +1473,9 @@
 }
 
 .tests-page.tests-page-home .tests-hero-title {
-    font-size: 2.25rem;
+    font-size: clamp(2rem, 4vw, 3.25rem);
     line-height: normal;
-    margin-bottom: 1.8rem;
+    margin: 0 0 1rem;
 }
 
 .tests-page.tests-page-home .tests-hero-title span {
@@ -1486,8 +1486,8 @@
 
 .tests-page.tests-page-home .tests-hero-subtitle {
     color: #dbeafe;
-    font-size: 1.25rem;
-    line-height: 1.625;
+    font-size: 1.05rem;
+    line-height: 1.6;
 }
 
 .tests-page.tests-page-home .tests-home-content {
@@ -1624,7 +1624,7 @@
 
 @media (min-width: 768px) {
     .tests-page.tests-page-home .tests-hero-title {
-        font-size: 3.75rem;
+        font-size: clamp(2rem, 4vw, 3.25rem);
     }
 }
 
@@ -1634,7 +1634,7 @@
     }
 
     .tests-page.tests-page-home .tests-hero-subtitle {
-        font-size: 1rem;
+        font-size: 1.05rem;
     }
 }
 

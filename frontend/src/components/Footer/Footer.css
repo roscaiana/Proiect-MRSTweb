@@ -137,6 +137,26 @@
     transform: translateY(-1px);
 }
 
+.subscribe-form input:disabled,
+.subscribe-form button:disabled {
+    cursor: not-allowed;
+    opacity: 0.75;
+}
+
+.subscribe-message {
+    margin-top: 0.75rem;
+    font-size: 0.82rem;
+    line-height: 1.45;
+}
+
+.subscribe-message.success {
+    color: #bbf7d0;
+}
+
+.subscribe-message.error {
+    color: #fecaca;
+}
+
 .footer-divider {
     margin-top: 50px;
     height: 1px;
