@@ -442,9 +442,97 @@ const SEED_NEWS: AdminNewsArticle[] = [
     { id: "news-6", title: "Parteneriat CICDE cu Organizații Internaționale", description: "Colaborare nouă pentru schimbul de bune practici în domeniul educației electorale la nivel european.", category: "Extern", image: "globe", publishedAt: "2025-02-24T00:00:00.000Z", createdAt: "2025-02-24T00:00:00.000Z", updatedAt: "2025-02-24T00:00:00.000Z" },
 ];
 
+const DEFAULT_CICDE_NEWS: AdminNewsArticle[] = [
+    {
+        id: "cicde-news-2026-graph",
+        title: "Graficul examenelor de certificare pentru sesiunea 2026",
+        description:
+            "CICDE a publicat programul examenelor pentru sesiunea 2026. Examenele se desfasoara in format fizic si virtual, iar inscrierea se face din contul de utilizator aprobat.",
+        category: "Sesiunea 2026",
+        image: "/news/cicde-grafic-2026.png",
+        sourceUrl: "https://certificare.cicde.md/news/show/44",
+        publishedAt: "2026-03-04T00:00:00.000Z",
+        createdAt: "2026-03-04T00:00:00.000Z",
+        updatedAt: "2026-03-04T00:00:00.000Z",
+    },
+    {
+        id: "cicde-news-2025-results",
+        title: "Rezultatele sesiunii de certificare 2025",
+        description:
+            "In sesiunea 2025 au fost organizate 565 examene, cu 9570 participanti. Au promovat 7764 candidati, iar rata de promovare pe sesiune a fost de 82,3%.",
+        category: "Rezultate",
+        image: "/news/cicde-rezultate-2025.png",
+        sourceUrl: "https://certificare.cicde.md/news/show/43",
+        publishedAt: "2025-10-09T00:00:00.000Z",
+        createdAt: "2025-10-09T00:00:00.000Z",
+        updatedAt: "2025-10-09T00:00:00.000Z",
+    },
+    {
+        id: "cicde-news-2025-regulation",
+        title: "Aprobarea noului regulament pentru certificare",
+        description:
+            "Comisia Electorala Centrala a aprobat noua redactie a Regulamentului privind certificarea formarii/specializarii in domeniul electoral, cu aplicare in SICDE.",
+        category: "Cadrul normativ",
+        image: "/news/cicde-regulament-2025.png",
+        sourceUrl: "https://certificare.cicde.md/news/show/14",
+        publishedAt: "2025-03-18T00:00:00.000Z",
+        createdAt: "2025-03-18T00:00:00.000Z",
+        updatedAt: "2025-03-18T00:00:00.000Z",
+    },
+    {
+        id: "cicde-news-2026-18-24-may",
+        title: "18-24 mai 2026: totalurile saptamanii",
+        description:
+            "Au fost desfasurate 5 examene cu prezenta fizica in raioane. Din 72 participanti, 61 au promovat, cu rata de promovare de 84,72%.",
+        category: "Totaluri saptamanale",
+        image: "/news/cicde-18-24-mai-2026.jpg",
+        sourceUrl: "https://certificare.cicde.md/news/show/50",
+        publishedAt: "2026-05-25T00:00:00.000Z",
+        createdAt: "2026-05-25T00:00:00.000Z",
+        updatedAt: "2026-05-25T00:00:00.000Z",
+    },
+    {
+        id: "cicde-news-2026-04-17-may",
+        title: "04-17 mai 2026: totaluri saptamanale",
+        description:
+            "CICDE a organizat 4 examene de certificare (online si fizic). Au participat 47 persoane, iar 41 au obtinut certificatul de calificare.",
+        category: "Totaluri saptamanale",
+        image: "/news/cicde-04-17-mai-2026.jpg",
+        sourceUrl: "https://certificare.cicde.md/news/show/49",
+        publishedAt: "2026-05-15T00:00:00.000Z",
+        createdAt: "2026-05-15T00:00:00.000Z",
+        updatedAt: "2026-05-15T00:00:00.000Z",
+    },
+    {
+        id: "cicde-news-2026-20apr-3may",
+        title: "20 aprilie - 3 mai 2026: totaluri saptamanale",
+        description:
+            "In perioada de referinta au avut loc 3 examene online. Au participat 55 persoane, dintre care 44 au promovat, cu o rata de 80%.",
+        category: "Totaluri saptamanale",
+        image: "/news/cicde-20apr-3mai-2026.jpg",
+        sourceUrl: "https://certificare.cicde.md/news/show/48",
+        publishedAt: "2026-05-04T00:00:00.000Z",
+        createdAt: "2026-05-04T00:00:00.000Z",
+        updatedAt: "2026-05-04T00:00:00.000Z",
+    },
+];
+
+const isLegacySeedNews = (items: Record<string, unknown>[]): boolean =>
+    items.length === SEED_NEWS.length &&
+    items.every((item) => {
+        const record = asRecord(item);
+        const id = typeof record.id === "string" ? record.id : "";
+        return /^news-[1-6]$/.test(id);
+    });
+
 export const readAdminNews = (): AdminNewsArticle[] => {
     ensureNoSimulatedServerError();
     const items = readArray<Record<string, unknown>>(localStorage.getItem(STORAGE_KEYS.news));
+    if (items.length === 0 || isLegacySeedNews(items)) {
+        localStorage.setItem(STORAGE_KEYS.news, JSON.stringify(DEFAULT_CICDE_NEWS));
+        return DEFAULT_CICDE_NEWS;
+    }
+
     if (items.length > 0) {
         return items.map((item, index) => {
             const record = asRecord(item);
@@ -454,14 +542,18 @@ export const readAdminNews = (): AdminNewsArticle[] => {
                 description: typeof record.description === "string" ? record.description : "",
                 category: typeof record.category === "string" ? record.category : "",
                 image: typeof record.image === "string" ? record.image : "cert",
+                sourceUrl:
+                    typeof record.sourceUrl === "string" && record.sourceUrl.trim()
+                        ? record.sourceUrl.trim()
+                        : undefined,
                 publishedAt: record.publishedAt ? new Date(String(record.publishedAt)).toISOString() : new Date().toISOString(),
                 createdAt: record.createdAt ? new Date(String(record.createdAt)).toISOString() : new Date().toISOString(),
                 updatedAt: record.updatedAt ? new Date(String(record.updatedAt)).toISOString() : new Date().toISOString(),
             };
         });
     }
-    localStorage.setItem(STORAGE_KEYS.news, JSON.stringify(SEED_NEWS));
-    return SEED_NEWS;
+    localStorage.setItem(STORAGE_KEYS.news, JSON.stringify(DEFAULT_CICDE_NEWS));
+    return DEFAULT_CICDE_NEWS;
 };
 
 export const writeAdminNews = (news: AdminNewsArticle[]): void => {

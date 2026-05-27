@@ -55,9 +55,13 @@ export default function Info() {
                         <li><i className="fas fa-check-circle"></i> Utilizarea SIAS Alegeri</li>
                     </ul>
 
-                    <button className="btn btn-primary mt-4" type="button">
+                    <a
+                        className="btn btn-primary mt-4"
+                        href="/metodologia-certificare.docx"
+                        download="Metodologia-certificare.docx"
+                    >
                         Descarcă Metodologia
-                    </button>
+                    </a>
                 </div>
             </div>
         </section>

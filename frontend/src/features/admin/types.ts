@@ -141,6 +141,7 @@ export interface AdminNewsArticle {
     description: string;
     category: string;
     image: string;
+    sourceUrl?: string;
     publishedAt: string;
     createdAt: string;
     updatedAt: string;
@@ -151,6 +152,7 @@ export interface AdminNewsArticleInput {
     description: string;
     category: string;
     image: string;
+    sourceUrl?: string;
     publishedAt: string;
 }
 
@@ -160,6 +162,7 @@ export type NewsDisplayItem = {
     description: string;
     category: string;
     image: string;
+    sourceUrl?: string;
     publishedAt: string;
 };
 
