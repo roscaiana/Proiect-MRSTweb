@@ -46,5 +46,24 @@ namespace e_ElectoralWeb.Api.Controller
 
             return StatusCode(StatusCodes.Status201Created, data);
         }
+
+        [Authorize]
+        [HttpGet("me")]
+        public IActionResult Me()
+        {
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+            if (!int.TryParse(userIdClaim, out var userId))
+            {
+                return Unauthorized();
+            }
+
+            var user = _userRegAction.GetUserByIdAction(userId);
+            if (user == null || user.IsBlocked)
+            {
+                return Unauthorized();
+            }
+
+            return Ok(user);
+        }
     }
 }

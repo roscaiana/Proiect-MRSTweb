@@ -2,6 +2,7 @@ import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { User, UpdateUserProfileInput } from '../types/user';
 import { getAuthState, storeAuthState, clearAuthState, updateMockUserProfile } from '../utils/authUtils';
 import { useStorageSync } from '../hooks/useStorageSync';
+import { apiClient } from '../api/axiosClient';
 
 interface AuthContextType {
     user: User | null;
@@ -27,10 +28,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Load auth state from localStorage on mount
     useEffect(() => {
         const authState = getAuthState();
-        if (authState.user) {
-            setUser(authState.user);
+        if (authState.user && authState.token) {
+            apiClient.get('/auth/me')
+                .then(() => {
+                    setUser(authState.user);
+                })
+                .catch(() => {
+                    clearAuthState();
+                    setUser(null);
+                })
+                .finally(() => {
+                    setIsAuthReady(true);
+                });
+        } else {
+            setIsAuthReady(true);
         }
-        setIsAuthReady(true);
     }, []);
 
     useStorageSync(['users'], () => {

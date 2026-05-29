@@ -5,6 +5,7 @@ import type {
     QuizAnswerCheckResultDto,
     QuizEvaluationRequestDto,
     QuizEvaluationResultDto,
+    QuizResultSubmitDto,
 } from "./types";
 
 const RESOURCE = "/QuizResult";
@@ -26,5 +27,14 @@ export const quizResultService = {
         }
 
         return response.data.data;
+    },
+
+    async submit(dto: QuizResultSubmitDto): Promise<ActionResponse> {
+        const response = await apiClient.post<ActionResponse>(`${RESOURCE}/submit`, dto);
+        if (!response.data.isSuccess) {
+            throw new Error(response.data.message || "Nu s-a putut salva rezultatul.");
+        }
+
+        return response.data;
     },
 };

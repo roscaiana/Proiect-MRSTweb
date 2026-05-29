@@ -1,12 +1,14 @@
 using e_ElectoralWeb.BusinessLayer;
 using e_ElectoralWeb.BusinessLayer.Interfaces;
 using e_ElectoralWeb.Domain.Models.User;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace e_ElectoralWeb.Api.Controller
 {
    [Route("api/reg")]
     [ApiController]
+    [Authorize]
     public class RegisterController : ControllerBase
     {
         private readonly IUserRegAction _userReg;
@@ -17,6 +19,7 @@ namespace e_ElectoralWeb.Api.Controller
             _userReg = bl.UserRegAction();
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet("getAll")]
         public IActionResult GetAll()
         {
@@ -24,6 +27,7 @@ namespace e_ElectoralWeb.Api.Controller
             return Ok(users);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public IActionResult GetById([FromQuery] int id)
         {
@@ -31,6 +35,7 @@ namespace e_ElectoralWeb.Api.Controller
             return Ok(user);
         }
 
+        [AllowAnonymous]
         [HttpPost]
         public IActionResult Register([FromBody] UserRegisterDto uRegData)
         {
@@ -38,6 +43,7 @@ namespace e_ElectoralWeb.Api.Controller
             return Ok(data);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPut]
         public IActionResult Update([FromBody] UserDto data)
         {
@@ -45,6 +51,7 @@ namespace e_ElectoralWeb.Api.Controller
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPatch("{id}/toggle-block")]
         public IActionResult ToggleBlock(int id)
         {
@@ -57,6 +64,7 @@ namespace e_ElectoralWeb.Api.Controller
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpDelete]
         public IActionResult Delete([FromQuery] int id)
         {

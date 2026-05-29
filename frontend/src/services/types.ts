@@ -140,6 +140,19 @@ export type QuizEvaluationResultDto = {
     answers: QuizEvaluationAnswerDto[];
 };
 
+export type QuizResultSubmitDto = {
+    quizId: number;
+    userId: number;
+    totalQuestions: number;
+    correctAnswers: number;
+    wrongAnswers: number;
+    unanswered: number;
+    score: number;
+    timeTaken: number;
+    mode: string;
+    completedAt: string;
+};
+
 export type HealthStatus = {
     status: string;
     timestamp: string;
