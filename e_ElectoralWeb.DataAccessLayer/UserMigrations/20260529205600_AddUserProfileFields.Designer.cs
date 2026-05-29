@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using e_ElectoralWeb.DataAccessLayer.Context;
 
@@ -11,9 +12,11 @@ using e_ElectoralWeb.DataAccessLayer.Context;
 namespace e_ElectoralWeb.DataAccessLayer.UserMigrations
 {
     [DbContext(typeof(UserContext))]
-    partial class UserContextModelSnapshot : ModelSnapshot
+    [Migration("20260529205600_AddUserProfileFields")]
+    partial class AddUserProfileFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -225,8 +228,8 @@ namespace e_ElectoralWeb.DataAccessLayer.UserMigrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasMaxLength(254)
-                        .HasColumnType("nvarchar(254)");
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<string>("FirstName")
                         .IsRequired()

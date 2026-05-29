@@ -79,9 +79,19 @@ export type UserInfoDto = {
     confirmPassword?: string;
     userName: string;
     phone?: string;
+    nickname?: string | null;
+    avatarDataUrl?: string | null;
     role: string;
     isBlocked: boolean;
     registeredOn: string;
+};
+
+export type UserProfileUpdateDto = {
+    fullName: string;
+    email: string;
+    phone?: string;
+    nickname?: string;
+    avatarDataUrl?: string;
 };
 
 export type ContactMessageDto = {

@@ -56,6 +56,8 @@ public class UserDbActions
             Email = user.Email,
             UserName = user.UserName,
             Phone = user.Phone,
+            Nickname = user.Nickname,
+            AvatarDataUrl = user.AvatarDataUrl,
             Role = user.Role.ToString(),
             IsBlocked = user.IsBlocked,
             RegisteredOn = user.RegisteredOn,
@@ -397,6 +399,74 @@ public class UserDbActions
             IsSuccess = true,
             Message = "User updated."
         };
+    }
+
+    internal ActionResponce UpdateOwnProfileActionExecution(int userId, UserProfileUpdateDto data)
+    {
+        if (string.IsNullOrWhiteSpace(data.FullName))
+        {
+            return new ActionResponce { IsSuccess = false, Message = "Full name is required." };
+        }
+
+        var (firstName, lastName) = SplitFullName(data.FullName);
+        if (string.IsNullOrWhiteSpace(firstName))
+        {
+            return new ActionResponce { IsSuccess = false, Message = "A valid full name is required." };
+        }
+
+        using var db = new UserContext();
+        var user = db.Users.FirstOrDefault(u => u.Id == userId);
+        if (user == null)
+        {
+            return new ActionResponce { IsSuccess = false, Message = "User not found." };
+        }
+
+        user.FirstName = firstName;
+        user.LastName = lastName;
+
+        if (!string.IsNullOrWhiteSpace(data.Email))
+        {
+            var normalizedEmail = NormalizeEmail(data.Email);
+            var emailUsed = db.Users.Any(u => u.Id != userId && u.Email.ToLower() == normalizedEmail);
+            if (emailUsed)
+            {
+                return new ActionResponce { IsSuccess = false, Message = "Email already exists." };
+            }
+
+            user.Email = normalizedEmail;
+        }
+
+        if (data.Phone != null)
+        {
+            var phone = data.Phone.Trim();
+            if (phone.Length > 12)
+            {
+                return new ActionResponce { IsSuccess = false, Message = "Phone number is too long." };
+            }
+
+            user.Phone = phone;
+        }
+
+        if (data.Nickname != null)
+        {
+            var nickname = data.Nickname.Trim();
+            if (nickname.Length > 50)
+            {
+                return new ActionResponce { IsSuccess = false, Message = "Nickname is too long." };
+            }
+
+            user.Nickname = string.IsNullOrEmpty(nickname) ? null : nickname;
+        }
+
+        if (data.AvatarDataUrl != null)
+        {
+            user.AvatarDataUrl = string.IsNullOrEmpty(data.AvatarDataUrl.Trim()) ? null : data.AvatarDataUrl.Trim();
+        }
+
+        db.Users.Update(user);
+        db.SaveChanges();
+
+        return new ActionResponce { IsSuccess = true, Message = "Profile updated." };
     }
 
     internal ActionResponce ToggleUserBlockedActionExecution(int id)

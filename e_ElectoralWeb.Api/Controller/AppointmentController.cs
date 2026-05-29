@@ -19,7 +19,7 @@ public class AppointmentController : ControllerBase
         _appointmentAction = bl.AppointmentAction();
     }
 
-    [Authorize(Roles = "User,Manager,Admin")]
+    [Authorize(Roles = "User,Admin")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] AppointmentCreateDto dto)
     {
@@ -50,7 +50,7 @@ public class AppointmentController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "User,Manager,Admin")]
+    [Authorize(Roles = "User,Admin")]
     [HttpGet("byUser")]
     public async Task<IActionResult> GetByUser([FromQuery] int userId)
     {

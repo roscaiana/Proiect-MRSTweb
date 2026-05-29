@@ -49,7 +49,7 @@ namespace e_ElectoralWeb.Api.Controller
             }
         }
 
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] QuizDto dto)
         {
@@ -65,7 +65,7 @@ namespace e_ElectoralWeb.Api.Controller
             }
         }
 
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] QuizDto dto)
         {

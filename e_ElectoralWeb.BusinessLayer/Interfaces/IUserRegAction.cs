@@ -9,6 +9,7 @@ namespace e_ElectoralWeb.BusinessLayer.Interfaces
         List<UserDto> GetAllUsersAction();
         UserDto? GetUserByIdAction(int id);
         ActionResponce UpdateUserAction(UserDto data);
+        ActionResponce UpdateOwnProfileAction(int userId, UserProfileUpdateDto data);
         ActionResponce ToggleUserBlockedAction(int id);
         ActionResponce DeleteUserAction(int id);
     }

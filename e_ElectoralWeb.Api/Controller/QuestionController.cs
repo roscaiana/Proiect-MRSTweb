@@ -64,7 +64,7 @@ namespace e_ElectoralWeb.Api.Controller
             }
         }
 
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] QuestionDto question)
         {
@@ -80,7 +80,7 @@ namespace e_ElectoralWeb.Api.Controller
             }
         }
 
-        [Authorize(Roles = "Admin,Manager")]
+        [Authorize(Roles = "Admin")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] QuestionDto question)
         {

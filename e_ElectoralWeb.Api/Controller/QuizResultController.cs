@@ -51,7 +51,7 @@ public class QuizResultController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "User,Manager,Admin")]
+    [Authorize(Roles = "User,Admin")]
     [HttpPost("submit")]
     public async Task<IActionResult> Submit([FromBody] QuizResultSubmitDto dto)
     {
@@ -67,7 +67,7 @@ public class QuizResultController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "User,Manager,Admin")]
+    [Authorize(Roles = "User,Admin")]
     [HttpGet("byUser")]
     public async Task<IActionResult> GetByUser([FromQuery] int userId)
     {
@@ -95,7 +95,7 @@ public class QuizResultController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "Manager,Admin")]
+    [Authorize(Roles = "Admin")]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {

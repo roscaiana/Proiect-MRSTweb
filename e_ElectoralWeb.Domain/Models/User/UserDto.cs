@@ -9,6 +9,8 @@ public class UserDto
     public string ConfirmPassword { get; set; } = string.Empty;
     public string UserName { get; set; } = string.Empty;
     public string Phone { get; set; } = string.Empty;
+    public string? Nickname { get; set; }
+    public string? AvatarDataUrl { get; set; }
     public string Role { get; set; } = "User";
     public bool IsBlocked { get; set; }
     public DateTime RegisteredOn { get; set; }
