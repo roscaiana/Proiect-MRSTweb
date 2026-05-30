@@ -50,6 +50,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                 };
             }
 
+            var createdId = 0;
             using (var context = new QuizDbContext())
             {
                 var titleExists = await context.Quizzes.AnyAsync(q => q.Title == data.Title);
@@ -70,12 +71,14 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
                 context.Quizzes.Add(entity);
                 await context.SaveChangesAsync();
+                createdId = entity.Id;
             }
 
             return new ActionResponce
             {
                 IsSuccess = true,
-                Message = "Quiz created."
+                Message = "Quiz created.",
+                Data = createdId
             };
         }
 

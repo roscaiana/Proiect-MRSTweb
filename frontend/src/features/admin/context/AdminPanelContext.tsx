@@ -10,7 +10,10 @@ import { useAdminPanelAppointmentStatusAction } from "./useAdminPanelAppointment
 import { useAdminPanelSendNotificationAction } from "./useAdminPanelSendNotificationAction";
 import { newsService } from "../../../services/newsService";
 import { appointmentService } from "../../../services/appointmentService";
-import type { AppointmentDto, NewsDto } from "../../../services/types";
+import { examSettingsService } from "../../../services/examSettingsService";
+import { writeExamSettings } from "../storage";
+import type { AppointmentDto, ExamSettingsDto, NewsDto } from "../../../services/types";
+import type { ExamSettings } from "../types";
 
 const mapNewsDto = (dto: NewsDto): AdminNewsArticle => ({
     id: String(dto.id),
@@ -41,11 +44,40 @@ const mapAppointmentDto = (dto: AppointmentDto): AdminAppointmentRecord => ({
     updatedAt: dto.updatedAt ?? undefined,
 });
 
+const mapExamSettingsDto = (dto: ExamSettingsDto): ExamSettings => ({
+    testQuestionCount: dto.testQuestionCount,
+    testDurationMinutes: dto.testDurationMinutes,
+    passingThreshold: dto.passingThreshold,
+    appointmentsPerDay: dto.appointmentsPerDay,
+    appointmentLeadTimeHours: dto.appointmentLeadTimeHours,
+    maxReschedulesPerUser: dto.maxReschedulesPerUser,
+    rejectionCooldownDays: dto.rejectionCooldownDays,
+    appointmentLocation: dto.appointmentLocation,
+    appointmentRoom: dto.appointmentRoom,
+    allowedWeekdays: dto.allowedWeekdays,
+    blockedDates: dto.blockedDates.map((b) => ({ date: b.date, note: b.note ?? undefined })),
+    capacityOverrides: dto.capacityOverrides.map((c) => ({ date: c.date, appointmentsPerDay: c.appointmentsPerDay })),
+    slotOverrides: dto.slotOverrides.map((s) => ({
+        date: s.date,
+        slots: s.slots.map((sl) => ({ id: sl.id, startTime: sl.startTime, endTime: sl.endTime, available: sl.available })),
+    })),
+});
+
 const AdminPanelContext = createContext<AdminPanelContextValue | undefined>(undefined);
 
 export const AdminPanelProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [state, dispatch] = useReducer(adminPanelReducer, undefined, loadAdminState);
     const refreshState = useCallback(() => { dispatch({ type: "hydrate", payload: loadAdminState() }); }, []);
+
+    useEffect(() => {
+        examSettingsService.get()
+            .then((dto) => {
+                const settings = mapExamSettingsDto(dto);
+                dispatch({ type: "settings/update", payload: settings });
+                writeExamSettings(settings);
+            })
+            .catch(() => { /* keep localStorage-seeded state on API failure */ });
+    }, []);
 
     useEffect(() => {
         newsService.getAll()

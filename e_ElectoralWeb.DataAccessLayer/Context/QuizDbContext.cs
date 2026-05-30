@@ -1,5 +1,6 @@
 using e_ElectoralWeb.Domain.Entities.AnswerOption;
 using e_ElectoralWeb.Domain.Entities.Appointment;
+using e_ElectoralWeb.Domain.Entities.ExamSettings;
 using e_ElectoralWeb.Domain.Entities.News;
 using e_ElectoralWeb.Domain.Entities.Question;
 using e_ElectoralWeb.Domain.Entities.Quiz;
@@ -18,6 +19,7 @@ public class QuizDbContext : DbContext
     public DbSet<UserData> Users { get; set; }
     public DbSet<AppointmentData> Appointments { get; set; }
     public DbSet<NewsData> News { get; set; }
+    public DbSet<ExamSettingsData> ExamSettings { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

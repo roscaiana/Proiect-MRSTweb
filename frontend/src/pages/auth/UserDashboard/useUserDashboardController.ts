@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth";
 import { useStorageSync } from "../../../hooks/useStorageSync";
 import type { UpdateUserProfileInput } from "../../../types/user";
-import type { AdminAppointmentRecord, QuizHistoryRecord } from "../../../features/admin/types";
+import type { AdminAppointmentRecord, AppointmentStatus, QuizHistoryRecord } from "../../../features/admin/types";
 import { notifyAdmins, notifyUser } from "../../../utils/appEventNotifications";
 import {
     readAppointments,
@@ -12,6 +12,9 @@ import {
     STORAGE_KEYS,
     writeAppointments,
 } from "../../../features/admin/storage";
+import { appointmentService } from "../../../services/appointmentService";
+import { quizResultService } from "../../../services/quizResultService";
+import type { AppointmentDto, QuizResultDto } from "../../../services/types";
 
 const APPOINTMENT_RESCHEDULE_KEY = "appointmentRescheduleDraft";
 const MAX_AVATAR_FILE_SIZE = 2 * 1024 * 1024;
@@ -25,6 +28,37 @@ export type PackagePerformanceItem = {
     passRate: number;
     isGood: boolean;
 };
+
+const mapAppointmentDto = (dto: AppointmentDto): AdminAppointmentRecord => ({
+    id: String(dto.id),
+    fullName: dto.fullName,
+    idOrPhone: dto.idOrPhone,
+    userEmail: dto.userEmail || undefined,
+    date: dto.date,
+    slotStart: dto.slotStart,
+    slotEnd: dto.slotEnd,
+    status: dto.status as AppointmentStatus,
+    statusReason: dto.statusReason ?? undefined,
+    adminNote: dto.adminNote ?? undefined,
+    cancelledBy: (dto.cancelledBy as "user" | "admin") ?? undefined,
+    rescheduleCount: dto.rescheduleCount,
+    createdAt: dto.createdAt,
+    updatedAt: dto.updatedAt ?? undefined,
+});
+
+const mapQuizResultDto = (dto: QuizResultDto, userEmail?: string): QuizHistoryRecord => ({
+    categoryId: String(dto.quizId),
+    categoryTitle: dto.quizTitle,
+    score: dto.score,
+    completedAt: dto.completedAt,
+    mode: dto.mode as "training" | "exam",
+    totalQuestions: dto.totalQuestions,
+    correctAnswers: dto.correctAnswers,
+    wrongAnswers: dto.wrongAnswers,
+    unanswered: dto.unanswered,
+    timeTaken: dto.timeTaken,
+    userEmail,
+});
 
 export const useUserDashboardController = () => {
     const { user, updateProfile } = useAuth();
@@ -48,13 +82,27 @@ export const useUserDashboardController = () => {
     const [isProfileSaving, setIsProfileSaving] = useState(false);
     const [isProfileEditorOpen, setIsProfileEditorOpen] = useState(false);
 
-    useStorageSync([STORAGE_KEYS.quizHistory, STORAGE_KEYS.settings, STORAGE_KEYS.appointments], () => {
-        setQuizHistory(readQuizHistory());
+    useStorageSync([STORAGE_KEYS.settings], () => {
         const settings = readExamSettings();
         setExamSettings(settings);
         setPassThreshold(settings.passingThreshold);
-        setAppointments(readAppointments());
     });
+
+    useEffect(() => {
+        const userId = user?.id ? parseInt(user.id, 10) : null;
+        if (!userId || isNaN(userId)) return;
+        appointmentService.getByUser(userId)
+            .then((items) => setAppointments(items.map(mapAppointmentDto)))
+            .catch(() => { /* keep localStorage-seeded state on API failure */ });
+    }, [user?.id]);
+
+    useEffect(() => {
+        const userId = user?.id ? parseInt(user.id, 10) : null;
+        if (!userId || isNaN(userId)) return;
+        quizResultService.getByUser(userId)
+            .then((items) => setQuizHistory(items.map((dto) => mapQuizResultDto(dto, user?.email))))
+            .catch(() => { /* keep localStorage-seeded state on API failure */ });
+    }, [user?.id, user?.email]);
 
     useEffect(() => {
         if (!user) return;
@@ -71,7 +119,7 @@ export const useUserDashboardController = () => {
     }, [user]);
 
     const userQuizHistory = useMemo(
-        () => (!user?.email ? [] : quizHistory.filter((entry) => entry.userEmail === user.email)),
+        () => (!user?.email ? [] : quizHistory.filter((entry) => !entry.userEmail || entry.userEmail === user.email)),
         [quizHistory, user?.email]
     );
     const sortedUserQuizHistory = useMemo(
@@ -82,7 +130,7 @@ export const useUserDashboardController = () => {
     const userAppointments = useMemo(() => {
         if (!user?.email) return [];
         return appointments
-            .filter((appointment) => appointment.userEmail === user.email)
+            .filter((appointment) => !appointment.userEmail || appointment.userEmail === user.email)
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }, [appointments, user?.email]);
 
@@ -138,25 +186,44 @@ export const useUserDashboardController = () => {
         (appointment.status === "pending" || appointment.status === "approved") &&
         (appointment.rescheduleCount || 0) < examSettings.maxReschedulesPerUser;
 
-    const handleCancelAppointment = (appointmentId: string) => {
-        const target = appointments.find((appointment) => appointment.id === appointmentId);
+    const handleCancelAppointment = async (appointmentId: string) => {
+        const target = appointments.find((a) => a.id === appointmentId);
         if (!target) return;
 
         const updatedAt = new Date().toISOString();
-        const nextAppointments: AdminAppointmentRecord[] = appointments.map((appointment) =>
-            appointment.id === appointmentId
-                ? {
-                      ...appointment,
-                      status: "cancelled",
-                      cancelledBy: "user",
-                      statusReason: "Anulată din dashboard de utilizator",
-                      updatedAt,
-                  }
-                : appointment
-        );
+        const numericId = parseInt(appointmentId, 10);
 
-        writeAppointments(nextAppointments);
-        setAppointments(nextAppointments);
+        if (!isNaN(numericId)) {
+            try {
+                await appointmentService.updateStatus(numericId, {
+                    status: "cancelled",
+                    statusReason: "Anulată din dashboard de utilizator",
+                    cancelledBy: "user",
+                });
+                const userId = user?.id ? parseInt(user.id, 10) : null;
+                if (userId) {
+                    const items = await appointmentService.getByUser(userId);
+                    setAppointments(items.map(mapAppointmentDto));
+                }
+            } catch (err) {
+                console.error("Failed to cancel appointment:", err);
+                return;
+            }
+        } else {
+            const nextAppointments: AdminAppointmentRecord[] = appointments.map((appointment) =>
+                appointment.id === appointmentId
+                    ? {
+                          ...appointment,
+                          status: "cancelled" as AppointmentStatus,
+                          cancelledBy: "user" as const,
+                          statusReason: "Anulată din dashboard de utilizator",
+                          updatedAt,
+                      }
+                    : appointment
+            );
+            writeAppointments(nextAppointments);
+            setAppointments(nextAppointments);
+        }
 
         notifyUser(user?.email, {
             title: "Programare anulată",

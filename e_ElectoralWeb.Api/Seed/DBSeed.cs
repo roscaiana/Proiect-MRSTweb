@@ -1,6 +1,7 @@
 using System.Text.Json;
 using e_ElectoralWeb.DataAccessLayer.Context;
 using e_ElectoralWeb.Domain.Entities.AnswerOption;
+using e_ElectoralWeb.Domain.Entities.ExamSettings;
 using e_ElectoralWeb.Domain.Entities.News;
 using e_ElectoralWeb.Domain.Entities.Question;
 using e_ElectoralWeb.Domain.Entities.Quiz;
@@ -30,6 +31,7 @@ public static class DBSeed
         await SeedAdminUserAsync(quizDb, cancellationToken);
         await SeedQuizDataAsync(quizDb, cancellationToken);
         await SeedNewsAsync(quizDb, cancellationToken);
+        await SeedExamSettingsAsync(quizDb, cancellationToken);
     }
 
     private static async Task MigrateIfNeededAsync(DbContext dbContext, CancellationToken cancellationToken)
@@ -246,6 +248,31 @@ public static class DBSeed
         };
 
         quizDb.News.AddRange(articles);
+        await quizDb.SaveChangesAsync(cancellationToken);
+    }
+
+    private static async Task SeedExamSettingsAsync(QuizDbContext quizDb, CancellationToken cancellationToken)
+    {
+        var hasSettings = await quizDb.ExamSettings.AnyAsync(cancellationToken);
+        if (hasSettings) return;
+
+        quizDb.ExamSettings.Add(new ExamSettingsData
+        {
+            TestQuestionCount = 30,
+            TestDurationMinutes = 30,
+            PassingThreshold = 70,
+            AppointmentsPerDay = 30,
+            AppointmentLeadTimeHours = 24,
+            MaxReschedulesPerUser = 2,
+            RejectionCooldownDays = 2,
+            AppointmentLocation = "Centrul de Instruire Continua",
+            AppointmentRoom = "Sala A-12",
+            AllowedWeekdays = "[1,3,5]",
+            BlockedDates = "[]",
+            CapacityOverrides = "[]",
+            SlotOverrides = "[]",
+        });
+
         await quizDb.SaveChangesAsync(cancellationToken);
     }
 

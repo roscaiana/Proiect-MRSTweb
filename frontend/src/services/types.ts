@@ -238,3 +238,41 @@ export type HealthStatus = {
     status: string;
     timestamp: string;
 };
+
+export type ExamSettingsBlockedDateDto = {
+    date: string;
+    note?: string | null;
+};
+
+export type ExamSettingsCapacityOverrideDto = {
+    date: string;
+    appointmentsPerDay: number;
+};
+
+export type ExamSettingsSlotDto = {
+    id: string;
+    startTime: string;
+    endTime: string;
+    available: boolean;
+};
+
+export type ExamSettingsSlotOverrideDto = {
+    date: string;
+    slots: ExamSettingsSlotDto[];
+};
+
+export type ExamSettingsDto = {
+    testQuestionCount: number;
+    testDurationMinutes: number;
+    passingThreshold: number;
+    appointmentsPerDay: number;
+    appointmentLeadTimeHours: number;
+    maxReschedulesPerUser: number;
+    rejectionCooldownDays: number;
+    appointmentLocation: string;
+    appointmentRoom: string;
+    allowedWeekdays: number[];
+    blockedDates: ExamSettingsBlockedDateDto[];
+    capacityOverrides: ExamSettingsCapacityOverrideDto[];
+    slotOverrides: ExamSettingsSlotOverrideDto[];
+};

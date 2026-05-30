@@ -14,6 +14,11 @@ export const answerOptionService = {
         return response.data;
     },
 
+    async getByQuestion(questionId: number): Promise<AnswerOptionInfoDto[]> {
+        const response = await apiClient.get<AnswerOptionInfoDto[]>(`${RESOURCE}/byQuestion`, { params: { questionId } });
+        return response.data;
+    },
+
     async getById(id: number): Promise<AnswerOptionInfoDto> {
         const response = await apiClient.get<AnswerOptionInfoDto>(`${RESOURCE}/${id}`);
         return response.data;

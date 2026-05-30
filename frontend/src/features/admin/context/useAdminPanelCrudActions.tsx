@@ -4,6 +4,8 @@ import type { AdminAppointmentRecord, AdminNewsArticle, AdminNewsArticleInput, A
 import type { AdminAction } from "./adminPanelTypes";
 import { newsService } from "../../../services/newsService";
 import { appointmentService } from "../../../services/appointmentService";
+import { examSettingsService } from "../../../services/examSettingsService";
+import { writeExamSettings } from "../storage";
 import type { AppointmentDto, NewsDto } from "../../../services/types";
 
 const mapNewsDto = (dto: NewsDto): AdminNewsArticle => ({
@@ -39,7 +41,29 @@ export const useAdminPanelCrudActions = (state: AdminState, dispatch: Dispatch<A
     const createTest = useCallback((input: AdminTestInput) => { dispatch({ type: "test/create", payload: input }); }, [dispatch]);
     const updateTest = useCallback((id: string, input: AdminTestInput) => { dispatch({ type: "test/update", payload: { id, data: input } }); }, [dispatch]);
     const deleteTest = useCallback((id: string) => { dispatch({ type: "test/delete", payload: { id } }); }, [dispatch]);
-    const updateSettings = useCallback((settings: ExamSettings) => { dispatch({ type: "settings/update", payload: settings }); }, [dispatch]);
+    const updateSettings = useCallback((settings: ExamSettings) => {
+        dispatch({ type: "settings/update", payload: settings });
+        examSettingsService.update({
+            testQuestionCount: settings.testQuestionCount,
+            testDurationMinutes: settings.testDurationMinutes,
+            passingThreshold: settings.passingThreshold,
+            appointmentsPerDay: settings.appointmentsPerDay,
+            appointmentLeadTimeHours: settings.appointmentLeadTimeHours,
+            maxReschedulesPerUser: settings.maxReschedulesPerUser,
+            rejectionCooldownDays: settings.rejectionCooldownDays,
+            appointmentLocation: settings.appointmentLocation,
+            appointmentRoom: settings.appointmentRoom,
+            allowedWeekdays: settings.allowedWeekdays,
+            blockedDates: settings.blockedDates.map((b) => ({ date: b.date, note: b.note ?? null })),
+            capacityOverrides: settings.capacityOverrides,
+            slotOverrides: settings.slotOverrides.map((s) => ({
+                date: s.date,
+                slots: s.slots.map((sl) => ({ id: sl.id, startTime: sl.startTime, endTime: sl.endTime, available: sl.available ?? true })),
+            })),
+        })
+            .then(() => writeExamSettings(settings))
+            .catch((err) => console.error("Failed to save exam settings to API:", err));
+    }, [dispatch]);
     const toggleUserBlocked = useCallback((userId: string) => { dispatch({ type: "user/toggle-block", payload: { id: userId } }); }, [dispatch]);
 
     const updateAppointment = useCallback((appointmentId: string, patch: Partial<AdminAppointmentRecord>) => {

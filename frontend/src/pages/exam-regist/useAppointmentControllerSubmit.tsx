@@ -1,6 +1,6 @@
 import type { FormEvent } from 'react';
 import type { AppointmentFormData } from '../../types/appointment';
-import type { AdminAppointmentRecord } from '../../features/admin/types';
+import type { AdminAppointmentRecord, AppointmentStatus } from '../../features/admin/types';
 import { notifyAppointmentCreated, notifyUser } from '../../utils/appEventNotifications';
 import { formatAllowedWeekdayNames, formatDate } from '../../utils/dateUtils';
 import { buildAvailableSlotsForDate, generateAppointmentCode, toDateKey } from '../../utils/appointmentScheduling';
@@ -8,6 +8,7 @@ import { readAppointments, readExamSettings, writeAppointments } from '../../fea
 import type { AppointmentWizardTab } from './appointmentController.constants';
 import type { AppointmentValidationContext } from '../../schemas/appointmentSchema';
 import { appointmentService } from '../../services/appointmentService';
+import type { AppointmentDto } from '../../services/types';
 
 type UseAppointmentControllerSubmitParams = {
     activeTab: AppointmentWizardTab;
@@ -26,6 +27,23 @@ type UseAppointmentControllerSubmitParams = {
     setValidationContext: (context: AppointmentValidationContext) => void;
     lastUnavailableSlotId: string | null;
 };
+
+const mapAppointmentDtoToRecord = (dto: AppointmentDto): AdminAppointmentRecord => ({
+    id: String(dto.id),
+    fullName: dto.fullName,
+    idOrPhone: dto.idOrPhone,
+    userEmail: dto.userEmail || undefined,
+    date: dto.date,
+    slotStart: dto.slotStart,
+    slotEnd: dto.slotEnd,
+    status: dto.status as AppointmentStatus,
+    statusReason: dto.statusReason ?? undefined,
+    adminNote: dto.adminNote ?? undefined,
+    cancelledBy: (dto.cancelledBy as 'user' | 'admin') ?? undefined,
+    rescheduleCount: dto.rescheduleCount,
+    createdAt: dto.createdAt,
+    updatedAt: dto.updatedAt ?? undefined,
+});
 
 export const useAppointmentControllerSubmit = ({
     activeTab,
@@ -56,18 +74,35 @@ export const useAppointmentControllerSubmit = ({
         setSubmitMessage('');
         if (activeTab < 4) return goToNextTab();
 
+        // Keep all appointments from localStorage for slot-capacity checks (cross-user).
         const latestAppointments = readAppointments();
         const latestSettings = readExamSettings();
         const normalizedEmail = userEmail?.trim().toLowerCase();
-        const userAppointments = normalizedEmail
-            ? latestAppointments.filter((appointment) => appointment.userEmail?.trim().toLowerCase() === normalizedEmail)
-            : [];
+
+        // Fetch this user's own appointments from backend for accurate quota / active-check.
+        let userAppointments: AdminAppointmentRecord[];
+        const numericUserId = userId ? parseInt(userId, 10) : null;
+        if (numericUserId && !isNaN(numericUserId)) {
+            try {
+                const dtos = await appointmentService.getByUser(numericUserId);
+                userAppointments = dtos.map(mapAppointmentDtoToRecord);
+            } catch {
+                userAppointments = normalizedEmail
+                    ? latestAppointments.filter((a) => a.userEmail?.trim().toLowerCase() === normalizedEmail)
+                    : [];
+            }
+        } else {
+            userAppointments = normalizedEmail
+                ? latestAppointments.filter((a) => a.userEmail?.trim().toLowerCase() === normalizedEmail)
+                : [];
+        }
+
         const activeUserAppointments = userAppointments.filter(
-            (appointment) => appointment.status === 'pending' || appointment.status === 'approved'
+            (a) => a.status === 'pending' || a.status === 'approved'
         );
         const lastRejectedUserAppointment =
             [...userAppointments]
-                .filter((appointment) => appointment.status === 'rejected')
+                .filter((a) => a.status === 'rejected')
                 .sort((a, b) => new Date(b.updatedAt || b.createdAt).getTime() - new Date(a.updatedAt || a.createdAt).getTime())[0] ||
             null;
 
