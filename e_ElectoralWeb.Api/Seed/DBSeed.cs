@@ -1,6 +1,7 @@
 using System.Text.Json;
 using e_ElectoralWeb.DataAccessLayer.Context;
 using e_ElectoralWeb.Domain.Entities.AnswerOption;
+using e_ElectoralWeb.Domain.Entities.News;
 using e_ElectoralWeb.Domain.Entities.Question;
 using e_ElectoralWeb.Domain.Entities.Quiz;
 using e_ElectoralWeb.Domain.Entities.User;
@@ -28,6 +29,7 @@ public static class DBSeed
         await MigrateIfNeededAsync(quizDb, cancellationToken);
         await SeedAdminUserAsync(quizDb, cancellationToken);
         await SeedQuizDataAsync(quizDb, cancellationToken);
+        await SeedNewsAsync(quizDb, cancellationToken);
     }
 
     private static async Task MigrateIfNeededAsync(DbContext dbContext, CancellationToken cancellationToken)
@@ -172,6 +174,79 @@ public static class DBSeed
                 })
                 .ToList()
         };
+    }
+
+    private static async Task SeedNewsAsync(QuizDbContext quizDb, CancellationToken cancellationToken)
+    {
+        var hasNews = await quizDb.News.AnyAsync(cancellationToken);
+        if (hasNews) return;
+
+        var articles = new List<NewsData>
+        {
+            new() {
+                Title = "Graficul examenelor de certificare pentru sesiunea 2026",
+                Description = "CICDE a publicat programul examenelor pentru sesiunea 2026. Examenele se desfasoara in format fizic si virtual, iar inscrierea se face din contul de utilizator aprobat.",
+                Category = "Sesiunea 2026",
+                Image = "/news/cicde-grafic-2026.png",
+                SourceUrl = "https://certificare.cicde.md/news/show/44",
+                PublishedAt = new DateTime(2026, 3, 4, 0, 0, 0, DateTimeKind.Utc),
+                CreatedAt = new DateTime(2026, 3, 4, 0, 0, 0, DateTimeKind.Utc),
+                UpdatedAt = new DateTime(2026, 3, 4, 0, 0, 0, DateTimeKind.Utc),
+            },
+            new() {
+                Title = "Rezultatele sesiunii de certificare 2025",
+                Description = "In sesiunea 2025 au fost organizate 565 examene, cu 9570 participanti. Au promovat 7764 candidati, iar rata de promovare pe sesiune a fost de 82,3%.",
+                Category = "Rezultate",
+                Image = "/news/cicde-rezultate-2025.png",
+                SourceUrl = "https://certificare.cicde.md/news/show/43",
+                PublishedAt = new DateTime(2025, 10, 9, 0, 0, 0, DateTimeKind.Utc),
+                CreatedAt = new DateTime(2025, 10, 9, 0, 0, 0, DateTimeKind.Utc),
+                UpdatedAt = new DateTime(2025, 10, 9, 0, 0, 0, DateTimeKind.Utc),
+            },
+            new() {
+                Title = "Aprobarea noului regulament pentru certificare",
+                Description = "Comisia Electorala Centrala a aprobat noua redactie a Regulamentului privind certificarea formarii/specializarii in domeniul electoral, cu aplicare in SICDE.",
+                Category = "Cadrul normativ",
+                Image = "/news/cicde-regulament-2025.png",
+                SourceUrl = "https://certificare.cicde.md/news/show/14",
+                PublishedAt = new DateTime(2025, 3, 18, 0, 0, 0, DateTimeKind.Utc),
+                CreatedAt = new DateTime(2025, 3, 18, 0, 0, 0, DateTimeKind.Utc),
+                UpdatedAt = new DateTime(2025, 3, 18, 0, 0, 0, DateTimeKind.Utc),
+            },
+            new() {
+                Title = "18-24 mai 2026: totalurile saptamanii",
+                Description = "Au fost desfasurate 5 examene cu prezenta fizica in raioane. Din 72 participanti, 61 au promovat, cu rata de promovare de 84,72%.",
+                Category = "Totaluri saptamanale",
+                Image = "/news/cicde-18-24-mai-2026.jpg",
+                SourceUrl = "https://certificare.cicde.md/news/show/50",
+                PublishedAt = new DateTime(2026, 5, 25, 0, 0, 0, DateTimeKind.Utc),
+                CreatedAt = new DateTime(2026, 5, 25, 0, 0, 0, DateTimeKind.Utc),
+                UpdatedAt = new DateTime(2026, 5, 25, 0, 0, 0, DateTimeKind.Utc),
+            },
+            new() {
+                Title = "04-17 mai 2026: totaluri saptamanale",
+                Description = "CICDE a organizat 4 examene de certificare (online si fizic). Au participat 47 persoane, iar 41 au obtinut certificatul de calificare.",
+                Category = "Totaluri saptamanale",
+                Image = "/news/cicde-04-17-mai-2026.jpg",
+                SourceUrl = "https://certificare.cicde.md/news/show/49",
+                PublishedAt = new DateTime(2026, 5, 15, 0, 0, 0, DateTimeKind.Utc),
+                CreatedAt = new DateTime(2026, 5, 15, 0, 0, 0, DateTimeKind.Utc),
+                UpdatedAt = new DateTime(2026, 5, 15, 0, 0, 0, DateTimeKind.Utc),
+            },
+            new() {
+                Title = "20 aprilie - 3 mai 2026: totaluri saptamanale",
+                Description = "In perioada de referinta au avut loc 3 examene online. Au participat 55 persoane, dintre care 44 au promovat, cu o rata de 80%.",
+                Category = "Totaluri saptamanale",
+                Image = "/news/cicde-20apr-3mai-2026.jpg",
+                SourceUrl = "https://certificare.cicde.md/news/show/48",
+                PublishedAt = new DateTime(2026, 5, 4, 0, 0, 0, DateTimeKind.Utc),
+                CreatedAt = new DateTime(2026, 5, 4, 0, 0, 0, DateTimeKind.Utc),
+                UpdatedAt = new DateTime(2026, 5, 4, 0, 0, 0, DateTimeKind.Utc),
+            },
+        };
+
+        quizDb.News.AddRange(articles);
+        await quizDb.SaveChangesAsync(cancellationToken);
     }
 
     private sealed class CertificationQuizSeed

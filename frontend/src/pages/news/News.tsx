@@ -1,28 +1,27 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Newspaper, Search } from "lucide-react";
 import type { NewsDisplayItem } from "../../features/admin/types";
-import { readAdminNews, STORAGE_KEYS } from "../../features/admin/storage";
-import { useStorageSync } from "../../hooks/useStorageSync";
+import { newsService } from "../../services/newsService";
 import NewsCard from "./NewsCard";
 import "./News.css";
 
-function loadNewsFromStorage(): NewsDisplayItem[] {
-    return readAdminNews().map((item) => ({
-        id: item.id,
-        title: item.title,
-        description: item.description,
-        category: item.category,
-        image: item.image,
-        sourceUrl: item.sourceUrl,
-        publishedAt: item.publishedAt,
-    }));
-}
-
 const News: React.FC = () => {
-    const [news, setNews] = useState<NewsDisplayItem[]>(() => loadNewsFromStorage());
+    const [news, setNews] = useState<NewsDisplayItem[]>([]);
     const [searchQuery, setSearchQuery] = useState("");
 
-    useStorageSync([STORAGE_KEYS.news], () => setNews(loadNewsFromStorage()));
+    useEffect(() => {
+        newsService.getAll()
+            .then((items) => setNews(items.map((dto) => ({
+                id: String(dto.id),
+                title: dto.title,
+                description: dto.description,
+                category: dto.category,
+                image: dto.image,
+                sourceUrl: dto.sourceUrl ?? undefined,
+                publishedAt: dto.publishedAt,
+            }))))
+            .catch(() => setNews([]));
+    }, []);
 
     const visibleNews = useMemo(() => {
         const query = searchQuery.trim().toLowerCase();

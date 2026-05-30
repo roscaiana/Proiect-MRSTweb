@@ -1,5 +1,6 @@
 import type {
     AdminAppointmentRecord,
+    AdminNewsArticle,
     AdminNewsArticleInput,
     AdminState,
     AdminTestInput,
@@ -21,7 +22,8 @@ export type AdminAction =
     | { type: "notifications/log"; payload: SentNotificationLog }
     | { type: "news/create"; payload: AdminNewsArticleInput }
     | { type: "news/update"; payload: { id: string; data: AdminNewsArticleInput } }
-    | { type: "news/delete"; payload: { id: string } };
+    | { type: "news/delete"; payload: { id: string } }
+    | { type: "news/set"; payload: AdminNewsArticle[] };
 
 export type AdminPanelContextValue = {
     state: AdminState;

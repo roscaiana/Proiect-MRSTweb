@@ -163,6 +163,27 @@ export type QuizResultSubmitDto = {
     completedAt: string;
 };
 
+export type NewsDto = {
+    id: number;
+    title: string;
+    description: string;
+    category: string;
+    image: string;
+    sourceUrl?: string | null;
+    publishedAt: string;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type NewsCreateDto = {
+    title: string;
+    description: string;
+    category: string;
+    image: string;
+    sourceUrl?: string;
+    publishedAt: string;
+};
+
 export type HealthStatus = {
     status: string;
     timestamp: string;

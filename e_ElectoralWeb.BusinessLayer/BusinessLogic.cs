@@ -48,5 +48,10 @@ namespace e_ElectoralWeb.BusinessLayer
         {
             return new AppointmentActionExecution();
         }
+
+        public INewsAction NewsAction()
+        {
+            return new NewsExecution();
+        }
     }
 }

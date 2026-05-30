@@ -35,14 +35,6 @@ namespace e_ElectoralWeb.Api.Controller
             return Ok(user);
         }
 
-        [AllowAnonymous]
-        [HttpPost]
-        public IActionResult Register([FromBody] UserRegisterDto uRegData)
-        {
-            var data = _userReg.UserRegDataValidation(uRegData);
-            return Ok(data);
-        }
-
         [Authorize(Roles = "Admin")]
         [HttpPut]
         public IActionResult Update([FromBody] UserDto data)
