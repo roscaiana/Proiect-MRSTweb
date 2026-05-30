@@ -98,6 +98,7 @@ export const useAppointmentPageController = () => {
         formData: state.formData,
         rescheduleSourceId: state.rescheduleSourceId,
         userEmail: user?.email,
+        userId: user?.id,
         setActiveTab: state.setActiveTab,
         setSubmitMessage: state.setSubmitMessage,
         setIsSubmitting: state.setIsSubmitting,

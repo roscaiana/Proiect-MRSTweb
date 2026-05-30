@@ -1,9 +1,10 @@
 import { useCallback } from "react";
 import type { Dispatch } from "react";
-import type { AdminAppointmentRecord, AdminNewsArticle, AdminNewsArticleInput, AdminTestInput, ExamSettings } from "../types";
+import type { AdminAppointmentRecord, AdminNewsArticle, AdminNewsArticleInput, AdminState, AdminTestInput, AppointmentStatus, ExamSettings } from "../types";
 import type { AdminAction } from "./adminPanelTypes";
 import { newsService } from "../../../services/newsService";
-import type { NewsDto } from "../../../services/types";
+import { appointmentService } from "../../../services/appointmentService";
+import type { AppointmentDto, NewsDto } from "../../../services/types";
 
 const mapNewsDto = (dto: NewsDto): AdminNewsArticle => ({
     id: String(dto.id),
@@ -17,15 +18,60 @@ const mapNewsDto = (dto: NewsDto): AdminNewsArticle => ({
     updatedAt: dto.updatedAt,
 });
 
-export const useAdminPanelCrudActions = (dispatch: Dispatch<AdminAction>) => {
+const mapAppointmentDto = (dto: AppointmentDto): AdminAppointmentRecord => ({
+    id: String(dto.id),
+    fullName: dto.fullName,
+    idOrPhone: dto.idOrPhone,
+    userEmail: dto.userEmail || undefined,
+    date: dto.date,
+    slotStart: dto.slotStart,
+    slotEnd: dto.slotEnd,
+    status: dto.status as AppointmentStatus,
+    statusReason: dto.statusReason ?? undefined,
+    adminNote: dto.adminNote ?? undefined,
+    cancelledBy: (dto.cancelledBy as "user" | "admin") ?? undefined,
+    rescheduleCount: dto.rescheduleCount,
+    createdAt: dto.createdAt,
+    updatedAt: dto.updatedAt ?? undefined,
+});
+
+export const useAdminPanelCrudActions = (state: AdminState, dispatch: Dispatch<AdminAction>) => {
     const createTest = useCallback((input: AdminTestInput) => { dispatch({ type: "test/create", payload: input }); }, [dispatch]);
     const updateTest = useCallback((id: string, input: AdminTestInput) => { dispatch({ type: "test/update", payload: { id, data: input } }); }, [dispatch]);
     const deleteTest = useCallback((id: string) => { dispatch({ type: "test/delete", payload: { id } }); }, [dispatch]);
     const updateSettings = useCallback((settings: ExamSettings) => { dispatch({ type: "settings/update", payload: settings }); }, [dispatch]);
     const toggleUserBlocked = useCallback((userId: string) => { dispatch({ type: "user/toggle-block", payload: { id: userId } }); }, [dispatch]);
+
     const updateAppointment = useCallback((appointmentId: string, patch: Partial<AdminAppointmentRecord>) => {
-        dispatch({ type: "appointment/update", payload: { id: appointmentId, patch } });
-    }, [dispatch]);
+        const numericId = parseInt(appointmentId, 10);
+        if (isNaN(numericId)) {
+            dispatch({ type: "appointment/update", payload: { id: appointmentId, patch } });
+            return;
+        }
+        const current = state.appointments.find((a) => a.id === appointmentId);
+        if (!current) return;
+        const merged = { ...current, ...patch };
+        const dto: AppointmentDto = {
+            id: numericId,
+            fullName: merged.fullName,
+            idOrPhone: merged.idOrPhone,
+            userEmail: merged.userEmail ?? '',
+            date: merged.date,
+            slotStart: merged.slotStart,
+            slotEnd: merged.slotEnd,
+            status: merged.status,
+            statusReason: merged.statusReason ?? null,
+            adminNote: merged.adminNote ?? null,
+            cancelledBy: merged.cancelledBy ?? null,
+            rescheduleCount: merged.rescheduleCount ?? 0,
+            createdAt: merged.createdAt,
+            updatedAt: merged.updatedAt ?? null,
+        };
+        appointmentService.update(numericId, dto)
+            .then(() => appointmentService.getAll())
+            .then((items) => dispatch({ type: "appointments/set", payload: items.map(mapAppointmentDto) }))
+            .catch((err) => console.error("Failed to update appointment:", err));
+    }, [dispatch, state.appointments]);
 
     const createNewsArticle = useCallback((input: AdminNewsArticleInput) => {
         newsService.create({

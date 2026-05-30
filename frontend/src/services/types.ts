@@ -184,6 +184,56 @@ export type NewsCreateDto = {
     publishedAt: string;
 };
 
+export type AppointmentCreateDto = {
+    fullName: string;
+    idOrPhone: string;
+    userEmail: string;
+    userId?: number;
+    date: string;
+    slotStart: string;
+    slotEnd: string;
+};
+
+export type AppointmentStatusUpdateDto = {
+    status: string;
+    statusReason?: string | null;
+    adminNote?: string | null;
+    cancelledBy?: string | null;
+};
+
+export type QuizResultDto = {
+    id: number;
+    quizId: number;
+    userId: number;
+    quizTitle: string;
+    totalQuestions: number;
+    correctAnswers: number;
+    wrongAnswers: number;
+    unanswered: number;
+    score: number;
+    timeTaken: number;
+    mode: string;
+    completedAt: string;
+};
+
+export type AppointmentDto = {
+    id: number;
+    fullName: string;
+    idOrPhone: string;
+    userEmail: string;
+    userId?: number | null;
+    date: string;
+    slotStart: string;
+    slotEnd: string;
+    status: string;
+    statusReason?: string | null;
+    adminNote?: string | null;
+    cancelledBy?: string | null;
+    rescheduleCount: number;
+    createdAt: string;
+    updatedAt?: string | null;
+};
+
 export type HealthStatus = {
     status: string;
     timestamp: string;

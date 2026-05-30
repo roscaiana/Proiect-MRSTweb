@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useReducer } from "react";
 import { loadAdminState } from "../storage";
-import type { AdminNewsArticle } from "../types";
+import type { AdminAppointmentRecord, AdminNewsArticle, AppointmentStatus } from "../types";
 import type { AdminPanelContextValue } from "./adminPanelTypes";
 import { adminPanelReducer } from "./adminPanelReducer";
 import { useAdminPanelStorageListener } from "./useAdminPanelStorageListener";
@@ -9,7 +9,8 @@ import { useAdminPanelCrudActions } from "./useAdminPanelCrudActions";
 import { useAdminPanelAppointmentStatusAction } from "./useAdminPanelAppointmentStatusAction";
 import { useAdminPanelSendNotificationAction } from "./useAdminPanelSendNotificationAction";
 import { newsService } from "../../../services/newsService";
-import type { NewsDto } from "../../../services/types";
+import { appointmentService } from "../../../services/appointmentService";
+import type { AppointmentDto, NewsDto } from "../../../services/types";
 
 const mapNewsDto = (dto: NewsDto): AdminNewsArticle => ({
     id: String(dto.id),
@@ -21,6 +22,23 @@ const mapNewsDto = (dto: NewsDto): AdminNewsArticle => ({
     publishedAt: dto.publishedAt,
     createdAt: dto.createdAt,
     updatedAt: dto.updatedAt,
+});
+
+const mapAppointmentDto = (dto: AppointmentDto): AdminAppointmentRecord => ({
+    id: String(dto.id),
+    fullName: dto.fullName,
+    idOrPhone: dto.idOrPhone,
+    userEmail: dto.userEmail || undefined,
+    date: dto.date,
+    slotStart: dto.slotStart,
+    slotEnd: dto.slotEnd,
+    status: dto.status as AppointmentStatus,
+    statusReason: dto.statusReason ?? undefined,
+    adminNote: dto.adminNote ?? undefined,
+    cancelledBy: (dto.cancelledBy as "user" | "admin") ?? undefined,
+    rescheduleCount: dto.rescheduleCount,
+    createdAt: dto.createdAt,
+    updatedAt: dto.updatedAt ?? undefined,
 });
 
 const AdminPanelContext = createContext<AdminPanelContextValue | undefined>(undefined);
@@ -35,10 +53,16 @@ export const AdminPanelProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             .catch(() => { /* keep localStorage-seeded state on API failure */ });
     }, []);
 
+    useEffect(() => {
+        appointmentService.getAll()
+            .then((items) => dispatch({ type: "appointments/set", payload: items.map(mapAppointmentDto) }))
+            .catch(() => { /* keep localStorage-seeded state on API failure */ });
+    }, []);
+
     useAdminPanelStorageListener(refreshState);
     useAdminPanelPersistence(state);
 
-    const crud = useAdminPanelCrudActions(dispatch);
+    const crud = useAdminPanelCrudActions(state, dispatch);
     const updateAppointmentStatus = useAdminPanelAppointmentStatusAction(state, dispatch);
     const sendNotification = useAdminPanelSendNotificationAction(state, dispatch);
 

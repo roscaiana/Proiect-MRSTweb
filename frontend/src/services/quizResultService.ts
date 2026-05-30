@@ -5,6 +5,7 @@ import type {
     QuizAnswerCheckResultDto,
     QuizEvaluationRequestDto,
     QuizEvaluationResultDto,
+    QuizResultDto,
     QuizResultSubmitDto,
 } from "./types";
 
@@ -35,6 +36,13 @@ export const quizResultService = {
             throw new Error(response.data.message || "Nu s-a putut salva rezultatul.");
         }
 
+        return response.data;
+    },
+
+    async getByUser(userId: number): Promise<QuizResultDto[]> {
+        const response = await apiClient.get<QuizResultDto[]>(`${RESOURCE}/byUser`, {
+            params: { userId },
+        });
         return response.data;
     },
 };

@@ -1,4 +1,4 @@
-﻿import type { FormEvent } from 'react';
+import type { FormEvent } from 'react';
 import type { AppointmentFormData } from '../../types/appointment';
 import type { AdminAppointmentRecord } from '../../features/admin/types';
 import { notifyAppointmentCreated, notifyUser } from '../../utils/appEventNotifications';
@@ -7,6 +7,7 @@ import { buildAvailableSlotsForDate, generateAppointmentCode, toDateKey } from '
 import { readAppointments, readExamSettings, writeAppointments } from '../../features/admin/storage';
 import type { AppointmentWizardTab } from './appointmentController.constants';
 import type { AppointmentValidationContext } from '../../schemas/appointmentSchema';
+import { appointmentService } from '../../services/appointmentService';
 
 type UseAppointmentControllerSubmitParams = {
     activeTab: AppointmentWizardTab;
@@ -15,6 +16,7 @@ type UseAppointmentControllerSubmitParams = {
     formData: AppointmentFormData;
     rescheduleSourceId: string | null;
     userEmail: string | undefined;
+    userId: string | undefined;
     setActiveTab: (value: AppointmentWizardTab) => void;
     setSubmitMessage: (value: string) => void;
     setIsSubmitting: (value: boolean) => void;
@@ -32,6 +34,7 @@ export const useAppointmentControllerSubmit = ({
     formData,
     rescheduleSourceId,
     userEmail,
+    userId,
     setActiveTab,
     setSubmitMessage,
     setIsSubmitting,
@@ -92,7 +95,6 @@ export const useAppointmentControllerSubmit = ({
         if (!isValid) return moveToInvalidStep();
 
         setIsSubmitting(true);
-        await new Promise((resolve) => setTimeout(resolve, 1500));
 
         if (!formData.selectedDate || !formData.selectedSlot) {
             setIsSubmitting(false);
@@ -105,62 +107,86 @@ export const useAppointmentControllerSubmit = ({
 
         const appointmentCode = generateAppointmentCode();
         const createdAt = new Date().toISOString();
-        const newAppointment: AdminAppointmentRecord = {
-            id: `appointment-${Date.now()}`,
-            appointmentCode,
-            fullName: formData.fullName.trim(),
-            idOrPhone: formData.idOrPhone.trim(),
-            userEmail,
-            date: formData.selectedDate.toISOString(),
-            slotStart: formData.selectedSlot.startTime,
-            slotEnd: formData.selectedSlot.endTime,
-            status: 'pending',
-            statusReason: undefined,
-            adminNote: undefined,
-            previousAppointmentId: sourceAppointment?.id,
-            rescheduleCount: sourceAppointment ? (sourceAppointment.rescheduleCount || 0) + 1 : 0,
-            createdAt,
-            updatedAt: createdAt,
-        };
 
-        let nextAppointments = [newAppointment, ...latestAppointments];
-        if (sourceAppointment) {
-            nextAppointments = nextAppointments.map((appointment) =>
-                appointment.id === sourceAppointment.id
-                    ? {
-                          ...appointment,
-                          status: 'cancelled',
-                          cancelledBy: 'user',
-                          statusReason: 'Reprogramată de utilizator',
-                          updatedAt: createdAt,
-                      }
-                    : appointment
-            );
-            notifyUser(userEmail, {
-                title: 'Reprogramare inițiată',
-                message: `Cererea veche ${sourceAppointment.appointmentCode || ''} a fost anulată și înlocuită cu ${appointmentCode}.`,
-                link: '/dashboard',
-                tag: `appointment-user-rescheduled-${sourceAppointment.id}-${appointmentCode}`,
+        try {
+            const result = await appointmentService.create({
+                fullName: formData.fullName.trim(),
+                idOrPhone: formData.idOrPhone.trim(),
+                userEmail: userEmail ?? '',
+                userId: userId ? parseInt(userId, 10) : undefined,
+                date: formData.selectedDate.toISOString(),
+                slotStart: formData.selectedSlot.startTime,
+                slotEnd: formData.selectedSlot.endTime,
             });
-        }
 
-        writeAppointments(nextAppointments);
-        setAppointments(nextAppointments);
-        setSubmittedAppointment(newAppointment);
-        notifyAppointmentCreated({
-            userEmail,
-            appointmentCode,
-            dateLabel: formatDate(formData.selectedDate),
-            intervalLabel: `${formData.selectedSlot.startTime} - ${formData.selectedSlot.endTime}`,
-        });
-        setSubmitMessage(
-            sourceAppointment
-                ? 'Programarea a fost reprogramată. Cererea nouă este în așteptare de confirmare.'
-                : 'Programarea a fost înregistrată și este în așteptare de confirmare.'
-        );
-        setIsSubmitting(false);
-        setIsSubmitted(true);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (!result.isSuccess) {
+                setSubmitMessage(result.message || 'A apărut o eroare la înregistrarea programării. Vă rugăm încercați din nou.');
+                setIsSubmitting(false);
+                return;
+            }
+
+            const backendId = result.data != null ? String(result.data as number) : `appointment-${Date.now()}`;
+
+            const newAppointment: AdminAppointmentRecord = {
+                id: backendId,
+                appointmentCode,
+                fullName: formData.fullName.trim(),
+                idOrPhone: formData.idOrPhone.trim(),
+                userEmail,
+                date: formData.selectedDate.toISOString(),
+                slotStart: formData.selectedSlot.startTime,
+                slotEnd: formData.selectedSlot.endTime,
+                status: 'pending',
+                statusReason: undefined,
+                adminNote: undefined,
+                previousAppointmentId: sourceAppointment?.id,
+                rescheduleCount: sourceAppointment ? (sourceAppointment.rescheduleCount || 0) + 1 : 0,
+                createdAt,
+                updatedAt: createdAt,
+            };
+
+            let nextAppointments = [newAppointment, ...latestAppointments];
+            if (sourceAppointment) {
+                nextAppointments = nextAppointments.map((appointment) =>
+                    appointment.id === sourceAppointment.id
+                        ? {
+                              ...appointment,
+                              status: 'cancelled' as const,
+                              cancelledBy: 'user' as const,
+                              statusReason: 'Reprogramată de utilizator',
+                              updatedAt: createdAt,
+                          }
+                        : appointment
+                );
+                notifyUser(userEmail, {
+                    title: 'Reprogramare inițiată',
+                    message: `Cererea veche ${sourceAppointment.appointmentCode || ''} a fost anulată și înlocuită cu ${appointmentCode}.`,
+                    link: '/dashboard',
+                    tag: `appointment-user-rescheduled-${sourceAppointment.id}-${appointmentCode}`,
+                });
+            }
+
+            writeAppointments(nextAppointments);
+            setAppointments(nextAppointments);
+            setSubmittedAppointment(newAppointment);
+            notifyAppointmentCreated({
+                userEmail,
+                appointmentCode,
+                dateLabel: formatDate(formData.selectedDate),
+                intervalLabel: `${formData.selectedSlot.startTime} - ${formData.selectedSlot.endTime}`,
+            });
+            setSubmitMessage(
+                sourceAppointment
+                    ? 'Programarea a fost reprogramată. Cererea nouă este în așteptare de confirmare.'
+                    : 'Programarea a fost înregistrată și este în așteptare de confirmare.'
+            );
+            setIsSubmitted(true);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch {
+            setSubmitMessage('A apărut o eroare la înregistrarea programării. Vă rugăm încercați din nou.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return { handleSubmit };
