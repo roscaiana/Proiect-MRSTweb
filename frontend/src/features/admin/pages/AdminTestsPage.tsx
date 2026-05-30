@@ -6,10 +6,12 @@ import toast from "react-hot-toast";
 import AdminTestRow from "../components/AdminTestRow";
 import TestForm from "../components/TestForm";
 import { useAdminPanel } from "../hooks/useAdminPanel";
-import type { AdminTest, ExamSettings } from "../types";
+import type { AdminQuestion, AdminTest, ExamSettings } from "../types";
 import { adminSettingsSchema, type AdminSettingsFormValues } from "../../../schemas/adminSchemas";
 import { quizService } from "../../../services/quizService";
-import type { QuizInfoDto } from "../../../services/types";
+import { questionService } from "../../../services/questionService";
+import { answerOptionService } from "../../../services/answerOptionService";
+import type { AdminTestInput } from "../types";
 
 const AdminTestsPage: React.FC = () => {
     const { state, updateSettings } = useAdminPanel();
@@ -42,9 +44,8 @@ const AdminTestsPage: React.FC = () => {
         });
     }, [reset, state.settings]);
 
-    const mapQuizToAdminTest = (quiz: QuizInfoDto): AdminTest => {
+    const mapQuizToAdminTest = (quiz: { id: number; title: string; description?: string | null }): AdminTest => {
         const now = new Date().toISOString();
-
         return {
             id: String(quiz.id),
             title: quiz.title,
@@ -59,7 +60,6 @@ const AdminTestsPage: React.FC = () => {
 
     const loadApiTests = async () => {
         setLoadingTests(true);
-
         try {
             const quizzes = await quizService.getAll();
             setApiTests(quizzes.map(mapQuizToAdminTest));
@@ -76,12 +76,60 @@ const AdminTestsPage: React.FC = () => {
     }, []);
 
     const editingTest = useMemo<AdminTest | undefined>(() => {
-        if (!editingTestId) {
-            return undefined;
-        }
-
+        if (!editingTestId) return undefined;
         return apiTests.find((test) => test.id === editingTestId);
     }, [apiTests, editingTestId]);
+
+    const loadTestWithQuestions = async (testId: string): Promise<AdminTest | undefined> => {
+        const test = apiTests.find((t) => t.id === testId);
+        if (!test) return undefined;
+        const quizId = parseInt(testId, 10);
+        const backendQuestions = await questionService.getByQuiz(quizId);
+        const questions = await Promise.all(
+            backendQuestions.map(async (q): Promise<AdminQuestion> => {
+                const options = await answerOptionService.getByQuestion(q.id);
+                const sorted = [...options].sort((a, b) => a.id - b.id);
+                return {
+                    id: String(q.id),
+                    text: q.text,
+                    options: sorted.map((o) => o.text),
+                    correctAnswer: Math.max(0, sorted.findIndex((o) => o.isCorrect)),
+                };
+            })
+        );
+        return { ...test, questions: questions.length > 0 ? questions : [] };
+    };
+
+    const saveQuestionsAndOptions = async (quizId: number, questions: AdminQuestion[]) => {
+        for (const question of questions) {
+            const qResult = await questionService.create({ text: question.text, quizId });
+            if (!qResult.isSuccess || qResult.data == null) {
+                throw new Error(qResult.message || "Nu am putut crea întrebarea.");
+            }
+            const questionId = qResult.data as number;
+            await Promise.all(
+                question.options.map((optText, idx) =>
+                    answerOptionService.create({
+                        text: optText,
+                        isCorrect: idx === question.correctAnswer,
+                        questionId,
+                    })
+                )
+            );
+        }
+    };
+
+    const handleEditClick = async (testId: string) => {
+        try {
+            const testWithQuestions = await loadTestWithQuestions(testId);
+            if (!testWithQuestions) return;
+            setApiTests((prev) => prev.map((t) => (t.id === testId ? testWithQuestions : t)));
+            setEditingTestId(testId);
+            setCreating(false);
+        } catch {
+            toast.error("Nu am putut încărca întrebările testului.");
+        }
+    };
 
     const openDeleteDialog = (test: AdminTest) => {
         setPendingDelete(test);
@@ -95,12 +143,47 @@ const AdminTestsPage: React.FC = () => {
 
     const confirmDelete = async () => {
         if (!pendingDelete) return;
-
         await quizService.remove(Number(pendingDelete.id));
         await loadApiTests();
-
         toast.success("Testul a fost șters.");
         closeDeleteDialog();
+    };
+
+    const handleCreateSubmit = async (payload: AdminTestInput) => {
+        try {
+            const createResult = await quizService.create({
+                title: payload.title,
+                description: payload.description,
+            });
+            if (!createResult.isSuccess || createResult.data == null) {
+                toast.error(createResult.message || "Nu am putut crea testul.");
+                return;
+            }
+            const quizId = createResult.data as number;
+            await saveQuestionsAndOptions(quizId, payload.questions);
+            await loadApiTests();
+            setCreating(false);
+            toast.success("Testul a fost creat cu succes.");
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : "A apărut o eroare la crearea testului.");
+        }
+    };
+
+    const handleEditSubmit = async (quizId: number, payload: AdminTestInput) => {
+        try {
+            await quizService.update(quizId, {
+                title: payload.title,
+                description: payload.description,
+            });
+            const existingQuestions = await questionService.getByQuiz(quizId);
+            await Promise.all(existingQuestions.map((q) => questionService.remove(q.id)));
+            await saveQuestionsAndOptions(quizId, payload.questions);
+            await loadApiTests();
+            setEditingTestId(null);
+            toast.success("Testul a fost actualizat cu succes.");
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : "A apărut o eroare la actualizarea testului.");
+        }
     };
 
     const handleSaveSettings = (data: AdminSettingsFormValues) => {
@@ -192,15 +275,7 @@ const AdminTestsPage: React.FC = () => {
                     <TestForm
                         mode="create"
                         onCancel={() => setCreating(false)}
-                        onSubmit={async (payload) => {
-                            await quizService.create({
-                                title: payload.title,
-                                description: payload.description,
-                            });
-                            await loadApiTests();
-
-                            setCreating(false);
-                        }}
+                        onSubmit={handleCreateSubmit}
                     />
                 )}
 
@@ -209,15 +284,7 @@ const AdminTestsPage: React.FC = () => {
                         mode="edit"
                         initialValue={editingTest}
                         onCancel={() => setEditingTestId(null)}
-                        onSubmit={async (payload) => {
-                            await quizService.update(Number(editingTest.id), {
-                                title: payload.title,
-                                description: payload.description,
-                            });
-                            await loadApiTests();
-
-                            setEditingTestId(null);
-                        }}
+                        onSubmit={(payload) => handleEditSubmit(Number(editingTest.id), payload)}
                     />
                 )}
 
@@ -252,10 +319,7 @@ const AdminTestsPage: React.FC = () => {
                                             correctAnswer: 0,
                                         })),
                                     }}
-                                    onEdit={(testId) => {
-                                        setEditingTestId(testId);
-                                        setCreating(false);
-                                    }}
+                                    onEdit={handleEditClick}
                                     onDelete={openDeleteDialog}
                                 />
                             ))}

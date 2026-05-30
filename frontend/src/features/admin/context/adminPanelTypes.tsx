@@ -1,5 +1,6 @@
 import type {
     AdminAppointmentRecord,
+    AdminNewsArticle,
     AdminNewsArticleInput,
     AdminState,
     AdminTestInput,
@@ -19,9 +20,11 @@ export type AdminAction =
     | { type: "appointment/set-status"; payload: { id: string; status: AppointmentStatus; reason?: string | null; adminNote?: string | null; cancelledBy?: "user" | "admin" } }
     | { type: "appointment/update"; payload: { id: string; patch: Partial<AdminAppointmentRecord> } }
     | { type: "notifications/log"; payload: SentNotificationLog }
+    | { type: "appointments/set"; payload: AdminAppointmentRecord[] }
     | { type: "news/create"; payload: AdminNewsArticleInput }
     | { type: "news/update"; payload: { id: string; data: AdminNewsArticleInput } }
-    | { type: "news/delete"; payload: { id: string } };
+    | { type: "news/delete"; payload: { id: string } }
+    | { type: "news/set"; payload: AdminNewsArticle[] };
 
 export type AdminPanelContextValue = {
     state: AdminState;

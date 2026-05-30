@@ -26,7 +26,7 @@ namespace e_ElectoralWeb.Domain.Entities.User
         public string UserName { get; set; } = string.Empty;
         
         [Required]
-        [StringLength(30)]
+        [StringLength(254)]
         [DataType(DataType.EmailAddress)]
         public string Email { get; set; } = string.Empty;
 
@@ -36,6 +36,11 @@ namespace e_ElectoralWeb.Domain.Entities.User
 
         [StringLength(12)]
         public string Phone { get; set; } = string.Empty;
+
+        [StringLength(50)]
+        public string? Nickname { get; set; }
+
+        public string? AvatarDataUrl { get; set; }
 
         public UserRole Role { get; set; }
 

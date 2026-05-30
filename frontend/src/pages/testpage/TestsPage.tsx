@@ -208,8 +208,27 @@ const TestsPage: React.FC = () => {
             })),
         });
 
+        if (user) {
+            try {
+                await quizResultService.submit({
+                    quizId: evaluation.quizId,
+                    userId: parseInt(user.id, 10),
+                    totalQuestions: evaluation.totalQuestions,
+                    correctAnswers: evaluation.correctAnswers,
+                    wrongAnswers: evaluation.wrongAnswers,
+                    unanswered: evaluation.unanswered,
+                    score: evaluation.score,
+                    timeTaken: evaluation.timeTaken,
+                    mode: session.mode,
+                    completedAt: evaluation.completedAt,
+                });
+            } catch (error) {
+                console.error("Nu s-a putut salva rezultatul:", error);
+            }
+        }
+
         buildQuizResult(session, evaluation, reason);
-    }, [buildQuizResult]);
+    }, [buildQuizResult, user]);
 
     useEffect(() => {
         if (!quizSession) return;

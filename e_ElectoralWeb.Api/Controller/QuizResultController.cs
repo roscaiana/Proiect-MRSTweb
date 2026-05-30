@@ -3,6 +3,7 @@ using e_ElectoralWeb.BusinessLayer.Interfaces;
 using e_ElectoralWeb.Domain.Models.QuizResult;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace e_ElectoralWeb.Api.Controller;
 
@@ -50,7 +51,7 @@ public class QuizResultController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "User,Manager,Admin")]
+    [Authorize(Roles = "User,Admin")]
     [HttpPost("submit")]
     public async Task<IActionResult> Submit([FromBody] QuizResultSubmitDto dto)
     {
@@ -66,10 +67,23 @@ public class QuizResultController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "Manager,Admin")]
+    [Authorize(Roles = "User,Admin")]
     [HttpGet("byUser")]
     public async Task<IActionResult> GetByUser([FromQuery] int userId)
     {
+        var roleClaim = User.Claims.FirstOrDefault(c =>
+            c.Type == ClaimTypes.Role ||
+            c.Type == "role" ||
+            c.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")?.Value;
+        if (roleClaim == "User")
+        {
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+            if (!int.TryParse(userIdClaim, out var tokenUserId) || tokenUserId != userId)
+            {
+                return Forbid();
+            }
+        }
+
         try
         {
             var results = await _quizResultAction.GetQuizResultsByUserActionAsync(userId);
@@ -81,7 +95,7 @@ public class QuizResultController : ControllerBase
         }
     }
 
-    [Authorize(Roles = "Manager,Admin")]
+    [Authorize(Roles = "Admin")]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {

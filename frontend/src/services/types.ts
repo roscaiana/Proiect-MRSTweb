@@ -79,9 +79,19 @@ export type UserInfoDto = {
     confirmPassword?: string;
     userName: string;
     phone?: string;
+    nickname?: string | null;
+    avatarDataUrl?: string | null;
     role: string;
     isBlocked: boolean;
     registeredOn: string;
+};
+
+export type UserProfileUpdateDto = {
+    fullName: string;
+    email: string;
+    phone?: string;
+    nickname?: string;
+    avatarDataUrl?: string;
 };
 
 export type ContactMessageDto = {
@@ -140,7 +150,129 @@ export type QuizEvaluationResultDto = {
     answers: QuizEvaluationAnswerDto[];
 };
 
+export type QuizResultSubmitDto = {
+    quizId: number;
+    userId: number;
+    totalQuestions: number;
+    correctAnswers: number;
+    wrongAnswers: number;
+    unanswered: number;
+    score: number;
+    timeTaken: number;
+    mode: string;
+    completedAt: string;
+};
+
+export type NewsDto = {
+    id: number;
+    title: string;
+    description: string;
+    category: string;
+    image: string;
+    sourceUrl?: string | null;
+    publishedAt: string;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type NewsCreateDto = {
+    title: string;
+    description: string;
+    category: string;
+    image: string;
+    sourceUrl?: string;
+    publishedAt: string;
+};
+
+export type AppointmentCreateDto = {
+    fullName: string;
+    idOrPhone: string;
+    userEmail: string;
+    userId?: number;
+    date: string;
+    slotStart: string;
+    slotEnd: string;
+};
+
+export type AppointmentStatusUpdateDto = {
+    status: string;
+    statusReason?: string | null;
+    adminNote?: string | null;
+    cancelledBy?: string | null;
+};
+
+export type QuizResultDto = {
+    id: number;
+    quizId: number;
+    userId: number;
+    quizTitle: string;
+    totalQuestions: number;
+    correctAnswers: number;
+    wrongAnswers: number;
+    unanswered: number;
+    score: number;
+    timeTaken: number;
+    mode: string;
+    completedAt: string;
+};
+
+export type AppointmentDto = {
+    id: number;
+    fullName: string;
+    idOrPhone: string;
+    userEmail: string;
+    userId?: number | null;
+    date: string;
+    slotStart: string;
+    slotEnd: string;
+    status: string;
+    statusReason?: string | null;
+    adminNote?: string | null;
+    cancelledBy?: string | null;
+    rescheduleCount: number;
+    createdAt: string;
+    updatedAt?: string | null;
+};
+
 export type HealthStatus = {
     status: string;
     timestamp: string;
+};
+
+export type ExamSettingsBlockedDateDto = {
+    date: string;
+    note?: string | null;
+};
+
+export type ExamSettingsCapacityOverrideDto = {
+    date: string;
+    appointmentsPerDay: number;
+};
+
+export type ExamSettingsSlotDto = {
+    id: string;
+    startTime: string;
+    endTime: string;
+    available: boolean;
+};
+
+export type ExamSettingsSlotOverrideDto = {
+    date: string;
+    slots: ExamSettingsSlotDto[];
+};
+
+export type ExamSettingsDto = {
+    testQuestionCount: number;
+    testDurationMinutes: number;
+    passingThreshold: number;
+    appointmentsPerDay: number;
+    appointmentLeadTimeHours: number;
+    maxReschedulesPerUser: number;
+    rejectionCooldownDays: number;
+    appointmentLocation: string;
+    appointmentRoom: string;
+    allowedWeekdays: number[];
+    blockedDates: ExamSettingsBlockedDateDto[];
+    capacityOverrides: ExamSettingsCapacityOverrideDto[];
+    slotOverrides: ExamSettingsSlotOverrideDto[];
 };

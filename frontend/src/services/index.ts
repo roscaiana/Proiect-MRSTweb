@@ -1,4 +1,6 @@
+export { appointmentService } from "./appointmentService";
 export { healthService } from "./healthService";
+export { newsService } from "./newsService";
 export { quizService } from "./quizService";
 export { questionService } from "./questionService";
 export { answerOptionService } from "./answerOptionService";

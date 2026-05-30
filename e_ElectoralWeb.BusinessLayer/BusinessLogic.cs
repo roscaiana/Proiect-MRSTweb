@@ -2,6 +2,8 @@ using e_ElectoralWeb.BusinessLayer.Configuration;
 using e_ElectoralWeb.BusinessLayer.Interfaces;
 using e_ElectoralWeb.BusinessLayer.Structure;
 
+
+
 namespace e_ElectoralWeb.BusinessLayer
 {
     public class BusinessLogic
@@ -41,6 +43,21 @@ namespace e_ElectoralWeb.BusinessLayer
         public IQuizResultAction QuizResultAction()
         {
             return new QuizResultExecution();
+        }
+
+        public IAppointmentAction AppointmentAction()
+        {
+            return new AppointmentActionExecution();
+        }
+
+        public INewsAction NewsAction()
+        {
+            return new NewsExecution();
+        }
+
+        public IExamSettingsAction ExamSettingsAction()
+        {
+            return new ExamSettingsExecution();
         }
     }
 }

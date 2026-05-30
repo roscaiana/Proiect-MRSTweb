@@ -27,6 +27,11 @@ namespace e_ElectoralWeb.BusinessLayer.Configuration
         return UpdateUserActionExecution(data);
     }
 
+    public ActionResponce UpdateOwnProfileAction(int userId, UserProfileUpdateDto data)
+    {
+        return UpdateOwnProfileActionExecution(userId, data);
+    }
+
     public ActionResponce ToggleUserBlockedAction(int id)
     {
         return ToggleUserBlockedActionExecution(id);

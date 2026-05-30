@@ -2,11 +2,9 @@ import {
     User,
     AuthCredentials,
     RegisterData,
-    UpdateUserProfileInput,
 } from '../types/user';
 import { buildNotificationStorageKey, readNotifications, saveNotifications } from './notificationUtils';
 import { emitStorageUpdate, emitNotificationsUpdated } from './storageEvents';
-import { buildUpdateProfileSchema } from '../schemas/profileSchema';
 
 const ADMIN_EMAIL = 'admin@electoral.md';
 const ADMIN_PASSWORD = 'admin123';
@@ -174,72 +172,6 @@ export const legacyLocalRegister = async (data: RegisterData): Promise<User> => 
     localStorage.setItem(`password_${data.email}`, data.password);
 
     return newUser;
-};
-
-export const updateMockUserProfile = async (
-    currentEmail: string,
-    data: UpdateUserProfileInput
-): Promise<User> => {
-    await new Promise((resolve) => setTimeout(resolve, 400));
-
-    const users = getStoredUsers();
-    const schema = buildUpdateProfileSchema(currentEmail, users, ADMIN_EMAIL);
-    const parsed = schema.safeParse(data);
-
-    if (!parsed.success) {
-        const message = parsed.error.issues[0]?.message || 'Date invalide';
-        throw new Error(message);
-    }
-
-    const trimmedFullName = parsed.data.fullName;
-    const trimmedNickname = parsed.data.nickname?.trim() || '';
-    const trimmedEmail = parsed.data.email;
-    const trimmedPhoneNumber = parsed.data.phoneNumber?.trim() || '';
-    const trimmedAvatar = parsed.data.avatarDataUrl?.trim() || '';
-
-    const userIndex = users.findIndex(
-        (candidate) => normalizeComparableEmail(candidate.email) === normalizeComparableEmail(currentEmail)
-    );
-
-    if (userIndex < 0) {
-        throw new Error('Utilizatorul nu a fost găsit');
-    }
-
-    const previousUser = users[userIndex];
-    const previousEmail = previousUser.email;
-
-    const updatedUser: User = {
-        ...previousUser,
-        fullName: trimmedFullName,
-        nickname: trimmedNickname || undefined,
-        email: trimmedEmail,
-        phoneNumber: trimmedPhoneNumber || undefined,
-        avatarDataUrl: trimmedAvatar || undefined,
-    };
-
-    users[userIndex] = updatedUser;
-    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
-    emitStorageUpdate(USERS_STORAGE_KEY);
-
-    if (previousEmail !== trimmedEmail) {
-        const previousPasswordKey = `password_${previousEmail}`;
-        const nextPasswordKey = `password_${trimmedEmail}`;
-        const storedPassword = localStorage.getItem(previousPasswordKey);
-
-        if (storedPassword !== null) {
-            localStorage.setItem(nextPasswordKey, storedPassword);
-
-            if (previousPasswordKey !== nextPasswordKey) {
-                localStorage.removeItem(previousPasswordKey);
-            }
-        }
-
-        migrateArrayUserEmail('appointments', previousEmail, trimmedEmail);
-        migrateArrayUserEmail('quizHistory', previousEmail, trimmedEmail);
-        migrateNotificationStorage('user', previousEmail, trimmedEmail);
-    }
-
-    return updatedUser;
 };
 
 const getStoredUsers = (): User[] => {

@@ -9,6 +9,11 @@ export const questionService = {
         return response.data;
     },
 
+    async getByQuiz(quizId: number): Promise<QuestionInfoDto[]> {
+        const response = await apiClient.get<QuestionInfoDto[]>(`${RESOURCE}/byQuiz`, { params: { quizId } });
+        return response.data;
+    },
+
     async getById(id: number): Promise<QuestionInfoDto> {
         const response = await apiClient.get<QuestionInfoDto>(`${RESOURCE}/${id}`);
         return response.data;

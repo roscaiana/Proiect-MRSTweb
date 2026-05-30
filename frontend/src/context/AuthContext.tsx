@@ -1,7 +1,9 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { User, UpdateUserProfileInput } from '../types/user';
-import { getAuthState, storeAuthState, clearAuthState, updateMockUserProfile } from '../utils/authUtils';
+import { getAuthState, storeAuthState, clearAuthState } from '../utils/authUtils';
 import { useStorageSync } from '../hooks/useStorageSync';
+import { apiClient } from '../api/axiosClient';
+import { UserInfoDto } from '../services/types';
 
 interface AuthContextType {
     user: User | null;
@@ -27,10 +29,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Load auth state from localStorage on mount
     useEffect(() => {
         const authState = getAuthState();
-        if (authState.user) {
-            setUser(authState.user);
+        if (authState.user && authState.token) {
+            apiClient.get('/auth/me')
+                .then(() => {
+                    setUser(authState.user);
+                })
+                .catch(() => {
+                    clearAuthState();
+                    setUser(null);
+                })
+                .finally(() => {
+                    setIsAuthReady(true);
+                });
+        } else {
+            setIsAuthReady(true);
         }
-        setIsAuthReady(true);
     }, []);
 
     useStorageSync(['users'], () => {
@@ -85,7 +98,27 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             throw new Error('Nu există utilizator autentificat');
         }
 
-        const updatedUser = await updateMockUserProfile(user.email, data);
+        const response = await apiClient.put<UserInfoDto>('/auth/me', {
+            fullName: data.fullName,
+            email: data.email,
+            phone: data.phoneNumber,
+            nickname: data.nickname,
+            avatarDataUrl: data.avatarDataUrl,
+        });
+
+        const dto = response.data;
+        const updatedUser: User = {
+            id: String(dto.id),
+            email: dto.email,
+            fullName: dto.fullName,
+            nickname: dto.nickname ?? undefined,
+            phoneNumber: dto.phone ?? undefined,
+            avatarDataUrl: dto.avatarDataUrl ?? undefined,
+            role: dto.role.toLowerCase() === 'admin' ? 'admin' : 'user',
+            createdAt: new Date(dto.registeredOn),
+            isBlocked: dto.isBlocked,
+        };
+
         setUser(updatedUser);
 
         const { token } = getAuthState();
