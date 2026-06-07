@@ -4,12 +4,12 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, beforeEach, expect, vi } from 'vitest';
 import LoginPage from '../pages/auth/LoginPage/LoginPage';
 
-const mockLogin = vi.fn();
+const mockLoginWithApi = vi.fn();
 const mockNavigate = vi.fn();
 const mockAuthLogin = vi.fn();
 
-vi.mock('../utils/authUtils', () => ({
-    mockLogin: (...args: unknown[]) => mockLogin(...args),
+vi.mock('../api/authService', () => ({
+    loginWithApi: (...args: unknown[]) => mockLoginWithApi(...args),
 }));
 
 vi.mock('../hooks/useAuth', () => ({
@@ -31,7 +31,7 @@ vi.mock('react-router-dom', async () => {
 
 describe('LoginPage', () => {
     beforeEach(() => {
-        mockLogin.mockReset();
+        mockLoginWithApi.mockReset();
         mockNavigate.mockReset();
         mockAuthLogin.mockReset();
     });
@@ -53,13 +53,16 @@ describe('LoginPage', () => {
 
     it('autentifică și navighează către dashboard pentru utilizator', async () => {
         const user = userEvent.setup();
-        mockLogin.mockResolvedValue({
-            id: 'user-1',
-            email: 'user@example.com',
-            fullName: 'User Example',
-            role: 'user',
-            createdAt: new Date(),
-            isBlocked: false,
+        mockLoginWithApi.mockResolvedValue({
+            user: {
+                id: 'user-1',
+                email: 'user@example.com',
+                fullName: 'User Example',
+                role: 'user',
+                createdAt: new Date(),
+                isBlocked: false,
+            },
+            token: 'test-token',
         });
 
         render(<LoginPage />);
@@ -67,14 +70,14 @@ describe('LoginPage', () => {
         await user.type(screen.getByLabelText(/Parol/i, { selector: 'input' }), 'password123');
         await user.click(screen.getByRole('button', { name: /Autentificare/i }));
 
-        expect(mockLogin).toHaveBeenCalledWith({ email: 'user@example.com', password: 'password123' });
+        expect(mockLoginWithApi).toHaveBeenCalledWith({ email: 'user@example.com', password: 'password123' });
         expect(mockAuthLogin).toHaveBeenCalled();
         expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
     });
 
     it('afișează mesaj la eroare de autentificare', async () => {
         const user = userEvent.setup();
-        mockLogin.mockRejectedValue(new Error('Login eșuat'));
+        mockLoginWithApi.mockRejectedValue(new Error('Login eșuat'));
         render(<LoginPage />);
         await user.type(screen.getByLabelText(/Email/i), 'user@example.com');
         await user.type(screen.getByLabelText(/Parol/i, { selector: 'input' }), 'bad');

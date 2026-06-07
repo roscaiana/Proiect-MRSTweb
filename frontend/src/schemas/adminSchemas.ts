@@ -48,32 +48,6 @@ export const adminSettingsSchema = z.object({
         .int()
         .min(1, 'Pragul de promovare trebuie să fie între 1 și 100.')
         .max(100, 'Pragul de promovare trebuie să fie între 1 și 100.'),
-    appointmentsPerDay: z
-        .coerce
-        .number()
-        .int()
-        .min(1, 'Programările pe zi trebuie să fie între 1 și 500.')
-        .max(500, 'Programările pe zi trebuie să fie între 1 și 500.'),
-    appointmentLeadTimeHours: z
-        .coerce
-        .number()
-        .int()
-        .min(0, 'Lead time programare trebuie să fie între 0 și 720 ore.')
-        .max(720, 'Lead time programare trebuie să fie între 0 și 720 ore.'),
-    maxReschedulesPerUser: z
-        .coerce
-        .number()
-        .int()
-        .min(0, 'Max reprogramări per utilizator trebuie să fie între 0 și 20.')
-        .max(20, 'Max reprogramări per utilizator trebuie să fie între 0 și 20.'),
-    rejectionCooldownDays: z
-        .coerce
-        .number()
-        .int()
-        .min(0, 'Cooldown după respingere trebuie să fie între 0 și 365 zile.')
-        .max(365, 'Cooldown după respingere trebuie să fie între 0 și 365 zile.'),
-    appointmentLocation: z.string(),
-    appointmentRoom: z.string(),
 });
 
 export type AdminSettingsFormValues = z.infer<typeof adminSettingsSchema>;

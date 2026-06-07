@@ -187,7 +187,7 @@ public static class DBSeed
         {
             new() {
                 Title = "Graficul examenelor de certificare pentru sesiunea 2026",
-                Description = "CICDE a publicat programul examenelor pentru sesiunea 2026. Examenele se desfasoara in format fizic si virtual, iar inscrierea se face din contul de utilizator aprobat.",
+                Description = "CICDE a publicat programul examenelor pentru sesiunea 2026. Examenele se desfășoară în format fizic și virtual, iar înscrierea se face din contul de utilizator aprobat.",
                 Category = "Sesiunea 2026",
                 Image = "/news/cicde-grafic-2026.png",
                 SourceUrl = "https://certificare.cicde.md/news/show/44",
@@ -197,7 +197,7 @@ public static class DBSeed
             },
             new() {
                 Title = "Rezultatele sesiunii de certificare 2025",
-                Description = "In sesiunea 2025 au fost organizate 565 examene, cu 9570 participanti. Au promovat 7764 candidati, iar rata de promovare pe sesiune a fost de 82,3%.",
+                Description = "În sesiunea 2025 au fost organizate 565 examene, cu 9570 participanți. Au promovat 7764 candidați, iar rata de promovare pe sesiune a fost de 82,3%.",
                 Category = "Rezultate",
                 Image = "/news/cicde-rezultate-2025.png",
                 SourceUrl = "https://certificare.cicde.md/news/show/43",
@@ -207,7 +207,7 @@ public static class DBSeed
             },
             new() {
                 Title = "Aprobarea noului regulament pentru certificare",
-                Description = "Comisia Electorala Centrala a aprobat noua redactie a Regulamentului privind certificarea formarii/specializarii in domeniul electoral, cu aplicare in SICDE.",
+                Description = "Comisia Electorală Centrală a aprobat noua redacție a Regulamentului privind certificarea formării/specializării în domeniul electoral, cu aplicare în SICDE.",
                 Category = "Cadrul normativ",
                 Image = "/news/cicde-regulament-2025.png",
                 SourceUrl = "https://certificare.cicde.md/news/show/14",
@@ -216,9 +216,9 @@ public static class DBSeed
                 UpdatedAt = new DateTime(2025, 3, 18, 0, 0, 0, DateTimeKind.Utc),
             },
             new() {
-                Title = "18-24 mai 2026: totalurile saptamanii",
-                Description = "Au fost desfasurate 5 examene cu prezenta fizica in raioane. Din 72 participanti, 61 au promovat, cu rata de promovare de 84,72%.",
-                Category = "Totaluri saptamanale",
+                Title = "18-24 mai 2026: totaluri săptămânale",
+                Description = "Au fost desfășurate 5 examene cu prezență fizică în raioane. Din 72 participanți, 61 au promovat, cu rata de promovare de 84,72%.",
+                Category = "Totaluri săptămânale",
                 Image = "/news/cicde-18-24-mai-2026.jpg",
                 SourceUrl = "https://certificare.cicde.md/news/show/50",
                 PublishedAt = new DateTime(2026, 5, 25, 0, 0, 0, DateTimeKind.Utc),
@@ -226,9 +226,9 @@ public static class DBSeed
                 UpdatedAt = new DateTime(2026, 5, 25, 0, 0, 0, DateTimeKind.Utc),
             },
             new() {
-                Title = "04-17 mai 2026: totaluri saptamanale",
-                Description = "CICDE a organizat 4 examene de certificare (online si fizic). Au participat 47 persoane, iar 41 au obtinut certificatul de calificare.",
-                Category = "Totaluri saptamanale",
+                Title = "04-17 mai 2026: totaluri săptămânale",
+                Description = "CICDE a organizat 4 examene de certificare (online și fizic). Au participat 47 persoane, iar 41 au obținut certificatul de calificare.",
+                Category = "Totaluri săptămânale",
                 Image = "/news/cicde-04-17-mai-2026.jpg",
                 SourceUrl = "https://certificare.cicde.md/news/show/49",
                 PublishedAt = new DateTime(2026, 5, 15, 0, 0, 0, DateTimeKind.Utc),
@@ -236,9 +236,9 @@ public static class DBSeed
                 UpdatedAt = new DateTime(2026, 5, 15, 0, 0, 0, DateTimeKind.Utc),
             },
             new() {
-                Title = "20 aprilie - 3 mai 2026: totaluri saptamanale",
-                Description = "In perioada de referinta au avut loc 3 examene online. Au participat 55 persoane, dintre care 44 au promovat, cu o rata de 80%.",
-                Category = "Totaluri saptamanale",
+                Title = "20 aprilie - 3 mai 2026: totaluri săptămânale",
+                Description = "În perioada de referință au avut loc 3 examene online. Au participat 55 persoane, dintre care 44 au promovat, cu o rată de 80%.",
+                Category = "Totaluri săptămânale",
                 Image = "/news/cicde-20apr-3mai-2026.jpg",
                 SourceUrl = "https://certificare.cicde.md/news/show/48",
                 PublishedAt = new DateTime(2026, 5, 4, 0, 0, 0, DateTimeKind.Utc),

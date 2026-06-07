@@ -1,12 +1,13 @@
 import { useCallback } from "react";
 import type { Dispatch } from "react";
-import type { AdminAppointmentRecord, AdminNewsArticle, AdminNewsArticleInput, AdminState, AdminTestInput, AppointmentStatus, ExamSettings } from "../types";
+import type { AdminAppointmentRecord, AdminNewsArticle, AdminNewsArticleInput, AdminState, AdminTestInput, AdminUserRecord, AppointmentStatus, ExamSettings } from "../types";
 import type { AdminAction } from "./adminPanelTypes";
 import { newsService } from "../../../services/newsService";
 import { appointmentService } from "../../../services/appointmentService";
 import { examSettingsService } from "../../../services/examSettingsService";
+import { userService } from "../../../services/userService";
 import { writeExamSettings } from "../storage";
-import type { AppointmentDto, NewsDto } from "../../../services/types";
+import type { AppointmentDto, NewsDto, UserInfoDto } from "../../../services/types";
 
 const mapNewsDto = (dto: NewsDto): AdminNewsArticle => ({
     id: String(dto.id),
@@ -37,6 +38,18 @@ const mapAppointmentDto = (dto: AppointmentDto): AdminAppointmentRecord => ({
     updatedAt: dto.updatedAt ?? undefined,
 });
 
+const mapUserDto = (dto: UserInfoDto): AdminUserRecord => ({
+    id: String(dto.id),
+    email: dto.email,
+    fullName: dto.fullName || dto.userName || dto.email,
+    nickname: dto.nickname ?? undefined,
+    phoneNumber: dto.phone ?? undefined,
+    avatarDataUrl: dto.avatarDataUrl ?? undefined,
+    role: dto.role.toLowerCase() === "admin" ? "admin" : "user",
+    createdAt: dto.registeredOn,
+    isBlocked: dto.isBlocked,
+});
+
 export const useAdminPanelCrudActions = (state: AdminState, dispatch: Dispatch<AdminAction>) => {
     const createTest = useCallback((input: AdminTestInput) => { dispatch({ type: "test/create", payload: input }); }, [dispatch]);
     const updateTest = useCallback((id: string, input: AdminTestInput) => { dispatch({ type: "test/update", payload: { id, data: input } }); }, [dispatch]);
@@ -64,7 +77,18 @@ export const useAdminPanelCrudActions = (state: AdminState, dispatch: Dispatch<A
             .then(() => writeExamSettings(settings))
             .catch((err) => console.error("Failed to save exam settings to API:", err));
     }, [dispatch]);
-    const toggleUserBlocked = useCallback((userId: string) => { dispatch({ type: "user/toggle-block", payload: { id: userId } }); }, [dispatch]);
+    const toggleUserBlocked = useCallback((userId: string) => {
+        const numericId = parseInt(userId, 10);
+        if (isNaN(numericId)) {
+            dispatch({ type: "user/toggle-block", payload: { id: userId } });
+            return;
+        }
+
+        userService.toggleBlocked(numericId)
+            .then(() => userService.getAll())
+            .then((items) => dispatch({ type: "users/set", payload: items.map(mapUserDto) }))
+            .catch((err) => console.error("Failed to toggle user block status:", err));
+    }, [dispatch]);
 
     const updateAppointment = useCallback((appointmentId: string, patch: Partial<AdminAppointmentRecord>) => {
         const numericId = parseInt(appointmentId, 10);

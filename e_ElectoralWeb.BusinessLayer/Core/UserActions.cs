@@ -66,7 +66,7 @@ public class UserDbActions
         };
     }
 
-    private static string BuildUniqueUserName(UserContext db, string email, int? excludeUserId = null)
+    private static string BuildUniqueUserName(QuizDbContext db, string email, int? excludeUserId = null)
     {
         var baseName = email.Split('@')[0].Trim();
         if (string.IsNullOrWhiteSpace(baseName))
@@ -108,7 +108,7 @@ public class UserDbActions
 
         var email = NormalizeEmail(udata.Email);
 
-        using var db = new UserContext();
+        using var db = new QuizDbContext();
         var user = db.Users.FirstOrDefault(x => x.Email.ToLower() == email);
 
         if (user == null)
@@ -202,7 +202,7 @@ public class UserDbActions
             };
         }
 
-        using var db = new UserContext();
+        using var db = new QuizDbContext();
         var existingUser = db.Users.FirstOrDefault(x => x.Email.ToLower() == normalizedEmail);
         if (existingUser != null)
         {
@@ -238,7 +238,7 @@ public class UserDbActions
 
     internal List<UserDto> GetAllUsersActionExecution()
     {
-        using var db = new UserContext();
+        using var db = new QuizDbContext();
         return db.Users
             .OrderByDescending(u => u.RegisteredOn)
             .ToList()
@@ -248,7 +248,7 @@ public class UserDbActions
 
     internal UserDto? GetUserByIdActionExecution(int id)
     {
-        using var db = new UserContext();
+        using var db = new QuizDbContext();
         var user = db.Users.FirstOrDefault(u => u.Id == id);
         return user == null ? null : MapToDto(user);
     }
@@ -264,7 +264,7 @@ public class UserDbActions
             };
         }
 
-        using var db = new UserContext();
+        using var db = new QuizDbContext();
         var user = db.Users.FirstOrDefault(u => u.Id == data.Id);
         if (user == null)
         {
@@ -414,7 +414,7 @@ public class UserDbActions
             return new ActionResponce { IsSuccess = false, Message = "A valid full name is required." };
         }
 
-        using var db = new UserContext();
+        using var db = new QuizDbContext();
         var user = db.Users.FirstOrDefault(u => u.Id == userId);
         if (user == null)
         {
@@ -471,7 +471,7 @@ public class UserDbActions
 
     internal ActionResponce ToggleUserBlockedActionExecution(int id)
     {
-        using var db = new UserContext();
+        using var db = new QuizDbContext();
         var user = db.Users.FirstOrDefault(u => u.Id == id);
         if (user == null)
         {
@@ -495,7 +495,7 @@ public class UserDbActions
 
     internal ActionResponce DeleteUserActionExecution(int id)
     {
-        using var db = new UserContext();
+        using var db = new QuizDbContext();
         var user = db.Users.FirstOrDefault(u => u.Id == id);
         if (user == null)
         {

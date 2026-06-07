@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useReducer } from "react";
 import { loadAdminState } from "../storage";
-import type { AdminAppointmentRecord, AdminNewsArticle, AppointmentStatus } from "../types";
+import type { AdminAppointmentRecord, AdminNewsArticle, AdminUserRecord, AppointmentStatus } from "../types";
 import type { AdminPanelContextValue } from "./adminPanelTypes";
 import { adminPanelReducer } from "./adminPanelReducer";
 import { useAdminPanelStorageListener } from "./useAdminPanelStorageListener";
@@ -11,8 +11,9 @@ import { useAdminPanelSendNotificationAction } from "./useAdminPanelSendNotifica
 import { newsService } from "../../../services/newsService";
 import { appointmentService } from "../../../services/appointmentService";
 import { examSettingsService } from "../../../services/examSettingsService";
+import { userService } from "../../../services/userService";
 import { writeExamSettings } from "../storage";
-import type { AppointmentDto, ExamSettingsDto, NewsDto } from "../../../services/types";
+import type { AppointmentDto, ExamSettingsDto, NewsDto, UserInfoDto } from "../../../services/types";
 import type { ExamSettings } from "../types";
 
 const mapNewsDto = (dto: NewsDto): AdminNewsArticle => ({
@@ -42,6 +43,18 @@ const mapAppointmentDto = (dto: AppointmentDto): AdminAppointmentRecord => ({
     rescheduleCount: dto.rescheduleCount,
     createdAt: dto.createdAt,
     updatedAt: dto.updatedAt ?? undefined,
+});
+
+const mapUserDto = (dto: UserInfoDto): AdminUserRecord => ({
+    id: String(dto.id),
+    email: dto.email,
+    fullName: dto.fullName || dto.userName || dto.email,
+    nickname: dto.nickname ?? undefined,
+    phoneNumber: dto.phone ?? undefined,
+    avatarDataUrl: dto.avatarDataUrl ?? undefined,
+    role: dto.role.toLowerCase() === "admin" ? "admin" : "user",
+    createdAt: dto.registeredOn,
+    isBlocked: dto.isBlocked,
 });
 
 const mapExamSettingsDto = (dto: ExamSettingsDto): ExamSettings => ({
@@ -88,6 +101,12 @@ export const AdminPanelProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     useEffect(() => {
         appointmentService.getAll()
             .then((items) => dispatch({ type: "appointments/set", payload: items.map(mapAppointmentDto) }))
+            .catch(() => { /* keep localStorage-seeded state on API failure */ });
+    }, []);
+
+    useEffect(() => {
+        userService.getAll()
+            .then((items) => dispatch({ type: "users/set", payload: items.map(mapUserDto) }))
             .catch(() => { /* keep localStorage-seeded state on API failure */ });
     }, []);
 

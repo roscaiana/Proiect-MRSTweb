@@ -23,7 +23,6 @@ if (jwtSecretKey.Length < 32)
 var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey));
 
 builder.Services.AddDbContext<QuizDbContext>();
-builder.Services.AddDbContext<UserContext>();
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

@@ -1,13 +1,7 @@
-import {
-    User,
-    AuthCredentials,
-    RegisterData,
-} from '../types/user';
+import { User } from '../types/user';
 import { buildNotificationStorageKey, readNotifications, saveNotifications } from './notificationUtils';
 import { emitStorageUpdate, emitNotificationsUpdated } from './storageEvents';
 
-const ADMIN_EMAIL = 'admin@electoral.md';
-const ADMIN_PASSWORD = 'admin123';
 const USERS_STORAGE_KEY = 'users';
 const SESSION_FORM_KEYS = ['appointmentFormDraft', 'appointmentRescheduleDraft'];
 
@@ -15,8 +9,6 @@ type AuthStorageUser = {
     email?: string;
     role?: 'admin' | 'manager' | 'user';
 };
-
-const normalizeComparableEmail = (value: string): string => value.trim().toLowerCase();
 
 const readArray = (raw: string | null): Array<Record<string, unknown>> => {
     if (!raw) {
@@ -105,73 +97,6 @@ const migrateNotificationStorage = (role: 'user' | 'manager' | 'admin', oldEmail
     localStorage.removeItem(oldKey);
     emitNotificationsUpdated(newKey);
     emitNotificationsUpdated(oldKey);
-};
-
-export const legacyLocalLogin = async (credentials: AuthCredentials): Promise<User> => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    if (normalizeComparableEmail(credentials.email) === normalizeComparableEmail(ADMIN_EMAIL) && credentials.password === ADMIN_PASSWORD) {
-        return {
-            id: 'admin-1',
-            email: ADMIN_EMAIL,
-            fullName: 'Administrator',
-            role: 'admin',
-            createdAt: new Date(),
-            isBlocked: false
-        };
-    }
-
-    const users = getStoredUsers();
-    const userIndex = users.findIndex(u => normalizeComparableEmail(u.email) === normalizeComparableEmail(credentials.email));
-    const user = userIndex >= 0 ? users[userIndex] : undefined;
-
-    if (!user) {
-        throw new Error('Email-ul nu este înregistrat');
-    }
-
-    if (user.isBlocked) {
-        throw new Error('Contul este blocat. Contactează administratorul.');
-    }
-
-    const storedPassword = localStorage.getItem(`password_${user.email}`);
-    if (storedPassword !== credentials.password) {
-        throw new Error('Parola incorectă');
-    }
-
-    const updatedUser: User = {
-        ...user,
-        lastLoginAt: new Date()
-    };
-    users[userIndex] = updatedUser;
-    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
-    emitStorageUpdate(USERS_STORAGE_KEY);
-
-    return updatedUser;
-};
-
-export const legacyLocalRegister = async (data: RegisterData): Promise<User> => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    const users = getStoredUsers();
-    if (users.some(u => normalizeComparableEmail(u.email) === normalizeComparableEmail(data.email))) {
-        throw new Error('Acest email este deja înregistrat');
-    }
-
-    const newUser: User = {
-        id: `user-${Date.now()}`,
-        email: data.email,
-        fullName: data.fullName,
-        role: 'user',
-        createdAt: new Date(),
-        isBlocked: false
-    };
-
-    users.push(newUser);
-    localStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
-    emitStorageUpdate(USERS_STORAGE_KEY);
-    localStorage.setItem(`password_${data.email}`, data.password);
-
-    return newUser;
 };
 
 const getStoredUsers = (): User[] => {

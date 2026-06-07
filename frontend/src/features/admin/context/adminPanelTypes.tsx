@@ -4,6 +4,7 @@ import type {
     AdminNewsArticleInput,
     AdminState,
     AdminTestInput,
+    AdminUserRecord,
     AppointmentStatus,
     ExamSettings,
     SendNotificationInput,
@@ -21,6 +22,7 @@ export type AdminAction =
     | { type: "appointment/update"; payload: { id: string; patch: Partial<AdminAppointmentRecord> } }
     | { type: "notifications/log"; payload: SentNotificationLog }
     | { type: "appointments/set"; payload: AdminAppointmentRecord[] }
+    | { type: "users/set"; payload: AdminUserRecord[] }
     | { type: "news/create"; payload: AdminNewsArticleInput }
     | { type: "news/update"; payload: { id: string; data: AdminNewsArticleInput } }
     | { type: "news/delete"; payload: { id: string } }
