@@ -45,6 +45,11 @@ namespace e_ElectoralWeb.BusinessLayer
             return new QuizResultExecution();
         }
 
+        public IQuizSessionAction QuizSessionAction()
+        {
+            return new QuizSessionExecution();
+        }
+
         public IAppointmentAction AppointmentAction()
         {
             return new AppointmentActionExecution();

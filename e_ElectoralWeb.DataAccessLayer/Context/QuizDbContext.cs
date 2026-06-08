@@ -5,6 +5,7 @@ using e_ElectoralWeb.Domain.Entities.News;
 using e_ElectoralWeb.Domain.Entities.Question;
 using e_ElectoralWeb.Domain.Entities.Quiz;
 using e_ElectoralWeb.Domain.Entities.QuizResult;
+using e_ElectoralWeb.Domain.Entities.QuizSession;
 using e_ElectoralWeb.Domain.Entities.User;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +17,7 @@ public class QuizDbContext : DbContext
     public DbSet<QuestionData> Questions { get; set; }
     public DbSet<AnswerOptionData> AnswerOptions { get; set; }
     public DbSet<QuizResultData> QuizResults { get; set; }
+    public DbSet<QuizSessionData> QuizSessions { get; set; }
     public DbSet<UserData> Users { get; set; }
     public DbSet<AppointmentData> Appointments { get; set; }
     public DbSet<NewsData> News { get; set; }

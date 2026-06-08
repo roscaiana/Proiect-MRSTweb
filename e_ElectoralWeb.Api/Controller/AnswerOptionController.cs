@@ -18,7 +18,7 @@ namespace e_ElectoralWeb.Api.Controller
             _answerOptionAction = bl.AnswerOptionAction();
         }
 
-        [AllowAnonymous]
+        [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -48,7 +48,7 @@ namespace e_ElectoralWeb.Api.Controller
             }
         }
 
-        [AllowAnonymous]
+        [Authorize(Roles = "Admin")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -64,7 +64,7 @@ namespace e_ElectoralWeb.Api.Controller
             }
         }
 
-        [AllowAnonymous]
+        [Authorize(Roles = "Admin")]
         [HttpGet("byQuestion")]
         public async Task<IActionResult> GetByQuestion([FromQuery] int questionId)
         {
