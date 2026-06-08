@@ -30,13 +30,13 @@ export const quizResultService = {
         return response.data.data;
     },
 
-    async submit(dto: QuizResultSubmitDto): Promise<ActionResponse> {
-        const response = await apiClient.post<ActionResponse>(`${RESOURCE}/submit`, dto);
-        if (!response.data.isSuccess) {
+    async submit(dto: QuizResultSubmitDto): Promise<QuizEvaluationResultDto> {
+        const response = await apiClient.post<ActionResponse<QuizEvaluationResultDto>>(`${RESOURCE}/submit`, dto);
+        if (!response.data.isSuccess || !response.data.data) {
             throw new Error(response.data.message || "Nu s-a putut salva rezultatul.");
         }
 
-        return response.data;
+        return response.data.data;
     },
 
     async getByUser(userId: number): Promise<QuizResultDto[]> {

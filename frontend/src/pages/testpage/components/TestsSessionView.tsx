@@ -59,6 +59,7 @@ const TestsSessionView: React.FC<TestsSessionViewProps> = ({
     const currentFeedback = quizSession.answerFeedback[quizSession.currentQuestionIndex];
     const isLast = quizSession.currentQuestionIndex === quizSession.questions.length - 1;
     const showEvaluation = quizSession.mode === 'training' && currentAnswer !== null && currentFeedback !== null;
+    const lockCurrentAnswer = quizSession.mode === 'training' && currentAnswer !== null;
     const correctCount = quizSession.answerFeedback.filter((item) => item?.isCorrect).length;
     const incorrectCount = quizSession.answerFeedback.filter((item) => item && !item.isCorrect).length;
 
@@ -131,6 +132,7 @@ const TestsSessionView: React.FC<TestsSessionViewProps> = ({
                                         option={normalizeText(option.text)}
                                         selected={selected}
                                         stateClass={state}
+                                        disabled={lockCurrentAnswer}
                                         onSelect={() => onSetAnswer(option.id)}
                                     />
                                 );
@@ -156,7 +158,7 @@ const TestsSessionView: React.FC<TestsSessionViewProps> = ({
                                 Înapoi
                             </button>
                             <button
-                                className="btn-secondary"
+                                className="btn-secondary btn-next-question"
                                 type="button"
                                 disabled={isLast}
                                 onClick={() => onGoToQuestion(quizSession.currentQuestionIndex + 1)}

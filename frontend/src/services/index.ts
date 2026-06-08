@@ -5,6 +5,7 @@ export { quizService } from "./quizService";
 export { questionService } from "./questionService";
 export { answerOptionService } from "./answerOptionService";
 export { quizResultService } from "./quizResultService";
+export { quizSessionService } from "./quizSessionService";
 export { authService } from "./authService";
 export { userService } from "./userService";
 export { contactService } from "./contactService";

@@ -91,7 +91,6 @@ export const server = setupServer(
             Array.from({ length: 4 }, (__, optionIndex) => ({
                 id: questionIndex * 4 + optionIndex + 1,
                 text: `Opțiunea ${optionIndex + 1}`,
-                isCorrect: optionIndex === 0,
                 questionId: questionIndex + 1,
             })),
         ).flat(),
@@ -116,6 +115,39 @@ export const server = setupServer(
             answers: [],
         },
     })),
-    http.post(`${API_BASE}/QuizResult/submit`, () => HttpResponse.json({ isSuccess: true })),
+    http.post(`${API_BASE}/QuizResult/submit`, () => HttpResponse.json({
+        isSuccess: true,
+        data: {
+            quizId: 1,
+            totalQuestions: 30,
+            correctAnswers: 0,
+            wrongAnswers: 0,
+            unanswered: 30,
+            score: 0,
+            timeTaken: 0,
+            durationSeconds: 1800,
+            completedAt: new Date().toISOString(),
+            answers: [],
+        },
+    })),
     http.get(`${API_BASE}/QuizResult/byUser`, () => HttpResponse.json([])),
+    http.post(`${API_BASE}/QuizSession/start`, () => HttpResponse.json({
+        isSuccess: true,
+        data: {
+            sessionId: '11111111-1111-1111-1111-111111111111',
+            quizId: 1,
+            mode: 'training',
+            durationSeconds: 1800,
+            startedAt: new Date().toISOString(),
+            expiresAt: new Date(Date.now() + 1800 * 1000).toISOString(),
+            questions: Array.from({ length: 30 }, (_, questionIndex) => ({
+                id: questionIndex + 1,
+                text: `Întrebare de test ${questionIndex + 1}?`,
+                options: Array.from({ length: 4 }, (__, optionIndex) => ({
+                    id: questionIndex * 4 + optionIndex + 1,
+                    text: `Opțiunea ${optionIndex + 1}`,
+                })),
+            })),
+        },
+    })),
 );

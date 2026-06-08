@@ -102,6 +102,7 @@ export type ContactMessageDto = {
 };
 
 export type QuizAnswerCheckRequestDto = {
+    sessionId: string;
     questionId: number;
     answerOptionId: number;
 };
@@ -119,6 +120,7 @@ export type QuizEvaluationSubmissionDto = {
 };
 
 export type QuizEvaluationRequestDto = {
+    sessionId?: string;
     quizId: number;
     mode: string;
     timeTaken: number;
@@ -151,6 +153,7 @@ export type QuizEvaluationResultDto = {
 };
 
 export type QuizResultSubmitDto = {
+    sessionId: string;
     quizId: number;
     userId: number;
     totalQuestions: number;
@@ -161,6 +164,35 @@ export type QuizResultSubmitDto = {
     timeTaken: number;
     mode: string;
     completedAt: string;
+    answers: QuizEvaluationSubmissionDto[];
+};
+
+export type QuizSessionStartRequestDto = {
+    quizId: number;
+    mode: string;
+    questionCount: number;
+    durationMinutes: number;
+};
+
+export type QuizSessionAnswerOptionDto = {
+    id: number;
+    text: string;
+};
+
+export type QuizSessionQuestionDto = {
+    id: number;
+    text: string;
+    options: QuizSessionAnswerOptionDto[];
+};
+
+export type QuizSessionStartResultDto = {
+    sessionId: string;
+    quizId: number;
+    mode: string;
+    durationSeconds: number;
+    startedAt: string;
+    expiresAt: string;
+    questions: QuizSessionQuestionDto[];
 };
 
 export type NewsDto = {
