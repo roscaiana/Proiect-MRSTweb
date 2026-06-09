@@ -10,7 +10,12 @@ namespace e_ElectoralWeb.BusinessLayer.Core;
 
 public class QuizResultActions
 {
-    protected QuizResultActions() { }
+    private readonly QuizDbContext _context;
+
+    protected QuizResultActions(QuizDbContext context)
+    {
+        _context = context;
+    }
 
     protected async Task<ActionResponce> CheckAnswerActionExecutionAsync(QuizAnswerCheckRequestDto data)
     {
@@ -21,7 +26,7 @@ public class QuizResultActions
         if (data.AnswerOptionId <= 0)
             return new ActionResponce { IsSuccess = false, Message = "AnswerOptionId is required." };
 
-        using var context = new QuizDbContext();
+        var context = _context;
 
         var session = await context.QuizSessions.AsNoTracking().FirstOrDefaultAsync(s => s.Id == data.SessionId);
         if (session == null)
@@ -63,7 +68,7 @@ public class QuizResultActions
         if (string.IsNullOrWhiteSpace(data.Mode))
             return new ActionResponce { IsSuccess = false, Message = "Mode is required." };
 
-        using var context = new QuizDbContext();
+        var context = _context;
 
         var session = await GetSessionForEvaluationAsync(context, data.SessionId);
         if (data.SessionId.HasValue && session == null)
@@ -167,7 +172,7 @@ public class QuizResultActions
         if (data.UserId <= 0)
             return new ActionResponce { IsSuccess = false, Message = "UserId is required." };
 
-        using var context = new QuizDbContext();
+        var context = _context;
 
         var session = await context.QuizSessions.FirstOrDefaultAsync(s => s.Id == data.SessionId.Value);
         if (session == null)
@@ -223,7 +228,7 @@ public class QuizResultActions
 
     protected async Task<List<QuizResultDto>> GetQuizResultsByUserActionExecutionAsync(int userId)
     {
-        using var context = new QuizDbContext();
+        var context = _context;
         return await context.QuizResults
             .Include(r => r.Quiz)
             .Where(r => r.UserId == userId)
@@ -248,7 +253,7 @@ public class QuizResultActions
 
     protected async Task<QuizResultDto?> GetQuizResultByIdActionExecutionAsync(int id)
     {
-        using var context = new QuizDbContext();
+        var context = _context;
         return await context.QuizResults
             .Include(r => r.Quiz)
             .Where(r => r.Id == id)

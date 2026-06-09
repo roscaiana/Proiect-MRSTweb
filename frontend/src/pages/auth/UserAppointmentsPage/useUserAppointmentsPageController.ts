@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth";
-import { useStorageSync } from "../../../hooks/useStorageSync";
-import type { AdminAppointmentRecord, AppointmentStatus } from "../../../features/admin/types";
+import type { AdminAppointmentRecord, AppointmentStatus, ExamSettings } from "../../../features/admin/types";
 import { notifyAdmins, notifyUser } from "../../../utils/appEventNotifications";
-import { readAppointments, readExamSettings, STORAGE_KEYS, writeAppointments } from "../../../features/admin/storage";
+import { DEFAULT_SETTINGS } from "../../../features/admin/storage";
 import { appointmentService } from "../../../services/appointmentService";
-import type { AppointmentDto } from "../../../services/types";
+import { examSettingsService } from "../../../services/examSettingsService";
+import type { AppointmentDto, ExamSettingsDto } from "../../../services/types";
 
 const APPOINTMENT_RESCHEDULE_KEY = "appointmentRescheduleDraft";
 
@@ -27,29 +27,45 @@ const mapAppointmentDto = (dto: AppointmentDto): AdminAppointmentRecord => ({
     updatedAt: dto.updatedAt ?? undefined,
 });
 
+const mapExamSettingsDto = (dto: ExamSettingsDto): ExamSettings => ({
+    ...dto,
+    blockedDates: dto.blockedDates.map((item) => ({
+        date: item.date,
+        note: item.note ?? undefined,
+    })),
+});
+
 export const useUserAppointmentsPageController = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const [examSettings, setExamSettings] = useState(() => readExamSettings());
-    const [appointments, setAppointments] = useState<AdminAppointmentRecord[]>(() => readAppointments());
-
-    useStorageSync([STORAGE_KEYS.settings], () => {
-        setExamSettings(readExamSettings());
-    });
+    const [examSettings, setExamSettings] = useState(DEFAULT_SETTINGS);
+    const [appointments, setAppointments] = useState<AdminAppointmentRecord[]>([]);
+    const [loadError, setLoadError] = useState("");
 
     useEffect(() => {
         const userId = user?.id ? parseInt(user.id, 10) : null;
         if (!userId || isNaN(userId)) return;
-        appointmentService.getByUser(userId)
-            .then((items) => setAppointments(items.map(mapAppointmentDto)))
-            .catch(() => { /* keep localStorage-seeded state on API failure */ });
+
+        setLoadError("");
+        Promise.all([
+            appointmentService.getByUser(userId),
+            examSettingsService.get(),
+        ])
+            .then(([items, settings]) => {
+                setAppointments(items.map(mapAppointmentDto));
+                setExamSettings(mapExamSettingsDto(settings));
+            })
+            .catch(() => {
+                setAppointments([]);
+                setLoadError("Programările nu au putut fi încărcate din backend.");
+            });
     }, [user?.id]);
 
     const userAppointments = useMemo(() => {
         if (!user?.email) return [];
         const email = user.email.toLowerCase();
         return appointments
-            .filter((a) => (a.userEmail ?? '').toLowerCase() === email || !a.userEmail)
+            .filter((a) => (a.userEmail ?? "").toLowerCase() === email || !a.userEmail)
             .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }, [appointments, user?.email]);
 
@@ -58,39 +74,36 @@ export const useUserAppointmentsPageController = () => {
         (appointment.status === "pending" || appointment.status === "approved") &&
         (appointment.rescheduleCount || 0) < examSettings.maxReschedulesPerUser;
 
+    const reloadAppointments = async () => {
+        const userId = user?.id ? parseInt(user.id, 10) : null;
+        if (!userId || isNaN(userId)) return;
+        const items = await appointmentService.getByUser(userId);
+        setAppointments(items.map(mapAppointmentDto));
+    };
+
     const handleCancelAppointment = async (appointmentId: string) => {
         const target = appointments.find((a) => a.id === appointmentId);
         if (!target) return;
 
         const updatedAt = new Date().toISOString();
         const numericId = parseInt(appointmentId, 10);
+        if (isNaN(numericId)) {
+            setLoadError("Programarea nu are identificator valid pentru backend.");
+            return;
+        }
 
-        if (!isNaN(numericId)) {
-            try {
-                await appointmentService.updateStatus(numericId, {
-                    status: "cancelled",
-                    statusReason: "Anulată din dashboard de utilizator",
-                    cancelledBy: "user",
-                });
-                const userId = user?.id ? parseInt(user.id, 10) : null;
-                if (userId) {
-                    const items = await appointmentService.getByUser(userId);
-                    const mapped = items.map(mapAppointmentDto);
-                    setAppointments(mapped);
-                    writeAppointments(mapped);
-                }
-            } catch (err) {
-                console.error("Failed to cancel appointment:", err);
-                return;
-            }
-        } else {
-            const nextAppointments = appointments.map((a) =>
-                a.id === appointmentId
-                    ? { ...a, status: "cancelled" as AppointmentStatus, cancelledBy: "user" as const, statusReason: "Anulată din dashboard de utilizator", updatedAt }
-                    : a
-            );
-            writeAppointments(nextAppointments);
-            setAppointments(nextAppointments);
+        try {
+            await appointmentService.updateStatus(numericId, {
+                status: "cancelled",
+                statusReason: "Anulată din dashboard de utilizator",
+                cancelledBy: "user",
+            });
+            await reloadAppointments();
+            setLoadError("");
+        } catch (err) {
+            console.error("Failed to cancel appointment:", err);
+            setLoadError("Programarea nu a putut fi anulată în backend.");
+            return;
         }
 
         notifyUser(user?.email, {
@@ -118,6 +131,7 @@ export const useUserAppointmentsPageController = () => {
     return {
         examSettings,
         userAppointments,
+        loadError,
         canCancelAppointment,
         canRescheduleAppointment,
         handleCancelAppointment,

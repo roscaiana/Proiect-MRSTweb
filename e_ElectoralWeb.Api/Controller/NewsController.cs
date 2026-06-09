@@ -12,9 +12,8 @@ public class NewsController : ControllerBase
 {
     private readonly INewsAction _news;
 
-    public NewsController()
+    public NewsController(BusinessLogic bl)
     {
-        var bl = new BusinessLogic();
         _news = bl.NewsAction();
     }
 

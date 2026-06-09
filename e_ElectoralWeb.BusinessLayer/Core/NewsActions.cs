@@ -8,11 +8,16 @@ namespace e_ElectoralWeb.BusinessLayer.Core;
 
 public class NewsActions
 {
-    protected NewsActions() { }
+    private readonly QuizDbContext _context;
+
+    protected NewsActions(QuizDbContext context)
+    {
+        _context = context;
+    }
 
     protected async Task<List<NewsDto>> GetAllNewsActionExecutionAsync()
     {
-        using var context = new QuizDbContext();
+        var context = _context;
         return await context.News
             .OrderByDescending(n => n.PublishedAt)
             .Select(n => new NewsDto
@@ -32,7 +37,7 @@ public class NewsActions
 
     protected async Task<NewsDto?> GetNewsByIdActionExecutionAsync(int id)
     {
-        using var context = new QuizDbContext();
+        var context = _context;
         return await context.News
             .Where(n => n.Id == id)
             .Select(n => new NewsDto
@@ -62,7 +67,7 @@ public class NewsActions
             return new ActionResponce { IsSuccess = false, Message = "Image is required." };
 
         var now = DateTime.UtcNow;
-        using var context = new QuizDbContext();
+        var context = _context;
 
         var entity = new NewsData
         {
@@ -95,7 +100,7 @@ public class NewsActions
         if (string.IsNullOrWhiteSpace(data.Image))
             return new ActionResponce { IsSuccess = false, Message = "Image is required." };
 
-        using var context = new QuizDbContext();
+        var context = _context;
         var entity = await context.News.FirstOrDefaultAsync(n => n.Id == data.Id);
         if (entity == null)
             return new ActionResponce { IsSuccess = false, Message = "News article not found." };
@@ -116,7 +121,7 @@ public class NewsActions
 
     protected async Task<ActionResponce> DeleteNewsActionExecutionAsync(int id)
     {
-        using var context = new QuizDbContext();
+        var context = _context;
         var entity = await context.News.FirstOrDefaultAsync(n => n.Id == id);
         if (entity == null)
             return new ActionResponce { IsSuccess = false, Message = "News article not found." };

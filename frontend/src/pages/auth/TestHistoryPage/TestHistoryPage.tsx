@@ -1,16 +1,15 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useStorageSync } from "../../../hooks/useStorageSync";
 import { Link } from "react-router-dom";
-import { readExamSettings, readQuizHistory, STORAGE_KEYS } from "../../../features/admin/storage";
+import { DEFAULT_SETTINGS } from "../../../features/admin/storage";
 import { formatDateTimeLong } from "../../../utils/dateUtils";
 import type { QuizHistoryRecord } from "../../../features/admin/types";
 import { useAuth } from "../../../hooks/useAuth";
 import { APP_ROUTES } from "../../../routes/appRoutes";
 import TestHistoryEntryCard from "./TestHistoryEntryCard";
 import { quizResultService } from "../../../services/quizResultService";
+import { examSettingsService } from "../../../services/examSettingsService";
 import type { QuizResultDto } from "../../../services/types";
 import "./TestHistoryPage.css";
-
 
 const getShortPackageName = (value: string): string => {
     if (value.length <= 44) {
@@ -35,19 +34,27 @@ const mapQuizResultDto = (dto: QuizResultDto, userEmail?: string): QuizHistoryRe
 
 const TestHistoryPage: React.FC = () => {
     const { user } = useAuth();
-    const [history, setHistory] = useState<QuizHistoryRecord[]>(() => readQuizHistory());
-    const [passThreshold, setPassThreshold] = useState<number>(() => readExamSettings().passingThreshold);
-
-    useStorageSync([STORAGE_KEYS.settings], () => {
-        setPassThreshold(readExamSettings().passingThreshold);
-    });
+    const [history, setHistory] = useState<QuizHistoryRecord[]>([]);
+    const [passThreshold, setPassThreshold] = useState<number>(DEFAULT_SETTINGS.passingThreshold);
+    const [loadError, setLoadError] = useState("");
 
     useEffect(() => {
         const userId = user?.id ? parseInt(user.id, 10) : null;
         if (!userId || isNaN(userId)) return;
-        quizResultService.getByUser(userId)
-            .then((items) => setHistory(items.map((dto) => mapQuizResultDto(dto, user?.email))))
-            .catch(() => { /* keep localStorage-seeded state on API failure */ });
+
+        setLoadError("");
+        Promise.all([
+            quizResultService.getByUser(userId),
+            examSettingsService.get(),
+        ])
+            .then(([items, settings]) => {
+                setHistory(items.map((dto) => mapQuizResultDto(dto, user?.email)));
+                setPassThreshold(settings.passingThreshold);
+            })
+            .catch(() => {
+                setHistory([]);
+                setLoadError("Istoricul testelor nu a putut fi încărcat din backend.");
+            });
     }, [user?.id, user?.email]);
 
     const userHistory = useMemo(() => {
@@ -88,6 +95,12 @@ const TestHistoryPage: React.FC = () => {
                     Înapoi la profil
                 </Link>
             </div>
+
+            {loadError && (
+                <div className="test-history-page__alert" role="alert">
+                    {loadError}
+                </div>
+            )}
 
             <div className="test-history-page__stats">
                 <article className="test-history-page__stat-card">

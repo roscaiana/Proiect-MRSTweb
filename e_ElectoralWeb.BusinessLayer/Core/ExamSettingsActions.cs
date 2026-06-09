@@ -15,11 +15,16 @@ public class ExamSettingsActions
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
-    protected ExamSettingsActions() { }
+    private readonly QuizDbContext _context;
+
+    protected ExamSettingsActions(QuizDbContext context)
+    {
+        _context = context;
+    }
 
     protected async Task<ExamSettingsDto> GetActionExecutionAsync()
     {
-        using var context = new QuizDbContext();
+        var context = _context;
         var entity = await context.ExamSettings.FirstOrDefaultAsync();
         if (entity == null)
             return BuildDefault();
@@ -28,7 +33,7 @@ public class ExamSettingsActions
 
     protected async Task<ActionResponce> UpdateActionExecutionAsync(ExamSettingsDto dto)
     {
-        using var context = new QuizDbContext();
+        var context = _context;
         var entity = await context.ExamSettings.FirstOrDefaultAsync();
         if (entity == null)
         {

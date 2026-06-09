@@ -8,7 +8,12 @@ namespace e_ElectoralWeb.BusinessLayer.Core;
 
 public class AppointmentActions
 {
-    protected AppointmentActions() { }
+    private readonly QuizDbContext _context;
+
+    protected AppointmentActions(QuizDbContext context)
+    {
+        _context = context;
+    }
 
     protected async Task<ActionResponce> CreateAppointmentExecutionAsync(AppointmentCreateDto data)
     {
@@ -21,7 +26,7 @@ public class AppointmentActions
         if (string.IsNullOrWhiteSpace(data.SlotEnd))
             return new ActionResponce { IsSuccess = false, Message = "SlotEnd is required." };
 
-        using var context = new QuizDbContext();
+        var context = _context;
 
         var entity = new AppointmentData
         {
@@ -45,7 +50,7 @@ public class AppointmentActions
 
     protected async Task<List<AppointmentDto>> GetAllAppointmentsExecutionAsync()
     {
-        using var context = new QuizDbContext();
+        var context = _context;
         return await context.Appointments
             .OrderByDescending(a => a.CreatedAt)
             .Select(a => MapToDto(a))
@@ -54,7 +59,7 @@ public class AppointmentActions
 
     protected async Task<List<AppointmentDto>> GetAppointmentsByUserExecutionAsync(int userId)
     {
-        using var context = new QuizDbContext();
+        var context = _context;
         return await context.Appointments
             .Where(a => a.UserId == userId)
             .OrderByDescending(a => a.CreatedAt)
@@ -64,7 +69,7 @@ public class AppointmentActions
 
     protected async Task<AppointmentDto?> GetAppointmentByIdExecutionAsync(int id)
     {
-        using var context = new QuizDbContext();
+        var context = _context;
         var entity = await context.Appointments.FirstOrDefaultAsync(a => a.Id == id);
         if (entity == null) return null;
         return MapToDto(entity);
@@ -78,7 +83,7 @@ public class AppointmentActions
         if (!Enum.TryParse<AppointmentStatus>(data.Status, ignoreCase: true, out var parsedStatus))
             return new ActionResponce { IsSuccess = false, Message = $"Invalid status value: {data.Status}." };
 
-        using var context = new QuizDbContext();
+        var context = _context;
 
         var entity = await context.Appointments.FirstOrDefaultAsync(a => a.Id == id);
         if (entity == null)
@@ -97,7 +102,7 @@ public class AppointmentActions
 
     protected async Task<ActionResponce> UpdateAppointmentExecutionAsync(int id, AppointmentDto data)
     {
-        using var context = new QuizDbContext();
+        var context = _context;
 
         var entity = await context.Appointments.FirstOrDefaultAsync(a => a.Id == id);
         if (entity == null)

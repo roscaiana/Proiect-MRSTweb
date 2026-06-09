@@ -13,9 +13,8 @@ public class AppointmentController : ControllerBase
 {
     private readonly IAppointmentAction _appointmentAction;
 
-    public AppointmentController()
+    public AppointmentController(BusinessLogic bl)
     {
-        var bl = new BusinessLogic();
         _appointmentAction = bl.AppointmentAction();
     }
 

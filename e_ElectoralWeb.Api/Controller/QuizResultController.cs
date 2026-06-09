@@ -13,9 +13,8 @@ public class QuizResultController : ControllerBase
 {
     private readonly IQuizResultAction _quizResultAction;
 
-    public QuizResultController()
+    public QuizResultController(BusinessLogic bl)
     {
-        var bl = new BusinessLogic();
         _quizResultAction = bl.QuizResultAction();
     }
 

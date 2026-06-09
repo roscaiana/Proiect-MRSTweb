@@ -14,7 +14,12 @@ public class QuizSessionActions
     private const int DefaultQuestionCount = 30;
     private const int DefaultDurationMinutes = 30;
 
-    protected QuizSessionActions() { }
+    private readonly QuizDbContext _context;
+
+    protected QuizSessionActions(QuizDbContext context)
+    {
+        _context = context;
+    }
 
     protected async Task<ActionResponce> StartSessionActionExecutionAsync(QuizSessionStartRequestDto data, int? userId)
     {
@@ -38,7 +43,7 @@ public class QuizSessionActions
         var durationMinutes = data.DurationMinutes <= 0 ? DefaultDurationMinutes : data.DurationMinutes;
         var durationSeconds = durationMinutes * 60;
 
-        using var context = new QuizDbContext();
+        var context = _context;
 
         var quizExists = await context.Quizzes.AnyAsync(q => q.Id == data.QuizId);
         if (!quizExists)

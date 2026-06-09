@@ -12,9 +12,8 @@ public class ContactController : ControllerBase
 {
     private readonly IContactAction _contactAction;
 
-    public ContactController()
+    public ContactController(BusinessLogic bl)
     {
-        var bl = new BusinessLogic();
         _contactAction = bl.ContactAction();
     }
 

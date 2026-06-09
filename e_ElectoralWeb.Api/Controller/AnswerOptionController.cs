@@ -12,9 +12,8 @@ namespace e_ElectoralWeb.Api.Controller
     {
         private readonly IAnswerOptionAction _answerOptionAction;
 
-        public AnswerOptionController()
+        public AnswerOptionController(BusinessLogic bl)
         {
-            var bl = new BusinessLogic();
             _answerOptionAction = bl.AnswerOptionAction();
         }
 

@@ -1,4 +1,5 @@
 using e_ElectoralWeb.Api.Seed;
+using e_ElectoralWeb.BusinessLayer;
 using e_ElectoralWeb.DataAccessLayer;
 using e_ElectoralWeb.DataAccessLayer.Context;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -23,6 +24,7 @@ if (jwtSecretKey.Length < 32)
 var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey));
 
 builder.Services.AddDbContext<QuizDbContext>();
+builder.Services.AddScoped<BusinessLogic>();
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>

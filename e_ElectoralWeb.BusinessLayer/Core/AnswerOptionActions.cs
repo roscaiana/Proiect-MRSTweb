@@ -8,13 +8,16 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 {
     public class AnswerOptionActions
     {
-        protected AnswerOptionActions()
+        private readonly QuizDbContext _context;
+
+        protected AnswerOptionActions(QuizDbContext context)
         {
+            _context = context;
         }
 
         protected async Task<List<AnswerOptionDto>> GetAllAnswerOptionsActionExecutionAsync()
         {
-            using var context = new QuizDbContext();
+            var context = _context;
             return await context.AnswerOptions
                 .Select(a => new AnswerOptionDto
                 {
@@ -28,7 +31,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
         protected async Task<List<AnswerOptionPublicDto>> GetAllPublicAnswerOptionsActionExecutionAsync()
         {
-            using var context = new QuizDbContext();
+            var context = _context;
             return await context.AnswerOptions
                 .Select(a => new AnswerOptionPublicDto
                 {
@@ -41,7 +44,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
         protected async Task<AnswerOptionDto?> GetAnswerOptionByIdActionExecutionAsync(int id)
         {
-            using var context = new QuizDbContext();
+            var context = _context;
             return await context.AnswerOptions
                 .Where(a => a.Id == id)
                 .Select(a => new AnswerOptionDto
@@ -56,7 +59,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
         protected async Task<List<AnswerOptionDto>> GetAnswerOptionsByQuestionActionExecutionAsync(int questionId)
         {
-            using var context = new QuizDbContext();
+            var context = _context;
             return await context.AnswerOptions
                 .Where(a => a.QuestionId == questionId)
                 .Select(a => new AnswerOptionDto
@@ -71,7 +74,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
         protected async Task<List<AnswerOptionPublicDto>> GetPublicAnswerOptionsByQuestionActionExecutionAsync(int questionId)
         {
-            using var context = new QuizDbContext();
+            var context = _context;
             return await context.AnswerOptions
                 .Where(a => a.QuestionId == questionId)
                 .Select(a => new AnswerOptionPublicDto
@@ -94,7 +97,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                 };
             }
 
-            using (var context = new QuizDbContext())
+            var context = _context;
             {
                 var questionExists = await context.Questions.AnyAsync(q => q.Id == data.QuestionId);
                 if (!questionExists)
@@ -171,7 +174,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                 };
             }
 
-            using (var context = new QuizDbContext())
+            var context = _context;
             {
                 var entity = await context.AnswerOptions.FirstOrDefaultAsync(a => a.Id == data.Id);
                 if (entity == null)
@@ -239,7 +242,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
         protected async Task<ActionResponce> DeleteAnswerOptionActionExecutionAsync(int id)
         {
-            using (var context = new QuizDbContext())
+            var context = _context;
             {
                 var entity = await context.AnswerOptions.FirstOrDefaultAsync(a => a.Id == id);
                 if (entity == null)

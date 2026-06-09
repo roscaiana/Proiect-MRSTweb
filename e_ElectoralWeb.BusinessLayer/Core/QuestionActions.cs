@@ -8,13 +8,16 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 {
     public class QuestionActions
     {
-        protected QuestionActions()
+        private readonly QuizDbContext _context;
+
+        protected QuestionActions(QuizDbContext context)
         {
+            _context = context;
         }
 
         protected async Task<List<QuestionDto>> GetAllQuestionsActionExecutionAsync()
         {
-            using var context = new QuizDbContext();
+            var context = _context;
             return await context.Questions
                 .Select(q => new QuestionDto
                 {
@@ -27,7 +30,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
         protected async Task<QuestionDto?> GetQuestionByIdActionExecutionAsync(int id)
         {
-            using var context = new QuizDbContext();
+            var context = _context;
             return await context.Questions
                 .Where(q => q.Id == id)
                 .Select(q => new QuestionDto
@@ -41,7 +44,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
         protected async Task<List<QuestionDto>> GetQuestionsByQuizActionExecutionAsync(int quizId)
         {
-            using var context = new QuizDbContext();
+            var context = _context;
             return await context.Questions
                 .Where(q => q.QuizId == quizId)
                 .Select(q => new QuestionDto
@@ -65,7 +68,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
             }
 
             var createdId = 0;
-            using (var context = new QuizDbContext())
+            var context = _context;
             {
                 var quizExists = await context.Quizzes.AnyAsync(q => q.Id == data.QuizId);
                 if (!quizExists)
@@ -128,7 +131,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                 };
             }
 
-            using (var context = new QuizDbContext())
+            var context = _context;
             {
                 var entity = await context.Questions.FirstOrDefaultAsync(q => q.Id == data.Id);
                 if (entity == null)
@@ -179,7 +182,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
         protected async Task<ActionResponce> DeleteQuestionActionExecutionAsync(int id)
         {
-            using (var context = new QuizDbContext())
+            var context = _context;
             {
                 var entity = await context.Questions.FirstOrDefaultAsync(q => q.Id == id);
                 if (entity == null)
