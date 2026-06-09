@@ -30,6 +30,7 @@ export type AdminAction =
 
 export type AdminPanelContextValue = {
     state: AdminState;
+    loadError: string | null;
     createTest: (input: AdminTestInput) => void;
     updateTest: (id: string, input: AdminTestInput) => void;
     deleteTest: (id: string) => void;

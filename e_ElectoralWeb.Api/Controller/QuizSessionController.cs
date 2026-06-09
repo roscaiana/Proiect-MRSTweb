@@ -25,7 +25,13 @@ public class QuizSessionController : ControllerBase
     {
         try
         {
-            var result = await _quizSessionAction.StartSessionActionAsync(dto, GetUserId());
+            var userId = GetUserId();
+            if (string.Equals(dto.Mode, "exam", StringComparison.OrdinalIgnoreCase) && !userId.HasValue)
+            {
+                return Unauthorized("Pentru examen trebuie să fii autentificat.");
+            }
+
+            var result = await _quizSessionAction.StartSessionActionAsync(dto, userId);
             if (!result.IsSuccess) return BadRequest(result);
             return Created(string.Empty, result);
         }

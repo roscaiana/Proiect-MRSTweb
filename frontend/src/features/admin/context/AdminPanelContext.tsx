@@ -1,10 +1,8 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useReducer } from "react";
-import { loadAdminState } from "../storage";
-import type { AdminAppointmentRecord, AdminNewsArticle, AdminUserRecord, AppointmentStatus } from "../types";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useState } from "react";
+import { createEmptyAdminState } from "../storage";
+import type { AdminAppointmentRecord, AdminNewsArticle, AdminState, AdminUserRecord, AppointmentStatus } from "../types";
 import type { AdminPanelContextValue } from "./adminPanelTypes";
 import { adminPanelReducer } from "./adminPanelReducer";
-import { useAdminPanelStorageListener } from "./useAdminPanelStorageListener";
-import { useAdminPanelPersistence } from "./useAdminPanelPersistence";
 import { useAdminPanelCrudActions } from "./useAdminPanelCrudActions";
 import { useAdminPanelAppointmentStatusAction } from "./useAdminPanelAppointmentStatusAction";
 import { useAdminPanelSendNotificationAction } from "./useAdminPanelSendNotificationAction";
@@ -79,39 +77,43 @@ const mapExamSettingsDto = (dto: ExamSettingsDto): ExamSettings => ({
 const AdminPanelContext = createContext<AdminPanelContextValue | undefined>(undefined);
 
 export const AdminPanelProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [state, dispatch] = useReducer(adminPanelReducer, undefined, loadAdminState);
-    const refreshState = useCallback(() => { dispatch({ type: "hydrate", payload: loadAdminState() }); }, []);
+    const [state, dispatch] = useReducer(adminPanelReducer, undefined, createEmptyAdminState);
+    const [loadError, setLoadError] = useState<string | null>(null);
 
-    useEffect(() => {
+    const refreshState = useCallback(() => {
+        const failedResources: string[] = [];
+        const markFailed = (resource: string, error: unknown) => {
+            failedResources.push(resource);
+            console.error(`Failed to load ${resource} from API:`, error);
+            setLoadError(`Nu s-au putut încărca din API: ${failedResources.join(", ")}.`);
+        };
+
+        setLoadError(null);
+
         examSettingsService.get()
             .then((dto) => {
                 const settings = mapExamSettingsDto(dto);
                 dispatch({ type: "settings/update", payload: settings });
                 writeExamSettings(settings);
             })
-            .catch(() => { /* keep localStorage-seeded state on API failure */ });
-    }, []);
+            .catch((error) => markFailed("setările examenului", error));
 
-    useEffect(() => {
         newsService.getAll()
             .then((items) => dispatch({ type: "news/set", payload: items.map(mapNewsDto) }))
-            .catch(() => { /* keep localStorage-seeded state on API failure */ });
-    }, []);
+            .catch((error) => markFailed("noutățile", error));
 
-    useEffect(() => {
         appointmentService.getAll()
             .then((items) => dispatch({ type: "appointments/set", payload: items.map(mapAppointmentDto) }))
-            .catch(() => { /* keep localStorage-seeded state on API failure */ });
+            .catch((error) => markFailed("programările", error));
+
+        userService.getAll()
+            .then((items) => dispatch({ type: "users/set", payload: items.map(mapUserDto) }))
+            .catch((error) => markFailed("utilizatorii", error));
     }, []);
 
     useEffect(() => {
-        userService.getAll()
-            .then((items) => dispatch({ type: "users/set", payload: items.map(mapUserDto) }))
-            .catch(() => { /* keep localStorage-seeded state on API failure */ });
-    }, []);
-
-    useAdminPanelStorageListener(refreshState);
-    useAdminPanelPersistence(state);
+        refreshState();
+    }, [refreshState]);
 
     const crud = useAdminPanelCrudActions(state, dispatch);
     const updateAppointmentStatus = useAdminPanelAppointmentStatusAction(state, dispatch);
@@ -119,11 +121,12 @@ export const AdminPanelProvider: React.FC<{ children: React.ReactNode }> = ({ ch
 
     const value = useMemo<AdminPanelContextValue>(() => ({
         state,
+        loadError,
         ...crud,
         updateAppointmentStatus,
         sendNotification,
         refreshState,
-    }), [state, crud, updateAppointmentStatus, sendNotification, refreshState]);
+    }), [state, loadError, crud, updateAppointmentStatus, sendNotification, refreshState]);
 
     return <AdminPanelContext.Provider value={value}>{children}</AdminPanelContext.Provider>;
 };

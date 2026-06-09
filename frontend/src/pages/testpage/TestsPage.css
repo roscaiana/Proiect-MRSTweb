@@ -336,6 +336,17 @@
     font-weight: 700;
 }
 
+.tests-page .mode-warning {
+    margin-top: 12px;
+    border: 1px solid #f3c46e;
+    border-radius: 12px;
+    background: #fff7e5;
+    color: #7a5518;
+    padding: 12px 14px;
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
 .tests-page .quiz-layout {
     display: grid;
     grid-template-columns: 1fr;

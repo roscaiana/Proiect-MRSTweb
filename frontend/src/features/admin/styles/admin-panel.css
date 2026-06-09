@@ -1,4 +1,4 @@
-.admin-panel-page {
+﻿.admin-panel-page {
     max-width: 1400px;
     margin: 0 auto;
     padding: 32px 20px 48px;
@@ -62,6 +62,32 @@
 
 .admin-main-content {
     min-width: 0;
+}
+
+.admin-api-error {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding: 14px 16px;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    background: #fff5f5;
+    color: #7f1d1d;
+}
+
+.admin-api-error div {
+    display: grid;
+    gap: 4px;
+}
+
+.admin-api-error strong {
+    font-size: 0.95rem;
+}
+
+.admin-api-error span {
+    font-size: 0.88rem;
 }
 
 .admin-page-content {

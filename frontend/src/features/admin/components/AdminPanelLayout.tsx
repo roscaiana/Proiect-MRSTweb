@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+﻿import React, { useEffect, useState } from "react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../hooks/useAuth";
+import { useAdminPanel } from "../hooks/useAdminPanel";
 import AdminPanelNavLink from "./AdminPanelNavLink";
 import "../styles/admin-panel.css";
 
@@ -16,6 +17,7 @@ const navItems = [
 
 const AdminPanelLayout: React.FC = () => {
     const { user, logout } = useAuth();
+    const { loadError, refreshState } = useAdminPanel();
     const navigate = useNavigate();
     const location = useLocation();
     const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
@@ -149,6 +151,17 @@ const AdminPanelLayout: React.FC = () => {
                     </aside>
 
                     <main className="admin-main-content">
+                        {loadError && (
+                            <div className="admin-api-error" role="alert">
+                                <div>
+                                    <strong>Datele admin nu au fost încărcate complet.</strong>
+                                    <span>{loadError}</span>
+                                </div>
+                                <button type="button" className="admin-btn secondary" onClick={refreshState}>
+                                    Reîncarcă
+                                </button>
+                            </div>
+                        )}
                         <Outlet />
                     </main>
                 </div>

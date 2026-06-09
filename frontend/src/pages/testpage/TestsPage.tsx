@@ -41,8 +41,25 @@ const TestsPage: React.FC = () => {
         setExamSettings(readExamSettings());
     });
 
+    const handleSelectQuizMode = (mode: QuizMode) => {
+        if (mode === "exam" && !user) {
+            setQuizMode("training");
+            setSubmitWarning("Poți trece pe modul Examen doar dacă ești autentificat.");
+            return;
+        }
+
+        setQuizMode(mode);
+        setSubmitWarning("");
+    };
+
     const startQuiz = async (categoryId: string, mode: QuizMode = quizMode) => {
         quizUserRef.current = { email: user?.email, fullName: user?.fullName };
+
+        if (mode === "exam" && !user) {
+            setQuizMode("training");
+            setSubmitWarning("Poți trece pe modul Examen doar dacă ești autentificat.");
+            return;
+        }
 
         setQuizMode(mode);
         setSubmitWarning("");
@@ -379,7 +396,8 @@ const TestsPage: React.FC = () => {
     return (
         <TestsHomeView
             quizMode={quizMode}
-            onSelectMode={setQuizMode}
+            onSelectMode={handleSelectQuizMode}
+            modeWarning={submitWarning}
             examSettings={examSettings}
             categories={categories}
             durationByCategoryId={{}}

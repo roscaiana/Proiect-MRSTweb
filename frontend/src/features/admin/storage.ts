@@ -1,4 +1,4 @@
-import { quizCategories, questionBanks } from "../../data/quizData";
+﻿import { quizCategories, questionBanks } from "../../data/quizData";
 import { assertNoSimulatedServerError } from "../../utils/serverErrorSimulation";
 import { emitStorageUpdate } from "../../utils/storageEvents";
 import type {
@@ -26,7 +26,7 @@ const ensureNoSimulatedServerError = (): void => {
     assertNoSimulatedServerError();
 };
 
-const DEFAULT_SETTINGS: ExamSettings = {
+export const DEFAULT_SETTINGS: ExamSettings = {
     testQuestionCount: 30,
     testDurationMinutes: 30,
     passingThreshold: 70,
@@ -575,15 +575,12 @@ export const writeAdminNews = (news: AdminNewsArticle[]): void => {
     emitStorageUpdate(STORAGE_KEYS.news);
 };
 
-export const loadAdminState = (): AdminState => {
-    ensureNoSimulatedServerError();
-    return {
-        tests: readAdminTests(),
-        settings: readExamSettings(),
-        users: readAdminUsers(),
-        appointments: readAppointments(),
-        quizHistory: readQuizHistory(),
-        sentNotifications: readSentNotifications(),
-        news: readAdminNews(),
-    };
-};
+export const createEmptyAdminState = (): AdminState => ({
+    tests: [],
+    settings: DEFAULT_SETTINGS,
+    users: [],
+    appointments: [],
+    quizHistory: [],
+    sentNotifications: [],
+    news: [],
+});
