@@ -3,6 +3,7 @@ type QuestionOptionButtonProps = {
     option: string;
     selected: boolean;
     stateClass: string;
+    disabled?: boolean;
     onSelect: (index: number) => void;
 };
 
@@ -11,11 +12,13 @@ export default function QuestionOptionButton({
     option,
     selected,
     stateClass,
+    disabled = false,
     onSelect,
 }: QuestionOptionButtonProps) {
     return (
         <button
             className={`option-btn ${selected ? "selected" : ""} ${stateClass}`.trim()}
+            disabled={disabled}
             onClick={() => onSelect(index)}
             type="button"
         >

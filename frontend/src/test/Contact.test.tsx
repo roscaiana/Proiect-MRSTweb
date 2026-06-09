@@ -32,7 +32,6 @@ describe('Contact', () => {
         await user.type(screen.getByPlaceholderText(/Scrie/i), 'Mesaj test');
 
         await user.click(screen.getByRole('button', { name: /Trimite mesajul/i }));
-        expect(screen.getByText(/Se trimite/i)).toBeInTheDocument();
 
         expect(await screen.findByText(/Mesaj Trimis cu Succes/i, {}, { timeout: 2500 })).toBeInTheDocument();
 

@@ -13,9 +13,8 @@ namespace e_ElectoralWeb.Api.Controller
     {
         private readonly IUserRegAction _userReg;
 
-        public RegisterController()
+        public RegisterController(BusinessLogic bl)
         {
-            var bl = new BusinessLogic();
             _userReg = bl.UserRegAction();
         }
 

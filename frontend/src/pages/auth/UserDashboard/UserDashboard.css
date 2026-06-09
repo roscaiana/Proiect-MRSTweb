@@ -88,6 +88,16 @@ body {
     margin-top: 6px;
 }
 
+.dashboard-alert {
+    margin-bottom: 16px;
+    border: 1px solid var(--error-soft-border);
+    border-radius: 12px;
+    background: var(--error-soft-bg);
+    color: var(--error-soft-text);
+    padding: 12px 14px;
+    font-weight: 700;
+}
+
 .dashboard-header h1 {
     font-size: 32px;
     font-weight: 700;

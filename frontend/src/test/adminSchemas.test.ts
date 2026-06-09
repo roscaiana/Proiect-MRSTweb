@@ -36,6 +36,7 @@ describe('adminSchemas', () => {
 
     it('coerces admin settings numeric fields', () => {
         const result = adminSettingsSchema.safeParse({
+            testQuestionCount: '30',
             testDurationMinutes: '30',
             passingThreshold: '70',
             appointmentsPerDay: '10',

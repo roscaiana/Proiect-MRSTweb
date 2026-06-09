@@ -8,13 +8,16 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 {
     public class QuizActions
     {
-        protected QuizActions()
+        private readonly QuizDbContext _context;
+
+        protected QuizActions(QuizDbContext context)
         {
+            _context = context;
         }
 
         protected async Task<List<QuizDto>> GetAllQuizzesActionExecutionAsync()
         {
-            using var context = new QuizDbContext();
+            var context = _context;
             return await context.Quizzes
                 .Select(q => new QuizDto
                 {
@@ -27,7 +30,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
         protected async Task<QuizDto?> GetQuizByIdActionExecutionAsync(int id)
         {
-            using var context = new QuizDbContext();
+            var context = _context;
             return await context.Quizzes
                 .Where(q => q.Id == id)
                 .Select(q => new QuizDto
@@ -51,7 +54,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
             }
 
             var createdId = 0;
-            using (var context = new QuizDbContext())
+            var context = _context;
             {
                 var titleExists = await context.Quizzes.AnyAsync(q => q.Title == data.Title);
                 if (titleExists)
@@ -102,7 +105,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
                 };
             }
 
-            using (var context = new QuizDbContext())
+            var context = _context;
             {
                 var entity = await context.Quizzes.FirstOrDefaultAsync(q => q.Id == data.Id);
                 if (entity == null)
@@ -142,7 +145,7 @@ namespace e_ElectoralWeb.BusinessLayer.Core
 
         protected async Task<ActionResponce> DeleteQuizActionExecutionAsync(int id)
         {
-            using (var context = new QuizDbContext())
+            var context = _context;
             {
                 var entity = await context.Quizzes.FirstOrDefaultAsync(q => q.Id == id);
                 if (entity == null)

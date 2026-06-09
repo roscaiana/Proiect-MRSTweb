@@ -25,6 +25,7 @@ export interface QuizCategory {
 export type QuizMode = "training" | "exam";
 
 export interface QuizSession {
+  sessionId?: string;
   categoryId: string;
   mode: QuizMode;
   questions: Question[];

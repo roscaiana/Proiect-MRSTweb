@@ -12,9 +12,8 @@ public class ExamSettingsController : ControllerBase
 {
     private readonly IExamSettingsAction _examSettings;
 
-    public ExamSettingsController()
+    public ExamSettingsController(BusinessLogic bl)
     {
-        var bl = new BusinessLogic();
         _examSettings = bl.ExamSettingsAction();
     }
 

@@ -36,6 +36,16 @@
     font-weight: 700;
 }
 
+.test-history-page__alert {
+    margin-bottom: 16px;
+    border: 1px solid #fecdd3;
+    border-radius: 12px;
+    background: #fff1f2;
+    color: #be123c;
+    padding: 12px 14px;
+    font-weight: 700;
+}
+
 .test-history-page__stats {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));

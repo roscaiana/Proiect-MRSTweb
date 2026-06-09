@@ -20,6 +20,7 @@ export const adminPanelReducer = (state: AdminState, action: AdminAction): Admin
         case "news/update": return updateNewsReducer(state, action.payload);
         case "news/delete": return deleteNewsReducer(state, action.payload);
         case "appointments/set": return { ...state, appointments: action.payload };
+        case "users/set": return { ...state, users: action.payload };
         case "news/set": return { ...state, news: action.payload };
         default: return state;
     }

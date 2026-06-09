@@ -1,4 +1,4 @@
-import { quizCategories, questionBanks } from "../../data/quizData";
+﻿import { quizCategories, questionBanks } from "../../data/quizData";
 import { assertNoSimulatedServerError } from "../../utils/serverErrorSimulation";
 import { emitStorageUpdate } from "../../utils/storageEvents";
 import type {
@@ -26,7 +26,7 @@ const ensureNoSimulatedServerError = (): void => {
     assertNoSimulatedServerError();
 };
 
-const DEFAULT_SETTINGS: ExamSettings = {
+export const DEFAULT_SETTINGS: ExamSettings = {
     testQuestionCount: 30,
     testDurationMinutes: 30,
     passingThreshold: 70,
@@ -437,7 +437,7 @@ const SEED_NEWS: AdminNewsArticle[] = [
     { id: "news-1", title: "Rezultatele Sesiunii de Certificare 2025", description: "A fost finalizată centralizarea rezultatelor pentru sesiunea de certificare 2025. Felicitări celor 7764 de candidați care au promovat!", category: "Certificare", image: "cert", publishedAt: "2025-02-24T00:00:00.000Z", createdAt: "2025-02-24T00:00:00.000Z", updatedAt: "2025-02-24T00:00:00.000Z" },
     { id: "news-2", title: "Lansarea Programului de Instruire pentru Observatori", description: "CICDE lansează noul modul de instruire dedicat observatorilor naționali și internaționali pentru următoarele scrutine.", category: "Instruiri", image: "users", publishedAt: "2025-02-24T00:00:00.000Z", createdAt: "2025-02-24T00:00:00.000Z", updatedAt: "2025-02-24T00:00:00.000Z" },
     { id: "news-3", title: "Actualizări ale Codului Electoral: Ce trebuie să știți", description: "Analiza principalelor modificări aduse Codului Electoral și impactul acestora asupra procesului de certificare a funcționarilor.", category: "Legislativ", image: "law", publishedAt: "2025-02-24T00:00:00.000Z", createdAt: "2025-02-24T00:00:00.000Z", updatedAt: "2025-02-24T00:00:00.000Z" },
-    { id: "news-4", title: "Calendarul Electoral pentru Alegerile Locale 2026", description: "Consultă etapele principale și termenele limită pentru organizarea scrutinelelor locale de anul viitor.", category: "Evenimente", image: "calendar", publishedAt: "2025-02-24T00:00:00.000Z", createdAt: "2025-02-24T00:00:00.000Z", updatedAt: "2025-02-24T00:00:00.000Z" },
+    { id: "news-4", title: "Calendarul Electoral pentru Alegerile Locale 2026", description: "Consultă etapele principale și termenele limită pentru organizarea scrutinelor locale de anul viitor.", category: "Evenimente", image: "calendar", publishedAt: "2025-02-24T00:00:00.000Z", createdAt: "2025-02-24T00:00:00.000Z", updatedAt: "2025-02-24T00:00:00.000Z" },
     { id: "news-5", title: "Nouă Platformă e-Electoral: Ghid de Utilizare", description: "Am lansat o interfață modernizată pentru a facilita accesul la resursele de studiu și simulările de examen.", category: "Platformă", image: "web", publishedAt: "2025-02-24T00:00:00.000Z", createdAt: "2025-02-24T00:00:00.000Z", updatedAt: "2025-02-24T00:00:00.000Z" },
     { id: "news-6", title: "Parteneriat CICDE cu Organizații Internaționale", description: "Colaborare nouă pentru schimbul de bune practici în domeniul educației electorale la nivel european.", category: "Extern", image: "globe", publishedAt: "2025-02-24T00:00:00.000Z", createdAt: "2025-02-24T00:00:00.000Z", updatedAt: "2025-02-24T00:00:00.000Z" },
 ];
@@ -447,7 +447,7 @@ const DEFAULT_CICDE_NEWS: AdminNewsArticle[] = [
         id: "cicde-news-2026-graph",
         title: "Graficul examenelor de certificare pentru sesiunea 2026",
         description:
-            "CICDE a publicat programul examenelor pentru sesiunea 2026. Examenele se desfasoara in format fizic si virtual, iar inscrierea se face din contul de utilizator aprobat.",
+            "CICDE a publicat programul examenelor pentru sesiunea 2026. Examenele se desfășoară în format fizic și virtual, iar înscrierea se face din contul de utilizator aprobat.",
         category: "Sesiunea 2026",
         image: "/news/cicde-grafic-2026.png",
         sourceUrl: "https://certificare.cicde.md/news/show/44",
@@ -459,7 +459,7 @@ const DEFAULT_CICDE_NEWS: AdminNewsArticle[] = [
         id: "cicde-news-2025-results",
         title: "Rezultatele sesiunii de certificare 2025",
         description:
-            "In sesiunea 2025 au fost organizate 565 examene, cu 9570 participanti. Au promovat 7764 candidati, iar rata de promovare pe sesiune a fost de 82,3%.",
+            "În sesiunea 2025 au fost organizate 565 examene, cu 9570 participanți. Au promovat 7764 candidați, iar rata de promovare pe sesiune a fost de 82,3%.",
         category: "Rezultate",
         image: "/news/cicde-rezultate-2025.png",
         sourceUrl: "https://certificare.cicde.md/news/show/43",
@@ -471,7 +471,7 @@ const DEFAULT_CICDE_NEWS: AdminNewsArticle[] = [
         id: "cicde-news-2025-regulation",
         title: "Aprobarea noului regulament pentru certificare",
         description:
-            "Comisia Electorala Centrala a aprobat noua redactie a Regulamentului privind certificarea formarii/specializarii in domeniul electoral, cu aplicare in SICDE.",
+            "Comisia Electorală Centrală a aprobat noua redacție a Regulamentului privind certificarea formării/specializării în domeniul electoral, cu aplicare în SICDE.",
         category: "Cadrul normativ",
         image: "/news/cicde-regulament-2025.png",
         sourceUrl: "https://certificare.cicde.md/news/show/14",
@@ -481,10 +481,10 @@ const DEFAULT_CICDE_NEWS: AdminNewsArticle[] = [
     },
     {
         id: "cicde-news-2026-18-24-may",
-        title: "18-24 mai 2026: totalurile saptamanii",
+        title: "18-24 mai 2026: totaluri săptămânale",
         description:
-            "Au fost desfasurate 5 examene cu prezenta fizica in raioane. Din 72 participanti, 61 au promovat, cu rata de promovare de 84,72%.",
-        category: "Totaluri saptamanale",
+            "În perioada 18-24 mai 2026 au fost desfășurate 5 examene cu prezență fizică în raioane. Din 72 participanți, 61 au promovat, cu rata de promovare de 84,72%.",
+        category: "Totaluri săptămânale",
         image: "/news/cicde-18-24-mai-2026.jpg",
         sourceUrl: "https://certificare.cicde.md/news/show/50",
         publishedAt: "2026-05-25T00:00:00.000Z",
@@ -493,10 +493,10 @@ const DEFAULT_CICDE_NEWS: AdminNewsArticle[] = [
     },
     {
         id: "cicde-news-2026-04-17-may",
-        title: "04-17 mai 2026: totaluri saptamanale",
+        title: "04-17 mai 2026: totaluri săptămânale",
         description:
-            "CICDE a organizat 4 examene de certificare (online si fizic). Au participat 47 persoane, iar 41 au obtinut certificatul de calificare.",
-        category: "Totaluri saptamanale",
+            "CICDE a organizat 4 examene de certificare (online și fizic). Au participat 47 persoane, iar 41 au obținut certificatul de calificare.",
+        category: "Totaluri săptămânale",
         image: "/news/cicde-04-17-mai-2026.jpg",
         sourceUrl: "https://certificare.cicde.md/news/show/49",
         publishedAt: "2026-05-15T00:00:00.000Z",
@@ -505,10 +505,10 @@ const DEFAULT_CICDE_NEWS: AdminNewsArticle[] = [
     },
     {
         id: "cicde-news-2026-20apr-3may",
-        title: "20 aprilie - 3 mai 2026: totaluri saptamanale",
+        title: "20 aprilie - 3 mai 2026: totaluri săptămânale",
         description:
-            "In perioada de referinta au avut loc 3 examene online. Au participat 55 persoane, dintre care 44 au promovat, cu o rata de 80%.",
-        category: "Totaluri saptamanale",
+            "În perioada de referință au avut loc 3 examene online. Au participat 55 persoane, dintre care 44 au promovat, cu o rată de 80%.",
+        category: "Totaluri săptămânale",
         image: "/news/cicde-20apr-3mai-2026.jpg",
         sourceUrl: "https://certificare.cicde.md/news/show/48",
         publishedAt: "2026-05-04T00:00:00.000Z",
@@ -516,6 +516,17 @@ const DEFAULT_CICDE_NEWS: AdminNewsArticle[] = [
         updatedAt: "2026-05-04T00:00:00.000Z",
     },
 ];
+
+const CICDE_NEWS_TEXT_FIXES = new Map(
+    DEFAULT_CICDE_NEWS.map((item) => [
+        item.id,
+        {
+            title: item.title,
+            description: item.description,
+            category: item.category,
+        },
+    ])
+);
 
 const isLegacySeedNews = (items: Record<string, unknown>[]): boolean =>
     items.length === SEED_NEWS.length &&
@@ -536,11 +547,13 @@ export const readAdminNews = (): AdminNewsArticle[] => {
     if (items.length > 0) {
         return items.map((item, index) => {
             const record = asRecord(item);
+            const id = typeof record.id === "string" ? record.id : `news-${index + 1}`;
+            const textFix = CICDE_NEWS_TEXT_FIXES.get(id);
             return {
-                id: typeof record.id === "string" ? record.id : `news-${index + 1}`,
-                title: typeof record.title === "string" ? record.title : "",
-                description: typeof record.description === "string" ? record.description : "",
-                category: typeof record.category === "string" ? record.category : "",
+                id,
+                title: textFix?.title ?? (typeof record.title === "string" ? record.title : ""),
+                description: textFix?.description ?? (typeof record.description === "string" ? record.description : ""),
+                category: textFix?.category ?? (typeof record.category === "string" ? record.category : ""),
                 image: typeof record.image === "string" ? record.image : "cert",
                 sourceUrl:
                     typeof record.sourceUrl === "string" && record.sourceUrl.trim()
@@ -562,15 +575,12 @@ export const writeAdminNews = (news: AdminNewsArticle[]): void => {
     emitStorageUpdate(STORAGE_KEYS.news);
 };
 
-export const loadAdminState = (): AdminState => {
-    ensureNoSimulatedServerError();
-    return {
-        tests: readAdminTests(),
-        settings: readExamSettings(),
-        users: readAdminUsers(),
-        appointments: readAppointments(),
-        quizHistory: readQuizHistory(),
-        sentNotifications: readSentNotifications(),
-        news: readAdminNews(),
-    };
-};
+export const createEmptyAdminState = (): AdminState => ({
+    tests: [],
+    settings: DEFAULT_SETTINGS,
+    users: [],
+    appointments: [],
+    quizHistory: [],
+    sentNotifications: [],
+    news: [],
+});

@@ -10,18 +10,8 @@ import { inferChapter, normalizeText } from "./testsPageUtils";
 import TestsHomeView from "./components/TestsHomeView";
 import TestsResultView from "./components/TestsResultView";
 import TestsSessionView from "./components/TestsSessionView";
-import { quizResultService } from "../../services";
+import { quizResultService, quizSessionService } from "../../services";
 import "./TestsPage.css";
-
-const shuffleQuestions = <T,>(items: T[]): T[] => {
-    const shuffled = [...items];
-    for (let index = shuffled.length - 1; index > 0; index -= 1) {
-        const swapIndex = Math.floor(Math.random() * (index + 1));
-        [shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]];
-    }
-
-    return shuffled;
-};
 
 const TestsPage: React.FC = () => {
     const { user } = useAuth();
@@ -51,35 +41,65 @@ const TestsPage: React.FC = () => {
         setExamSettings(readExamSettings());
     });
 
-    const startQuiz = (categoryId: string, mode: QuizMode = quizMode) => {
-        quizUserRef.current = { email: user?.email, fullName: user?.fullName };
-        const questionBank = getQuestionsByCategory(categoryId);
-
-        if (questionBank.length < examSettings.testQuestionCount) {
-            setSubmitWarning("Banca de întrebări nu conține suficiente întrebări pentru a porni testul.");
+    const handleSelectQuizMode = (mode: QuizMode) => {
+        if (mode === "exam" && !user) {
+            setQuizMode("training");
+            setSubmitWarning("Poți trece pe modul Examen doar dacă ești autentificat.");
             return;
         }
 
-        const questions = shuffleQuestions(questionBank).slice(0, examSettings.testQuestionCount);
-        const durationSeconds = examSettings.testDurationMinutes * 60;
+        setQuizMode(mode);
+        setSubmitWarning("");
+    };
+
+    const startQuiz = async (categoryId: string, mode: QuizMode = quizMode) => {
+        quizUserRef.current = { email: user?.email, fullName: user?.fullName };
+
+        if (mode === "exam" && !user) {
+            setQuizMode("training");
+            setSubmitWarning("Poți trece pe modul Examen doar dacă ești autentificat.");
+            return;
+        }
 
         setQuizMode(mode);
         setSubmitWarning("");
         setCanForceSubmit(false);
         setCompletionReason(null);
         setQuizResult(null);
-        setQuizSession({
-            categoryId,
-            mode,
-            questions,
-            currentQuestionIndex: 0,
-            answers: new Array(questions.length).fill(null),
-            answerFeedback: new Array(questions.length).fill(null),
-            flaggedQuestions: new Array(questions.length).fill(false),
-            durationSeconds,
-            remainingTimeSeconds: durationSeconds,
-            startTime: new Date(),
-        });
+
+        try {
+            const session = await quizSessionService.start({
+                quizId: Number(categoryId),
+                mode,
+                questionCount: examSettings.testQuestionCount,
+                durationMinutes: examSettings.testDurationMinutes,
+            });
+
+            const questions = session.questions.map((question) => ({
+                id: String(question.id),
+                text: question.text,
+                options: question.options.map((option) => ({
+                    id: option.id,
+                    text: option.text,
+                })),
+            }));
+
+            setQuizSession({
+                sessionId: session.sessionId,
+                categoryId: String(session.quizId),
+                mode,
+                questions,
+                currentQuestionIndex: 0,
+                answers: new Array(questions.length).fill(null),
+                answerFeedback: new Array(questions.length).fill(null),
+                flaggedQuestions: new Array(questions.length).fill(false),
+                durationSeconds: session.durationSeconds,
+                remainingTimeSeconds: session.durationSeconds,
+                startTime: new Date(session.startedAt),
+            });
+        } catch (error) {
+            setSubmitWarning(error instanceof Error ? error.message : "Nu s-a putut porni testul.");
+        }
     };
 
     const resetQuiz = () => {
@@ -111,7 +131,7 @@ const TestsPage: React.FC = () => {
                 chapterTitle: chapter.chapterTitle,
                 userAnswer: answer.userAnswerId ?? null,
                 userAnswerText: answer.userAnswerText ? normalizeText(answer.userAnswerText) : null,
-                correctAnswerText: session.mode === "training" && answer.correctAnswerText
+                correctAnswerText: answer.correctAnswerText
                     ? normalizeText(answer.correctAnswerText)
                     : null,
                 isCorrect: answer.isCorrect,
@@ -194,36 +214,63 @@ const TestsPage: React.FC = () => {
         const end = new Date();
         const elapsed = Math.max(0, Math.floor((end.getTime() - session.startTime.getTime()) / 1000));
         const timeTaken = Math.min(elapsed, session.durationSeconds);
+        const submittedAnswers = session.questions.map((question, index) => ({
+            questionId: Number(question.id),
+            answerOptionId: session.answers[index],
+        }));
 
-        const evaluation = await quizResultService.evaluate({
-            quizId: Number(session.categoryId),
-            mode: session.mode,
-            timeTaken,
-            durationSeconds: session.durationSeconds,
-            completedAt: end.toISOString(),
-            questionIds: session.questions.map((question) => Number(question.id)),
-            answers: session.questions.map((question, index) => ({
-                questionId: Number(question.id),
-                answerOptionId: session.answers[index],
-            })),
-        });
+        let evaluation: Awaited<ReturnType<typeof quizResultService.evaluate>>;
 
-        if (user) {
-            try {
-                await quizResultService.submit({
-                    quizId: evaluation.quizId,
-                    userId: parseInt(user.id, 10),
-                    totalQuestions: evaluation.totalQuestions,
-                    correctAnswers: evaluation.correctAnswers,
-                    wrongAnswers: evaluation.wrongAnswers,
-                    unanswered: evaluation.unanswered,
-                    score: evaluation.score,
-                    timeTaken: evaluation.timeTaken,
-                    mode: session.mode,
-                    completedAt: evaluation.completedAt,
-                });
-            } catch (error) {
-                console.error("Nu s-a putut salva rezultatul:", error);
+        if (session.mode === "exam") {
+            if (!user) {
+                throw new Error("Pentru examen trebuie să fii autentificat.");
+            }
+
+            evaluation = await quizResultService.submit({
+                sessionId: session.sessionId || "",
+                quizId: Number(session.categoryId),
+                userId: parseInt(user.id, 10),
+                totalQuestions: session.questions.length,
+                correctAnswers: 0,
+                wrongAnswers: 0,
+                unanswered: 0,
+                score: 0,
+                timeTaken,
+                mode: session.mode,
+                completedAt: end.toISOString(),
+                answers: submittedAnswers,
+            });
+        } else {
+            evaluation = await quizResultService.evaluate({
+                sessionId: session.sessionId,
+                quizId: Number(session.categoryId),
+                mode: session.mode,
+                timeTaken,
+                durationSeconds: session.durationSeconds,
+                completedAt: end.toISOString(),
+                questionIds: session.questions.map((question) => Number(question.id)),
+                answers: submittedAnswers,
+            });
+
+            if (user) {
+                try {
+                    await quizResultService.submit({
+                        sessionId: session.sessionId || "",
+                        quizId: evaluation.quizId,
+                        userId: parseInt(user.id, 10),
+                        totalQuestions: evaluation.totalQuestions,
+                        correctAnswers: evaluation.correctAnswers,
+                        wrongAnswers: evaluation.wrongAnswers,
+                        unanswered: evaluation.unanswered,
+                        score: evaluation.score,
+                        timeTaken: evaluation.timeTaken,
+                        mode: session.mode,
+                        completedAt: evaluation.completedAt,
+                        answers: submittedAnswers,
+                    });
+                } catch (error) {
+                    console.error("Nu s-a putut salva rezultatul:", error);
+                }
             }
         }
 
@@ -269,9 +316,14 @@ const TestsPage: React.FC = () => {
         if (!quizSession) return;
 
         const currentQuestion = quizSession.questions[quizSession.currentQuestionIndex];
+        if (quizSession.mode === "training" && quizSession.answers[quizSession.currentQuestionIndex] !== null) {
+            return;
+        }
+
         const feedback =
             quizSession.mode === "training"
                 ? await quizResultService.checkAnswer({
+                    sessionId: quizSession.sessionId || "",
                     questionId: Number(currentQuestion.id),
                     answerOptionId,
                 })
@@ -321,7 +373,7 @@ const TestsPage: React.FC = () => {
                 completionReason={completionReason}
                 passingThreshold={examSettings.passingThreshold}
                 onReset={resetQuiz}
-                onRetry={startQuiz}
+                onRetry={(categoryId, mode) => { void startQuiz(categoryId, mode); }}
             />
         );
     }
@@ -344,11 +396,12 @@ const TestsPage: React.FC = () => {
     return (
         <TestsHomeView
             quizMode={quizMode}
-            onSelectMode={setQuizMode}
+            onSelectMode={handleSelectQuizMode}
+            modeWarning={submitWarning}
             examSettings={examSettings}
             categories={categories}
             durationByCategoryId={{}}
-            onStartQuiz={startQuiz}
+            onStartQuiz={(categoryId) => { void startQuiz(categoryId); }}
         />
     );
 };

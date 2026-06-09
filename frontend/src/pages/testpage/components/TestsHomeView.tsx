@@ -8,6 +8,7 @@ import { difficultyLabel, modeLabel, normalizeText, renderCategoryIcon } from ".
 type TestsHomeViewProps = {
     quizMode: QuizMode;
     onSelectMode: (mode: QuizMode) => void;
+    modeWarning?: string;
     examSettings: ExamSettings;
     categories: QuizCategory[];
     durationByCategoryId: Record<string, number>;
@@ -17,6 +18,7 @@ type TestsHomeViewProps = {
 const TestsHomeView: React.FC<TestsHomeViewProps> = ({
     quizMode,
     onSelectMode,
+    modeWarning,
     examSettings,
     categories,
     durationByCategoryId,
@@ -90,6 +92,12 @@ const TestsHomeView: React.FC<TestsHomeViewProps> = ({
                                     <small>Vezi rezultatul doar la finalul celor {examSettings.testQuestionCount} întrebări</small>
                                 </button>
                             </div>
+
+                            {modeWarning && (
+                                <div className="mode-warning" role="alert">
+                                    {modeWarning}
+                                </div>
+                            )}
                         </section>
 
                         <section className="tests-info-box tests-rules-card" aria-labelledby="tests-rules-title">

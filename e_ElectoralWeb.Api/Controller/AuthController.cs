@@ -14,9 +14,8 @@ namespace e_ElectoralWeb.Api.Controller
         private readonly IUserLoginAction _userAction;
         private readonly IUserRegAction _userRegAction;
 
-        public AuthController()
+        public AuthController(BusinessLogic bl)
         {
-            var bl = new BusinessLogic();
             _userAction = bl.UserLoginAction();
             _userRegAction = bl.UserRegAction();
         }

@@ -1,5 +1,6 @@
 using e_ElectoralWeb.BusinessLayer.Core;
 using e_ElectoralWeb.BusinessLayer.Interfaces;
+using e_ElectoralWeb.DataAccessLayer.Context;
 using e_ElectoralWeb.Domain.Models.Quiz;
 using e_ElectoralWeb.Domain.Models.Responses;
 
@@ -7,6 +8,10 @@ namespace e_ElectoralWeb.BusinessLayer.Structure
 {
     public class QuizExecution : QuizActions, IQuizAction
     {
+        public QuizExecution(QuizDbContext context) : base(context)
+        {
+        }
+
         public Task<List<QuizDto>> GetAllQuizzesActionAsync()
         {
             return GetAllQuizzesActionExecutionAsync();

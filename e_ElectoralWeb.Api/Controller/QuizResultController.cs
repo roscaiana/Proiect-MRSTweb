@@ -13,9 +13,8 @@ public class QuizResultController : ControllerBase
 {
     private readonly IQuizResultAction _quizResultAction;
 
-    public QuizResultController()
+    public QuizResultController(BusinessLogic bl)
     {
-        var bl = new BusinessLogic();
         _quizResultAction = bl.QuizResultAction();
     }
 
@@ -57,6 +56,19 @@ public class QuizResultController : ControllerBase
     {
         try
         {
+            var roleClaim = User.Claims.FirstOrDefault(c =>
+                c.Type == ClaimTypes.Role ||
+                c.Type == "role" ||
+                c.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role")?.Value;
+            if (roleClaim == "User")
+            {
+                var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "userId")?.Value;
+                if (!int.TryParse(userIdClaim, out var tokenUserId) || tokenUserId != dto.UserId)
+                {
+                    return Forbid();
+                }
+            }
+
             var result = await _quizResultAction.SubmitQuizResultActionAsync(dto);
             if (!result.IsSuccess) return BadRequest(result);
             return Created(string.Empty, result);

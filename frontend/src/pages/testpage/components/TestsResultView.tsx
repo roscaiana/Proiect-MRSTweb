@@ -1,6 +1,5 @@
 import React from 'react';
 import type { QuizMode, QuizResult } from '../../../types/quiz';
-import ChapterFeedbackItem from '../ChapterFeedbackItem';
 import QuizAnswerResultItem from '../QuizAnswerResultItem';
 import { fmt, modeLabel } from '../testsPageUtils';
 
@@ -20,9 +19,6 @@ const TestsResultView: React.FC<TestsResultViewProps> = ({
     onRetry,
 }) => {
     const passed = quizResult.score >= passingThreshold;
-    const showEvaluation = quizResult.mode === 'training';
-    const strongChapters = quizResult.chapterStats.filter((x) => x.accuracy >= 70);
-    const weakChapters = quizResult.chapterStats.filter((x) => x.accuracy < 70);
 
     return (
         <div className="tests-page">
@@ -39,7 +35,7 @@ const TestsResultView: React.FC<TestsResultViewProps> = ({
                     </p>
 
                     <div className="result-actions result-actions-top">
-                        <button className="btn-primary" onClick={onReset}>Înapoi la categorii</button>
+                        <button className="btn-primary" onClick={onReset}>Înapoi la teste</button>
                         <button className="btn-secondary" onClick={() => onRetry(quizResult.categoryId, quizResult.mode)}>
                             Reîncearcă același mod
                         </button>
@@ -54,33 +50,6 @@ const TestsResultView: React.FC<TestsResultViewProps> = ({
                         <div className="stat-item"><div className="stat-value">{quizResult.totalQuestions}</div><div className="stat-label">Întrebări total</div></div>
                     </div>
 
-                    <div className="chapter-feedback-grid">
-                        <article className="chapter-feedback-card">
-                            <h3>Capitole bune</h3>
-                            {strongChapters.length === 0 ? (
-                                <p className="chapter-feedback-empty">Niciun capitol peste 70% în această încercare.</p>
-                            ) : (
-                                <ul>
-                                    {strongChapters.map((x) => (
-                                        <ChapterFeedbackItem key={x.chapterId} chapterId={x.chapterId} chapterTitle={x.chapterTitle} accuracy={x.accuracy} />
-                                    ))}
-                                </ul>
-                            )}
-                        </article>
-                        <article className="chapter-feedback-card weak">
-                            <h3>Capitole de consolidat</h3>
-                            {weakChapters.length === 0 ? (
-                                <p className="chapter-feedback-empty">Foarte bine, nu ai capitole sub 70%.</p>
-                            ) : (
-                                <ul>
-                                    {weakChapters.map((x) => (
-                                        <ChapterFeedbackItem key={x.chapterId} chapterId={x.chapterId} chapterTitle={x.chapterTitle} accuracy={x.accuracy} />
-                                    ))}
-                                </ul>
-                            )}
-                        </article>
-                    </div>
-
                     <div className="result-details">
                         <h3>Detalii răspunsuri</h3>
                         <div className="answer-list">
@@ -89,18 +58,17 @@ const TestsResultView: React.FC<TestsResultViewProps> = ({
                                     key={answer.questionId}
                                     questionId={answer.questionId}
                                     index={index}
-                                    chapterTitle={answer.chapterTitle}
                                     questionText={answer.questionText}
                                     userAnswerText={answer.userAnswerText}
-                                    correctAnswerText={showEvaluation ? answer.correctAnswerText : undefined}
-                                    isCorrect={showEvaluation ? answer.isCorrect : undefined}
+                                    correctAnswerText={answer.correctAnswerText}
+                                    isCorrect={answer.isCorrect}
                                 />
                             ))}
                         </div>
                     </div>
 
                     <div className="result-actions">
-                        <button className="btn-primary" onClick={onReset}>Înapoi la categorii</button>
+                        <button className="btn-primary" onClick={onReset}>Înapoi la teste</button>
                         <button className="btn-secondary" onClick={() => onRetry(quizResult.categoryId, quizResult.mode)}>
                             Reîncearcă același mod
                         </button>

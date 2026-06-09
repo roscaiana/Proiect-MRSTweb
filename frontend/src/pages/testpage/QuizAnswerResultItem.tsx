@@ -1,7 +1,6 @@
 type QuizAnswerResultItemProps = {
     questionId: string;
     index: number;
-    chapterTitle: string;
     questionText: string;
     userAnswerText: string | null;
     correctAnswerText?: string | null;
@@ -11,21 +10,22 @@ type QuizAnswerResultItemProps = {
 export default function QuizAnswerResultItem({
     questionId,
     index,
-    chapterTitle,
     questionText,
     userAnswerText,
     correctAnswerText,
     isCorrect,
 }: QuizAnswerResultItemProps) {
+    const statusText = isCorrect === undefined ? null : isCorrect ? "Corect" : "Greșit";
+
     return (
         <div key={questionId} className={`answer-item ${isCorrect === undefined ? "" : isCorrect ? "correct" : "incorrect"}`.trim()}>
             <div className="answer-header">
-                <strong>Intrebarea {index + 1}</strong>
-                <span>{chapterTitle}</span>
+                <strong>Întrebarea {index + 1}</strong>
             </div>
+            {statusText && <div className={`answer-status ${isCorrect ? "correct" : "incorrect"}`}>{statusText}</div>}
             <p className="answer-question">{questionText}</p>
-            <p>Raspunsul tau: <strong>{userAnswerText || "Neselectat"}</strong></p>
-            {isCorrect === false && correctAnswerText && <p>Corect: <strong>{correctAnswerText}</strong></p>}
+            <p>Răspunsul tău: <strong>{userAnswerText || "Neselectat"}</strong></p>
+            {correctAnswerText && <p>Răspuns corect: <strong>{correctAnswerText}</strong></p>}
         </div>
     );
 }

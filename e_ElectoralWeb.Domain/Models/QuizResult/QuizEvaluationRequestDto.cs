@@ -2,6 +2,7 @@ namespace e_ElectoralWeb.Domain.Models.QuizResult;
 
 public class QuizEvaluationRequestDto
 {
+    public Guid? SessionId { get; set; }
     public int QuizId { get; set; }
     public string Mode { get; set; } = string.Empty;
     public int TimeTaken { get; set; }

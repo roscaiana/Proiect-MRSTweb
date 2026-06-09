@@ -8,11 +8,11 @@ describe('App routing', () => {
         setAuthState(null);
     });
 
-    it('redirecționează la 401 dacă utilizatorul nu este autentificat', async () => {
+    it('redirecționează la login dacă utilizatorul nu este autentificat', async () => {
         setAuthState(null);
         window.history.pushState({}, '', '/dashboard');
         render(<App />);
-        expect(await screen.findByText(/Autentificare necesar/i)).toBeInTheDocument();
+        expect(await screen.findByRole('heading', { name: /Autentificare/i })).toBeInTheDocument();
     });
 
     it('permite acces la dashboard pentru utilizator autenticat', async () => {

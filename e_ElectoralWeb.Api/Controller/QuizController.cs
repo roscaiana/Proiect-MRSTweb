@@ -12,9 +12,8 @@ namespace e_ElectoralWeb.Api.Controller
     {
         private readonly IQuizAction _quiz;
 
-        public QuizController()
+        public QuizController(BusinessLogic bl)
         {
-            var bl = new BusinessLogic();
             _quiz = bl.QuizAction();
         }
 

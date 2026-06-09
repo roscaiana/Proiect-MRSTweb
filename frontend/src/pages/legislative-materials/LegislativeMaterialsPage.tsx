@@ -1,8 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FileText } from "lucide-react";
-import { readAdminNews, STORAGE_KEYS } from "../../features/admin/storage";
 import { useEscapeKey } from "../../hooks/useEscapeKey";
-import { useStorageSync } from "../../hooks/useStorageSync";
+import { legislativeMaterialService } from "../../services";
+import type { LegislativeMaterialDto } from "../../services";
 import { formatDateLong } from "../../utils/dateUtils";
 import LegislativeHeroTag from "./LegislativeHeroTag";
 import LegislativeResourceCard, { type ResourceCard } from "./LegislativeResourceCard";
@@ -18,50 +18,69 @@ type NavItem = {
 type LegislativeContentItem = NavItem & ResourceCard;
 
 const HERO_TAGS = ["Sesiunea 2026", "Actualizări legislative", "Resurse oficiale"];
+const ALL_MATERIALS_ID = "all";
 
-const FALLBACK_ITEMS: LegislativeContentItem[] = [
-    {
-        id: "material-1",
-        label: "Actualizări ale Codului Electoral",
-        title: "Actualizări ale Codului Electoral",
-        description: "Analiza principalelor modificări aduse cadrului normativ electoral.",
-        tag: "Legislativ",
-    },
-];
-
-function loadLegislativeItems(): LegislativeContentItem[] {
-    const legislativeArticles = readAdminNews().filter((item) => item.category === "Legislativ");
-
-    if (legislativeArticles.length === 0) {
-        return FALLBACK_ITEMS;
-    }
-
-    return legislativeArticles.map((item) => ({
-        id: item.id,
+function mapLegislativeMaterial(item: LegislativeMaterialDto): LegislativeContentItem {
+    return {
+        id: String(item.id),
         label: item.title,
         title: item.title,
         description: item.description,
         tag: `${item.category} • ${formatDateLong(item.publishedAt)}`,
-    }));
+        sourceUrl: item.sourceUrl,
+    };
 }
 
 export default function LegislativeMaterialsPage() {
-    const [items, setItems] = useState<LegislativeContentItem[]>(() => loadLegislativeItems());
-    const [activeId, setActiveId] = useState(() => loadLegislativeItems()[0]?.id ?? "intro");
+    const [items, setItems] = useState<LegislativeContentItem[]>([]);
+    const [activeId, setActiveId] = useState(ALL_MATERIALS_ID);
     const [activeCard, setActiveCard] = useState<ResourceCard | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState("");
 
-    useStorageSync([STORAGE_KEYS.news], () => {
-        const nextItems = loadLegislativeItems();
-        setItems(nextItems);
-        setActiveId((current) =>
-            nextItems.some((item) => item.id === current) ? current : (nextItems[0]?.id ?? "intro"),
-        );
-    });
+    useEffect(() => {
+        let ignore = false;
+
+        const loadMaterials = async () => {
+            try {
+                setLoading(true);
+                setLoadError("");
+                const data = await legislativeMaterialService.getPublished();
+                const nextItems = data.map(mapLegislativeMaterial);
+
+                if (!ignore) {
+                    setItems(nextItems);
+                    setActiveId((current) =>
+                        current === ALL_MATERIALS_ID || nextItems.some((item) => item.id === current)
+                            ? current
+                            : ALL_MATERIALS_ID,
+                    );
+                }
+            } catch {
+                if (!ignore) {
+                    setLoadError("Materialele legislative nu au putut fi încărcate din backend.");
+                }
+            } finally {
+                if (!ignore) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        void loadMaterials();
+
+        return () => {
+            ignore = true;
+        };
+    }, []);
 
     const activeItem = useMemo(
         () => items.find((item) => item.id === activeId) ?? items[0],
         [items, activeId],
     );
+
+    const isAllSelected = activeId === ALL_MATERIALS_ID;
+    const visibleCards = isAllSelected ? items : activeItem ? [activeItem] : [];
 
     useEscapeKey(() => setActiveCard(null), activeCard !== null);
 
@@ -99,6 +118,12 @@ export default function LegislativeMaterialsPage() {
                             <strong>2026</strong>
                         </div>
                         <div className="sidebar-links">
+                            <LegislativeSidebarLink
+                                id={ALL_MATERIALS_ID}
+                                label="Toate materialele"
+                                isActive={isAllSelected}
+                                onSelect={setActiveId}
+                            />
                             {items.map((item) => (
                                 <LegislativeSidebarLink
                                     key={item.id}
@@ -109,21 +134,41 @@ export default function LegislativeMaterialsPage() {
                                 />
                             ))}
                         </div>
-                        <div className="sidebar-note">
-                            <div className="note-badge">Actualizat</div>
-                            <p>Conținutul de pe această pagină poate fi gestionat direct din panoul de administrare.</p>
-                        </div>
                     </aside>
 
                     <div className="legislative-main">
                         <div className="legislative-header">
                             <span className="section-kicker">Secțiune activă</span>
-                            <h2>{activeItem?.label}</h2>
-                            <p>{activeItem?.description}</p>
+                            {loading ? (
+                                <>
+                                    <h2>Se încarcă materialele...</h2>
+                                    <p>Materialele legislative sunt citite din backend.</p>
+                                </>
+                            ) : loadError ? (
+                                <>
+                                    <h2>Materialele nu au fost încărcate</h2>
+                                    <p>{loadError}</p>
+                                </>
+                            ) : isAllSelected ? (
+                                <>
+                                    <h2>Toate materialele legislative</h2>
+                                    <p>Alege un material din listă sau deschide documentul direct din card.</p>
+                                </>
+                            ) : activeItem ? (
+                                <>
+                                    <h2>{activeItem.label}</h2>
+                                    <p>{activeItem.description}</p>
+                                </>
+                            ) : (
+                                <>
+                                    <h2>Nu există materiale publicate</h2>
+                                    <p>Materialele adăugate de admin vor apărea aici după publicare.</p>
+                                </>
+                            )}
                         </div>
 
                         <div className="legislative-cards">
-                            {items.map((card) => (
+                            {visibleCards.map((card) => (
                                 <LegislativeResourceCard key={card.id} card={card} onOpen={setActiveCard} />
                             ))}
                         </div>
@@ -157,6 +202,16 @@ export default function LegislativeMaterialsPage() {
                         <span className="legislative-modal-tag">{activeCard.tag}</span>
                         <h2>{activeCard.title}</h2>
                         <p>{activeCard.description}</p>
+                        {activeCard.sourceUrl && (
+                            <a
+                                className="admin-btn primary"
+                                href={activeCard.sourceUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                Deschide documentul
+                            </a>
+                        )}
                         <p>Acest material a fost publicat din panoul de administrare pentru utilizatorii platformei.</p>
                     </div>
                     <button

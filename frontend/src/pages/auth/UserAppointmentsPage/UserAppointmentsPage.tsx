@@ -16,6 +16,12 @@ export default function UserAppointmentsPage() {
                 <p>Toate programările tale, într-o pagină separată.</p>
             </div>
 
+            {controller.loadError && (
+                <div className="dashboard-alert" role="alert">
+                    {controller.loadError}
+                </div>
+            )}
+
             <div className="dashboard-grid">
                 <div className="dashboard-card history-card">
                     <div className="card-header">

@@ -21,6 +21,12 @@ const UserDashboard: React.FC = () => {
                 <p>Bine ai revenit, {controller.profileDisplayName}!</p>
             </div>
 
+            {controller.dataLoadError && (
+                <div className="dashboard-alert" role="alert">
+                    {controller.dataLoadError}
+                </div>
+            )}
+
             <div className="dashboard-grid">
                 <UserProfileCard
                     userEmail={controller.user?.email}

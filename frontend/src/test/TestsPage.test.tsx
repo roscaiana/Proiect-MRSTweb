@@ -12,7 +12,7 @@ describe('TestsPage', () => {
 
         expect(screen.getByText(/Simulare examen/i)).toBeInTheDocument();
 
-        const startButtons = screen.getAllByRole('button', { name: /ncepe/i });
+        const startButtons = await screen.findAllByRole('button', { name: /ncepe/i });
         await user.click(startButtons[0]);
 
         expect(await screen.findByRole('button', { name: /Finalizeaz/i })).toBeInTheDocument();

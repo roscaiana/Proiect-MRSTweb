@@ -48,7 +48,7 @@ export const loginWithApi = async (
         const payload = response.data;
 
         if (!payload?.isSuccess || !payload.data?.token) {
-            throw new Error(payload?.message || "Autentificare esuata");
+            throw new Error(payload?.message || "Autentificare eșuată");
         }
 
         return {
@@ -60,14 +60,14 @@ export const loginWithApi = async (
             const apiMessage = typeof error.response?.data === "string"
                 ? error.response.data
                 : (error.response?.data as ApiActionResponse<ApiUserDto> | undefined)?.message;
-            throw new Error(apiMessage || "Autentificare esuata");
+            throw new Error(apiMessage || "Autentificare eșuată");
         }
 
         if (error instanceof Error) {
             throw error;
         }
 
-        throw new Error("Autentificare esuata");
+        throw new Error("Autentificare eșuată");
     }
 };
 
@@ -77,20 +77,20 @@ export const registerWithApi = async (data: RegisterData): Promise<void> => {
         const payload = response.data;
 
         if (!payload?.isSuccess) {
-            throw new Error(payload?.message || "Inregistrare esuata");
+            throw new Error(payload?.message || "Înregistrare eșuată");
         }
     } catch (error: unknown) {
         if (isAxiosError(error)) {
             const apiMessage = typeof error.response?.data === "string"
                 ? error.response.data
                 : (error.response?.data as ApiActionResponse<unknown> | undefined)?.message;
-            throw new Error(apiMessage || "Inregistrare esuata");
+            throw new Error(apiMessage || "Înregistrare eșuată");
         }
 
         if (error instanceof Error) {
             throw error;
         }
 
-        throw new Error("Inregistrare esuata");
+        throw new Error("Înregistrare eșuată");
     }
 };

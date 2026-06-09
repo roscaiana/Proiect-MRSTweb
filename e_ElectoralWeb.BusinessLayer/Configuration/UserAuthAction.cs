@@ -1,5 +1,6 @@
 using e_ElectoralWeb.BusinessLayer.Core;
 using e_ElectoralWeb.BusinessLayer.Interfaces;
+using e_ElectoralWeb.DataAccessLayer.Context;
 using e_ElectoralWeb.Domain.Models.Responses;
 using e_ElectoralWeb.Domain.Models.User;
 
@@ -7,7 +8,9 @@ namespace e_ElectoralWeb.BusinessLayer.Configuration
 {
     public class UserAuthAction : UserDbActions, IUserLoginAction
     {
-        public UserAuthAction() { }
+        public UserAuthAction(QuizDbContext context) : base(context)
+        {
+        }
 
         public ActionResponce UserLoginDataValidation(UserLoginDto udata)
         {

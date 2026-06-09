@@ -1,79 +1,93 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import AdminNewsRow from "../components/AdminNewsRow";
-import AdminSingleSelect, { type AdminSingleSelectOption } from "../components/AdminSingleSelect";
-import { useAdminPanel } from "../hooks/useAdminPanel";
-import type { AdminNewsArticle, AdminNewsArticleInput } from "../types";
+import { legislativeMaterialService } from "../../../services";
+import type { LegislativeMaterialDto, LegislativeMaterialInputDto } from "../../../services";
 import { formatDateShort } from "../../../utils/dateUtils";
-import { adminNewsSchema, type AdminNewsFormValues } from "../../../schemas/adminSchemas";
 
 type MaterialsView = "list" | "form";
 
-const LEGISLATIVE_CATEGORY = "Legislativ";
-
-const IMAGE_OPTIONS: ReadonlyArray<AdminSingleSelectOption<string>> = [
-    { value: "law", label: "Lege (law)" },
-    { value: "cert", label: "Certificat (cert)" },
-    { value: "users", label: "Utilizatori (users)" },
-    { value: "calendar", label: "Calendar (calendar)" },
-    { value: "web", label: "Platformă (web)" },
-    { value: "globe", label: "Internațional (globe)" },
-];
-
-const EMPTY_FORM: AdminNewsArticleInput = {
+const EMPTY_FORM: LegislativeMaterialInputDto = {
     title: "",
     description: "",
-    category: LEGISLATIVE_CATEGORY,
-    image: "law",
+    category: "Cod electoral",
+    sourceUrl: "",
+    sortOrder: 1,
+    isPublished: true,
     publishedAt: new Date().toISOString().slice(0, 10),
 };
 
-const AdminLegislativeMaterialsPage: React.FC = () => {
-    const { state, createNewsArticle, updateNewsArticle, deleteNewsArticle } = useAdminPanel();
-    const [view, setView] = useState<MaterialsView>("list");
-    const [editingId, setEditingId] = useState<string | null>(null);
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [pendingDelete, setPendingDelete] = useState<AdminNewsArticle | null>(null);
+const CATEGORY_OPTIONS = [
+    "Cod electoral",
+    "Regulament",
+    "Hotărâre CEC",
+    "Ghid",
+    "Alt material",
+];
 
-    const legislativeArticles = useMemo(
-        () => state.news.filter((article) => article.category === LEGISLATIVE_CATEGORY),
-        [state.news],
+const AdminLegislativeMaterialsPage: React.FC = () => {
+    const [view, setView] = useState<MaterialsView>("list");
+    const [materials, setMaterials] = useState<LegislativeMaterialDto[]>([]);
+    const [formData, setFormData] = useState<LegislativeMaterialInputDto>(EMPTY_FORM);
+    const [editingId, setEditingId] = useState<number | null>(null);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [pendingDelete, setPendingDelete] = useState<LegislativeMaterialDto | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [loadError, setLoadError] = useState("");
+    const [fieldError, setFieldError] = useState("");
+
+    const sortedMaterials = useMemo(
+        () => [...materials].sort((left, right) => left.sortOrder - right.sortOrder || left.id - right.id),
+        [materials],
     );
 
-    const {
-        control,
-        register,
-        handleSubmit,
-        reset,
-        formState: { errors },
-    } = useForm<AdminNewsFormValues>({
-        resolver: zodResolver(adminNewsSchema),
-        defaultValues: EMPTY_FORM,
-    });
+    const loadMaterials = async () => {
+        try {
+            setLoading(true);
+            setLoadError("");
+            const data = await legislativeMaterialService.getAllForAdmin();
+            setMaterials(data);
+        } catch {
+            setLoadError("Materialele legislative nu au putut fi încărcate din backend.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        void loadMaterials();
+    }, []);
 
     const openCreate = () => {
         setEditingId(null);
-        reset(EMPTY_FORM);
-        setView("form");
-    };
-
-    const openEdit = (article: AdminNewsArticle) => {
-        setEditingId(article.id);
-        reset({
-            title: article.title,
-            description: article.description,
-            category: LEGISLATIVE_CATEGORY,
-            image: article.image,
-            publishedAt: article.publishedAt.slice(0, 10),
+        setFormData({
+            ...EMPTY_FORM,
+            sortOrder: materials.length > 0 ? Math.max(...materials.map((item) => item.sortOrder)) + 1 : 1,
+            publishedAt: new Date().toISOString().slice(0, 10),
         });
+        setFieldError("");
         setView("form");
     };
 
-    const openDeleteDialog = (article: AdminNewsArticle) => {
-        setPendingDelete(article);
+    const openEdit = (material: LegislativeMaterialDto) => {
+        setEditingId(material.id);
+        setFormData({
+            title: material.title,
+            description: material.description,
+            category: material.category,
+            sourceUrl: material.sourceUrl ?? "",
+            sortOrder: material.sortOrder,
+            isPublished: material.isPublished,
+            publishedAt: material.publishedAt.slice(0, 10),
+        });
+        setFieldError("");
+        setView("form");
+    };
+
+    const openDeleteDialog = (material: LegislativeMaterialDto) => {
+        setPendingDelete(material);
         setDeleteDialogOpen(true);
     };
 
@@ -82,38 +96,81 @@ const AdminLegislativeMaterialsPage: React.FC = () => {
         setPendingDelete(null);
     };
 
-    const handleDeleteConfirm = () => {
-        if (!pendingDelete) return;
-        deleteNewsArticle(pendingDelete.id);
-        toast.success("Materialul legislativ a fost șters.");
-        closeDeleteDialog();
+    const updateField = <TKey extends keyof LegislativeMaterialInputDto>(
+        key: TKey,
+        value: LegislativeMaterialInputDto[TKey],
+    ) => {
+        setFormData((current) => ({ ...current, [key]: value }));
     };
 
-    const onSubmit = (data: AdminNewsFormValues) => {
-        const input: AdminNewsArticleInput = {
-            ...data,
-            title: data.title.trim(),
-            description: data.description.trim(),
-            category: LEGISLATIVE_CATEGORY,
-            publishedAt: new Date(data.publishedAt).toISOString(),
-        };
+    const validate = () => {
+        if (!formData.title.trim()) return "Titlul este obligatoriu.";
+        if (!formData.description.trim()) return "Descrierea este obligatorie.";
+        if (!formData.category.trim()) return "Categoria este obligatorie.";
+        if (!formData.publishedAt) return "Data publicării este obligatorie.";
+        return "";
+    };
 
-        if (editingId) {
-            updateNewsArticle(editingId, input);
-            toast.success("Materialul legislativ a fost actualizat.");
-        } else {
-            createNewsArticle(input);
-            toast.success("Materialul legislativ a fost publicat.");
+    const handleDeleteConfirm = async () => {
+        if (!pendingDelete) return;
+
+        try {
+            await legislativeMaterialService.remove(pendingDelete.id);
+            toast.success("Materialul legislativ a fost șters.");
+            closeDeleteDialog();
+            await loadMaterials();
+        } catch {
+            toast.error("Materialul legislativ nu a putut fi șters.");
+        }
+    };
+
+    const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+
+        const validationMessage = validate();
+        if (validationMessage) {
+            setFieldError(validationMessage);
+            return;
         }
 
-        setView("list");
+        const input: LegislativeMaterialInputDto = {
+            ...formData,
+            title: formData.title.trim(),
+            description: formData.description.trim(),
+            category: formData.category.trim(),
+            sourceUrl: formData.sourceUrl?.trim() || undefined,
+            sortOrder: Number(formData.sortOrder) || 0,
+            publishedAt: new Date(formData.publishedAt).toISOString(),
+        };
+
+        try {
+            setSaving(true);
+            setFieldError("");
+
+            if (editingId) {
+                const result = await legislativeMaterialService.update(editingId, input);
+                if (!result.isSuccess) throw new Error(result.message ?? "Actualizarea materialului a eșuat.");
+                toast.success("Materialul legislativ a fost actualizat.");
+            } else {
+                const result = await legislativeMaterialService.create(input);
+                if (!result.isSuccess) throw new Error(result.message ?? "Crearea materialului a eșuat.");
+                toast.success("Materialul legislativ a fost publicat.");
+            }
+
+            await loadMaterials();
+            setView("list");
+        } catch (error) {
+            setFieldError(error instanceof Error ? error.message : "Operația nu a putut fi finalizată.");
+        } finally {
+            setSaving(false);
+        }
     };
 
     return (
         <div className="admin-page-content">
             <section className="admin-page-header">
                 <h2>Materiale legislative</h2>
-                <p>Administrează conținutul afișat pe pagina publică Materiale legislative.</p>
+                <p>Administrează materialele legislative afișate pe pagina publică.</p>
             </section>
 
             <div className="admin-topbar-actions" style={{ justifyContent: "center", marginBottom: 4 }}>
@@ -137,12 +194,28 @@ const AdminLegislativeMaterialsPage: React.FC = () => {
                 <section className="admin-panel-card">
                     <div className="admin-card-header">
                         <h3><i className="fas fa-book-open admin-card-header-icon"></i> Materiale publicate</h3>
-                        <span className="admin-muted-text">Total: {legislativeArticles.length}</span>
+                        <span className="admin-muted-text">Total: {materials.length}</span>
                     </div>
 
-                    {legislativeArticles.length === 0 ? (
+                    {loading && <p className="admin-muted-text">Se încarcă materialele...</p>}
+
+                    {loadError && (
+                        <div className="admin-api-error" role="alert">
+                            <div>
+                                <strong>Materialele nu au fost încărcate.</strong>
+                                <span>{loadError}</span>
+                            </div>
+                            <button type="button" className="admin-btn secondary" onClick={() => void loadMaterials()}>
+                                Reîncarcă
+                            </button>
+                        </div>
+                    )}
+
+                    {!loading && !loadError && materials.length === 0 ? (
                         <p className="admin-muted-text">Nu există materiale legislative. Adaugă primul material.</p>
-                    ) : (
+                    ) : null}
+
+                    {!loading && !loadError && materials.length > 0 ? (
                         <div className="admin-table-wrapper">
                             <table className="admin-table">
                                 <thead>
@@ -154,22 +227,22 @@ const AdminLegislativeMaterialsPage: React.FC = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {legislativeArticles.map((article) => (
+                                    {sortedMaterials.map((material) => (
                                         <AdminNewsRow
-                                            key={article.id}
-                                            title={article.title}
-                                            description={article.description}
-                                            category={article.category}
-                                            publishedAt={article.publishedAt}
+                                            key={material.id}
+                                            title={material.title}
+                                            description={`${material.description}${material.isPublished ? "" : " (ascuns)"}`}
+                                            category={`${material.category} #${material.sortOrder}`}
+                                            publishedAt={material.publishedAt}
                                             formatDate={formatDateShort}
-                                            onEdit={() => openEdit(article)}
-                                            onDelete={() => openDeleteDialog(article)}
+                                            onEdit={() => openEdit(material)}
+                                            onDelete={() => openDeleteDialog(material)}
                                         />
                                     ))}
                                 </tbody>
                             </table>
                         </div>
-                    )}
+                    ) : null}
                 </section>
             )}
 
@@ -182,58 +255,88 @@ const AdminLegislativeMaterialsPage: React.FC = () => {
                         </h3>
                     </div>
 
-                    <form className="admin-form-grid" onSubmit={handleSubmit(onSubmit)}>
-                        <input type="hidden" {...register("category")} value={LEGISLATIVE_CATEGORY} />
-
+                    <form className="admin-form-grid" onSubmit={onSubmit}>
                         <label className="admin-field admin-field-full">
                             <span>Titlu</span>
-                            <input type="text" {...register("title")} placeholder="Titlul materialului" />
-                            {errors.title?.message && (
-                                <span className="admin-field-error" role="alert">{errors.title.message}</span>
-                            )}
+                            <input
+                                type="text"
+                                value={formData.title}
+                                onChange={(event) => updateField("title", event.target.value)}
+                                placeholder="Titlul materialului"
+                            />
                         </label>
 
                         <label className="admin-field admin-field-full">
                             <span>Descriere</span>
-                            <textarea rows={4} {...register("description")} placeholder="Conținutul materialului" />
-                            {errors.description?.message && (
-                                <span className="admin-field-error" role="alert">{errors.description.message}</span>
-                            )}
+                            <textarea
+                                rows={4}
+                                value={formData.description}
+                                onChange={(event) => updateField("description", event.target.value)}
+                                placeholder="Conținutul materialului"
+                            />
                         </label>
 
                         <label className="admin-field">
-                            <span>Pictogramă</span>
-                            <Controller
-                                control={control}
-                                name="image"
-                                render={({ field }) => (
-                                    <AdminSingleSelect
-                                        ariaLabel="Selectare pictogramă"
-                                        options={IMAGE_OPTIONS}
-                                        value={field.value}
-                                        onChange={field.onChange}
-                                    />
-                                )}
+                            <span>Categorie</span>
+                            <select value={formData.category} onChange={(event) => updateField("category", event.target.value)}>
+                                {CATEGORY_OPTIONS.map((category) => (
+                                    <option key={category} value={category}>
+                                        {category}
+                                    </option>
+                                ))}
+                            </select>
+                        </label>
+
+                        <label className="admin-field">
+                            <span>Ordine</span>
+                            <input
+                                type="number"
+                                min="1"
+                                value={formData.sortOrder}
+                                onChange={(event) => updateField("sortOrder", Number(event.target.value))}
                             />
-                            {errors.image?.message && (
-                                <span className="admin-field-error" role="alert">{errors.image.message}</span>
-                            )}
                         </label>
 
                         <label className="admin-field">
                             <span>Data publicării</span>
-                            <input type="date" {...register("publishedAt")} />
-                            {errors.publishedAt?.message && (
-                                <span className="admin-field-error" role="alert">{errors.publishedAt.message}</span>
-                            )}
+                            <input
+                                type="date"
+                                value={formData.publishedAt}
+                                onChange={(event) => updateField("publishedAt", event.target.value)}
+                            />
                         </label>
+
+                        <label className="admin-field">
+                            <span>Link document / sursă</span>
+                            <input
+                                type="url"
+                                value={formData.sourceUrl ?? ""}
+                                onChange={(event) => updateField("sourceUrl", event.target.value)}
+                                placeholder="https://..."
+                            />
+                        </label>
+
+                        <label className="admin-checkbox-field admin-field-full">
+                            <input
+                                type="checkbox"
+                                checked={formData.isPublished}
+                                onChange={(event) => updateField("isPublished", event.target.checked)}
+                            />
+                            <span>Publică materialul pe pagina publică</span>
+                        </label>
+
+                        {fieldError && (
+                            <span className="admin-field-error admin-field-full" role="alert">
+                                {fieldError}
+                            </span>
+                        )}
 
                         <div className="admin-form-actions">
                             <button type="button" className="admin-btn ghost" onClick={() => setView("list")}>
                                 Anulează
                             </button>
-                            <button type="submit" className="admin-btn primary">
-                                {editingId ? "Salvează modificările" : "Publică materialul"}
+                            <button type="submit" className="admin-btn primary" disabled={saving}>
+                                {saving ? "Se salvează..." : editingId ? "Salvează modificările" : "Publică materialul"}
                             </button>
                         </div>
                     </form>
@@ -241,7 +344,7 @@ const AdminLegislativeMaterialsPage: React.FC = () => {
             )}
 
             <Dialog open={deleteDialogOpen} onClose={closeDeleteDialog} maxWidth="xs" fullWidth>
-                <DialogTitle>Stergere material</DialogTitle>
+                <DialogTitle>Ștergere material</DialogTitle>
                 <DialogContent>
                     <p>Ești sigur că vrei să ștergi acest material legislativ?</p>
                 </DialogContent>

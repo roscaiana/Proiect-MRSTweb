@@ -2,6 +2,7 @@ namespace e_ElectoralWeb.Domain.Models.QuizResult;
 
 public class QuizResultSubmitDto
 {
+    public Guid? SessionId { get; set; }
     public int QuizId { get; set; }
     public int UserId { get; set; }
     public int TotalQuestions { get; set; }
@@ -12,4 +13,5 @@ public class QuizResultSubmitDto
     public int TimeTaken { get; set; }
     public string Mode { get; set; } = string.Empty;
     public DateTime CompletedAt { get; set; }
+    public List<QuizEvaluationSubmissionDto> Answers { get; set; } = new();
 }
