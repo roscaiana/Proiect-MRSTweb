@@ -9,4 +9,6 @@ export { quizSessionService } from "./quizSessionService";
 export { authService } from "./authService";
 export { userService } from "./userService";
 export { contactService } from "./contactService";
+export { supportQuestionService } from "./supportQuestionService";
+export { legislativeMaterialService } from "./legislativeMaterialService";
 export type * from "./types";

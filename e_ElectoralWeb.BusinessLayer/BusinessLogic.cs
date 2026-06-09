@@ -70,5 +70,15 @@ namespace e_ElectoralWeb.BusinessLayer
         {
             return new ExamSettingsExecution(_context);
         }
+
+        public ISupportQuestionAction SupportQuestionAction()
+        {
+            return new SupportQuestionExecution(_context);
+        }
+
+        public ILegislativeMaterialAction LegislativeMaterialAction()
+        {
+            return new LegislativeMaterialExecution(_context);
+        }
     }
 }

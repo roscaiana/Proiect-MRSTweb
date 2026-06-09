@@ -101,6 +101,48 @@ export type ContactMessageDto = {
     message: string;
 };
 
+export type SupportQuestionDto = {
+    id: number;
+    category: string;
+    question: string;
+    answer: string;
+    sortOrder: number;
+    isPublished: boolean;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type SupportQuestionInputDto = {
+    category: string;
+    question: string;
+    answer: string;
+    sortOrder: number;
+    isPublished: boolean;
+};
+
+export type LegislativeMaterialDto = {
+    id: number;
+    title: string;
+    description: string;
+    category: string;
+    sourceUrl?: string | null;
+    sortOrder: number;
+    isPublished: boolean;
+    publishedAt: string;
+    createdAt: string;
+    updatedAt: string;
+};
+
+export type LegislativeMaterialInputDto = {
+    title: string;
+    description: string;
+    category: string;
+    sourceUrl?: string;
+    sortOrder: number;
+    isPublished: boolean;
+    publishedAt: string;
+};
+
 export type QuizAnswerCheckRequestDto = {
     sessionId: string;
     questionId: number;

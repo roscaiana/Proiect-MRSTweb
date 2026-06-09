@@ -2,9 +2,11 @@ using System.Text.Json;
 using e_ElectoralWeb.DataAccessLayer.Context;
 using e_ElectoralWeb.Domain.Entities.AnswerOption;
 using e_ElectoralWeb.Domain.Entities.ExamSettings;
+using e_ElectoralWeb.Domain.Entities.LegislativeMaterial;
 using e_ElectoralWeb.Domain.Entities.News;
 using e_ElectoralWeb.Domain.Entities.Question;
 using e_ElectoralWeb.Domain.Entities.Quiz;
+using e_ElectoralWeb.Domain.Entities.SupportQuestion;
 using e_ElectoralWeb.Domain.Entities.User;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
@@ -32,6 +34,8 @@ public static class DBSeed
         await SeedQuizDataAsync(quizDb, cancellationToken);
         await SeedNewsAsync(quizDb, cancellationToken);
         await SeedExamSettingsAsync(quizDb, cancellationToken);
+        await SeedSupportQuestionsAsync(quizDb, cancellationToken);
+        await SeedLegislativeMaterialsAsync(quizDb, cancellationToken);
     }
 
     private static async Task MigrateIfNeededAsync(DbContext dbContext, CancellationToken cancellationToken)
@@ -273,6 +277,181 @@ public static class DBSeed
             SlotOverrides = "[]",
         });
 
+        await quizDb.SaveChangesAsync(cancellationToken);
+    }
+
+    private static async Task SeedSupportQuestionsAsync(QuizDbContext quizDb, CancellationToken cancellationToken)
+    {
+        var hasSupportQuestions = await quizDb.SupportQuestions.AnyAsync(cancellationToken);
+        if (hasSupportQuestions) return;
+
+        var now = DateTime.UtcNow;
+        var questions = new List<SupportQuestionData>
+        {
+            new() {
+                Category = "general",
+                Question = "Cine se poate înscrie la cursurile e-Electoral?",
+                Answer = "La cursurile de pe platforma e-Electoral se pot înscrie candidații care doresc să obțină certificarea în domeniul electoral, inclusiv viitori funcționari, observatori sau reprezentanți politici.",
+                SortOrder = 1,
+                IsPublished = true,
+                CreatedAt = now,
+                UpdatedAt = now,
+            },
+            new() {
+                Category = "exam",
+                Question = "Cum pot accesa simulările de examen?",
+                Answer = "Simulările de examen pot fi accesate din secțiunea Teste. Modul Antrenament oferă feedback imediat, iar modul Examen afișează rezultatul la final.",
+                SortOrder = 2,
+                IsPublished = true,
+                CreatedAt = now,
+                UpdatedAt = now,
+            },
+            new() {
+                Category = "general",
+                Question = "Se oferă sprijin post-certificare?",
+                Answer = "Da, platforma oferă resurse de actualizare a cunoștințelor și după promovarea examenului, pentru a urmări modificările legislative relevante.",
+                SortOrder = 3,
+                IsPublished = true,
+                CreatedAt = now,
+                UpdatedAt = now,
+            },
+            new() {
+                Category = "exam",
+                Question = "Cât timp este valabil certificatul obținut?",
+                Answer = "Certificatul de calificare electorală este valabil pentru perioada stabilită de cadrul normativ aplicabil. Verifică pagina de materiale legislative pentru regulile actuale.",
+                SortOrder = 4,
+                IsPublished = true,
+                CreatedAt = now,
+                UpdatedAt = now,
+            },
+            new() {
+                Category = "exam",
+                Question = "Ce se întâmplă dacă nu promovez examenul?",
+                Answer = "Dacă nu obții punctajul minim, poți relua pregătirea și consulta rezultatele pentru a vedea răspunsurile corecte și zonele care trebuie revizuite.",
+                SortOrder = 5,
+                IsPublished = true,
+                CreatedAt = now,
+                UpdatedAt = now,
+            },
+            new() {
+                Category = "technical",
+                Question = "Cum îmi pot recupera parola?",
+                Answer = "Dacă ai uitat parola, contactează echipa de suport prin formularul de contact. Într-o versiune ulterioară se poate adăuga recuperarea automată prin e-mail.",
+                SortOrder = 6,
+                IsPublished = true,
+                CreatedAt = now,
+                UpdatedAt = now,
+            },
+            new() {
+                Category = "technical",
+                Question = "Pot accesa platforma de pe dispozitive mobile?",
+                Answer = "Da, platforma e-Electoral este responsivă și poate fi folosită de pe telefon, tabletă sau calculator.",
+                SortOrder = 7,
+                IsPublished = true,
+                CreatedAt = now,
+                UpdatedAt = now,
+            },
+            new() {
+                Category = "general",
+                Question = "Care este durata medie a pregătirii?",
+                Answer = "Durata depinde de nivelul de pregătire al candidatului și de materialele parcurse. Pentru simulare, testul de examen folosește 30 de întrebări și 30 de minute.",
+                SortOrder = 8,
+                IsPublished = true,
+                CreatedAt = now,
+                UpdatedAt = now,
+            },
+            new() {
+                Category = "technical",
+                Question = "Ce fac dacă întâmpin probleme tehnice în timpul simulării?",
+                Answer = "Dacă apar probleme tehnice, folosește pagina Contact și descrie cât mai clar situația, browserul folosit și pașii care au dus la eroare.",
+                SortOrder = 9,
+                IsPublished = true,
+                CreatedAt = now,
+                UpdatedAt = now,
+            },
+        };
+
+        quizDb.SupportQuestions.AddRange(questions);
+        await quizDb.SaveChangesAsync(cancellationToken);
+    }
+
+    private static async Task SeedLegislativeMaterialsAsync(QuizDbContext quizDb, CancellationToken cancellationToken)
+    {
+        var hasMaterials = await quizDb.LegislativeMaterials.AnyAsync(cancellationToken);
+        if (hasMaterials) return;
+
+        var now = DateTime.UtcNow;
+        var materials = new List<LegislativeMaterialData>
+        {
+            new() {
+                Title = "Codul electoral al Republicii Moldova",
+                Description = "Document de bază pentru pregătirea în domeniul electoral, cu prevederi privind organizarea și desfășurarea proceselor electorale.",
+                Category = "Cod electoral",
+                SourceUrl = "/legislative-materials/cod-electoral-148773.pdf",
+                SortOrder = 1,
+                IsPublished = true,
+                PublishedAt = now,
+                CreatedAt = now,
+                UpdatedAt = now,
+            },
+            new() {
+                Title = "Codul administrativ al Republicii Moldova",
+                Description = "Act normativ relevant pentru procedura administrativă, activitatea autorităților publice și raporturile juridice administrative.",
+                Category = "Cod administrativ",
+                SourceUrl = "/legislative-materials/cod-administrativ-138256.pdf",
+                SortOrder = 2,
+                IsPublished = true,
+                PublishedAt = now,
+                CreatedAt = now,
+                UpdatedAt = now,
+            },
+            new() {
+                Title = "Codul contravențional al Republicii Moldova",
+                Description = "Act legislativ care reglementează răspunderea contravențională și sancțiunile aplicabile pentru fapte contravenționale.",
+                Category = "Cod contravențional",
+                SourceUrl = "/legislative-materials/cod-contraventional-143538.pdf",
+                SortOrder = 3,
+                IsPublished = true,
+                PublishedAt = now,
+                CreatedAt = now,
+                UpdatedAt = now,
+            },
+            new() {
+                Title = "Sesiunea de certificare 2026",
+                Description = "Material pentru pregătirea sesiunii de certificare 2026, utilizat la studierea și recapitularea conținutului necesar examenului.",
+                Category = "Certificare",
+                SourceUrl = "/legislative-materials/sesiunea-certificare-2026.pdf",
+                SortOrder = 4,
+                IsPublished = true,
+                PublishedAt = now,
+                CreatedAt = now,
+                UpdatedAt = now,
+            },
+            new() {
+                Title = "Codul penal al Republicii Moldova",
+                Description = "Act legislativ care stabilește principiile dreptului penal, infracțiunile și pedepsele aplicabile conform legislației Republicii Moldova.",
+                Category = "Cod penal",
+                SourceUrl = "/legislative-materials/cod-penal-143535.pdf",
+                SortOrder = 5,
+                IsPublished = true,
+                PublishedAt = now,
+                CreatedAt = now,
+                UpdatedAt = now,
+            },
+            new() {
+                Title = "Constituția Republicii Moldova",
+                Description = "Legea supremă a Republicii Moldova, relevantă pentru înțelegerea principiilor constituționale și a cadrului general al statului de drept.",
+                Category = "Constituție",
+                SourceUrl = "/legislative-materials/constitutia-republicii-moldova-142462.pdf",
+                SortOrder = 6,
+                IsPublished = true,
+                PublishedAt = now,
+                CreatedAt = now,
+                UpdatedAt = now,
+            },
+        };
+
+        quizDb.LegislativeMaterials.AddRange(materials);
         await quizDb.SaveChangesAsync(cancellationToken);
     }
 

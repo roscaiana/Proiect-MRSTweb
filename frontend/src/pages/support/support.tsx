@@ -2,6 +2,8 @@
 import { Link } from "react-router-dom";
 import { Search, LifeBuoy, FileText, HelpCircle, Calculator } from "lucide-react";
 import { FaqItem, FaqCategory } from "@/types/support1.1";
+import { supportQuestionService } from "../../services";
+import type { SupportQuestionDto } from "../../services";
 import Sidebar from "../../components/SideBar/SideBar";
 import SupportCategoryButton from "./SupportCategoryButton";
 import SupportFaqItem from "./SupportFaqItem";
@@ -12,6 +14,9 @@ const Support: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("all");
     const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+    const [supportQuestions, setSupportQuestions] = useState<SupportQuestionDto[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState("");
 
     const categories: FaqCategory[] = [
         { id: "all", title: "Toate întrebările", icon: HelpCircle },
@@ -20,62 +25,16 @@ const Support: React.FC = () => {
         { id: "technical", title: "Suport Tehnic", icon: LifeBuoy },
     ];
 
-    const faqs: (FaqItem & { category: string })[] = [
-        {
-            category: "general",
-            question: "Cine se poate înscrie la cursurile e-Electoral?",
-            answer:
-                "La cursurile de pe platforma e-Electoral se pot înscrie toți candidații care doresc să obțină certificarea în domeniul electoral, inclusiv viitori funcționari, observatori sau reprezentanți politici.",
-        },
-        {
-            category: "exam",
-            question: "Cum pot accesa simulările de examen?",
-            answer:
-                "Simulările de examen pot fi accesate din secțiunea Resources Studiu după autentificare. Acestea imită formatul oficial al examenului de certificare.",
-        },
-        {
-            category: "general",
-            question: "Se oferă sprijin post-certificare?",
-            answer:
-                "Da, e-Electoral oferă resurse de actualizare a cunoștințelor și după promovarea examenului, pentru a fi la curent cu ultimele modificări legislative.",
-        },
-        {
-            category: "exam",
-            question: "Cât timp este valabil certificatul obținut?",
-            answer:
-                "Certificatul de calificare electorală este valabil pentru o perioadă de 4 ani, după care este necesară o nouă evaluare pentru reconfirmarea competențelor.",
-        },
-        {
-            category: "exam",
-            question: "Ce se întâmplă dacă nu promovez examenul?",
-            answer:
-                "În cazul în care nu obțineți punctajul minim, aveți dreptul la o reevaluare după o perioadă de studiu suplimentar. Platforma e-Electoral vă va recomanda modulele pe care trebuie să le revizuiți.",
-        },
-        {
-            category: "technical",
-            question: "Cum îmi pot recupera parola?",
-            answer:
-                "Dacă ați uitat parola, utilizați funcția de recuperare de pe pagina de login. Veți primi un e-mail cu instrucțiuni pentru setarea unei parole noi.",
-        },
-        {
-            category: "technical",
-            question: "Pot accesa cursurile de pe dispozitive mobile?",
-            answer:
-                "Da, platforma e-Electoral este complet responsivă și poate fi accesată de pe smartphone sau tabletă, oferind o experiență de învățare optimizată pentru orice ecran.",
-        },
-        {
-            category: "general",
-            question: "Care este durata medie a unui curs de pregătire?",
-            answer:
-                "Durata variază în funcție de complexitatea modulului, dar în medie, un curs complet de pregătire pentru certificare durează între 20 și 40 de ore de studiu individual.",
-        },
-        {
-            category: "technical",
-            question: "Ce fac dacă întâmpin probleme tehnice în timpul simulării?",
-            answer:
-                "Dacă întâmpinați erori tehnice, vă rugăm să contactați echipa de suport prin formularul de contact sau să utilizați chat-ul de asistență disponibil în colțul din dreapta jos al ecranului.",
-        },
-    ];
+    const faqs: (FaqItem & { id: number; category: string })[] = useMemo(
+        () =>
+            supportQuestions.map((item) => ({
+                id: item.id,
+                category: item.category,
+                question: item.question,
+                answer: item.answer,
+            })),
+        [supportQuestions],
+    );
 
     const filteredFaqs = useMemo(() => {
         return faqs.filter((faq) => {
@@ -85,6 +44,39 @@ const Support: React.FC = () => {
             const matchesCategory = activeCategory === "all" || faq.category === activeCategory;
             return matchesSearch && matchesCategory;
         });
+    }, [activeCategory, faqs, searchQuery]);
+
+    useEffect(() => {
+        let ignore = false;
+
+        const loadSupportQuestions = async () => {
+            try {
+                setLoading(true);
+                setLoadError("");
+                const data = await supportQuestionService.getPublished();
+                if (!ignore) {
+                    setSupportQuestions(data);
+                }
+            } catch {
+                if (!ignore) {
+                    setLoadError("Întrebările de suport nu au putut fi încărcate din backend.");
+                }
+            } finally {
+                if (!ignore) {
+                    setLoading(false);
+                }
+            }
+        };
+
+        void loadSupportQuestions();
+
+        return () => {
+            ignore = true;
+        };
+    }, []);
+
+    useEffect(() => {
+        setOpenFaqIndex(null);
     }, [activeCategory, searchQuery]);
 
     useEffect(() => {
@@ -168,10 +160,18 @@ const Support: React.FC = () => {
                             </div>
 
                             <div className="faq-section">
-                                {filteredFaqs.length > 0 ? (
+                                {loading && <div className="support-loading">Se încarcă întrebările de suport...</div>}
+
+                                {loadError && (
+                                    <div className="support-alert" role="alert">
+                                        {loadError}
+                                    </div>
+                                )}
+
+                                {!loading && !loadError && filteredFaqs.length > 0 ? (
                                     filteredFaqs.map((faq, index) => (
                                         <SupportFaqItem
-                                            key={`${faq.question}-${index}`}
+                                            key={faq.id}
                                             faq={faq}
                                             index={index}
                                             isOpen={openFaqIndex === index}
@@ -180,7 +180,9 @@ const Support: React.FC = () => {
                                             }
                                         />
                                     ))
-                                ) : (
+                                ) : null}
+
+                                {!loading && !loadError && filteredFaqs.length === 0 ? (
                                     <div className="no-results">
                                         <div className="no-results-icon">
                                             <Search className="w-12 h-12 text-slate-300" />
@@ -199,7 +201,7 @@ const Support: React.FC = () => {
                                             Resetează filtrele
                                         </button>
                                     </div>
-                                )}
+                                ) : null}
                             </div>
                         </div>
                     </div>

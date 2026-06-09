@@ -4,6 +4,7 @@ type ResourceCard = {
     title: string;
     description: string;
     tag: string;
+    sourceUrl?: string | null;
 };
 
 type LegislativeResourceCardProps = {

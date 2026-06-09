@@ -12,6 +12,7 @@ const navItems = [
     { to: "/admin/appointments", label: "Programări", iconClass: "fas fa-calendar-check" },
     { to: "/admin/notifications", label: "Notificări", iconClass: "fas fa-bell" },
     { to: "/admin/news", label: "Noutăți", iconClass: "fas fa-newspaper" },
+    { to: "/admin/support", label: "Suport", iconClass: "fas fa-circle-question" },
     { to: "/admin/legislative-materials", label: "Materiale", iconClass: "fas fa-book-open" },
 ];
 
